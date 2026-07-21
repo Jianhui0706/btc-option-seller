@@ -8,8 +8,10 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 
 from . import api, webhook
 from .config import db_path, load_config
@@ -82,3 +84,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="BTC Option Seller V2", lifespan=lifespan)
 app.include_router(webhook.router)
 app.include_router(api.router)
+
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
+
+@app.get("/")
+async def dashboard():
+    return FileResponse(STATIC_DIR / "index.html")

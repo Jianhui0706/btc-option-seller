@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTC 期权卖方 V2 监控台</title>
+<style>
+  :root { --bg:#0f1419; --panel:#171e26; --border:#2a3542; --text:#d8e0e8;
+          --dim:#7b8a99; --green:#3fb68b; --red:#e05260; --yellow:#e0b050;
+          --blue:#5a9bd5; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text);
+         font:13px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif; padding:14px; }
+  h1 { font-size:16px; display:inline-block; margin-right:14px; }
+  .badge { padding:2px 8px; border-radius:4px; font-size:12px; font-weight:600; }
+  .badge.testnet { background:#1d3d31; color:var(--green); }
+  .badge.mainnet { background:#46242a; color:var(--red); }
+  .topbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+            margin-bottom:12px; }
+  button { background:#233042; color:var(--text); border:1px solid var(--border);
+           border-radius:5px; padding:5px 12px; cursor:pointer; font-size:12px; }
+  button:hover { background:#2d3d52; }
+  button.danger { border-color:#5c3038; color:var(--red); }
+  button.danger:hover { background:#46242a; }
+  button.primary { border-color:#2d4d6b; color:var(--blue); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(430px,1fr));
+          gap:12px; }
+  .panel { background:var(--panel); border:1px solid var(--border);
+           border-radius:8px; padding:12px; }
+  .panel h2 { font-size:13px; color:var(--dim); margin-bottom:8px;
+              letter-spacing:.5px; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th { color:var(--dim); text-align:left; font-weight:500; padding:3px 6px;
+       border-bottom:1px solid var(--border); white-space:nowrap; }
+  td { padding:3px 6px; border-bottom:1px solid #1e2831; font-variant-numeric:tabular-nums; }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:2px 14px; font-size:13px; }
+  .kv span:nth-child(odd) { color:var(--dim); }
+  .num { font-variant-numeric:tabular-nums; }
+  .pos { color:var(--green); } .neg { color:var(--red); }
+  .lv-ERROR { color:var(--red); } .lv-WARN { color:var(--yellow); }
+  .lv-INFO { color:var(--dim); }
+  .st-good { color:var(--green); } .st-busy { color:var(--yellow); }
+  .st-done { color:var(--dim); } .st-bad { color:var(--red); }
+  .scroll { max-height:340px; overflow-y:auto; }
+  #err { display:none; background:#46242a; color:var(--red); padding:6px 10px;
+         border-radius:5px; margin-bottom:10px; }
+  .muted { color:var(--dim); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>BTC 期权卖方 V2</h1>
+  <span id="envBadge" class="badge">…</span>
+  <span id="tradingState" class="muted">…</span>
+  <span id="scanAge" class="muted"></span>
+  <span style="flex:1"></span>
+  <button id="btnTrading" class="primary" onclick="toggleTrading()">…</button>
+  <span id="testBtns" style="display:none">
+    <button onclick="testSignal('PUT_CREDIT')">模拟PUT开仓</button>
+    <button onclick="testSignal('CALL_CREDIT')">模拟CALL开仓</button>
+    <button onclick="testSignal('EXIT_DVOL')">模拟DVOL退出</button>
+  </span>
+  <button class="danger" onclick="forceClose()">全部强平</button>
+  <button id="btnClearFC" style="display:none" class="danger"
+          onclick="clearForceClose()">解除强平锁定</button>
+</div>
+<div id="err"></div>
+
+<div class="grid">
+  <div class="panel">
+    <h2>账户</h2>
+    <div class="kv" id="account">加载中…</div>
+    <h2 style="margin-top:10px">交易所持仓</h2>
+    <div id="positions" class="scroll"></div>
+  </div>
+
+  <div class="panel">
+    <h2>活跃交易</h2>
+    <div id="active" class="scroll">无</div>
+  </div>
+
+  <div class="panel" style="grid-column:1/-1">
+    <h2>事件流（最近 60 条 · 鼠标悬停查看原始数据）</h2>
+    <div class="scroll"><table id="events"></table></div>
+  </div>
+
+  <div class="panel">
+    <h2>历史交易</h2>
+    <div class="scroll"><table id="trades"></table></div>
+  </div>
+
+  <div class="panel">
+    <h2>对冲统计（7 天）</h2>
+    <table id="hedgeStats"></table>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let token = localStorage.getItem("xauth") || "";
+
+async function api(path, opts) {
+  const headers = Object.assign({}, (opts && opts.headers) || {});
+  if (token) headers["X-Auth"] = token;
+  const r = await fetch(path, Object.assign({}, opts, {headers}));
+  if (r.status === 401) {
+    token = prompt("远程访问需要口令（后端 .env 的 WEBHOOK_SECRET）：") || "";
+    localStorage.setItem("xauth", token);
+    if (token) return api(path, opts);
+    throw new Error("未授权");
+  }
+  if (!r.ok) throw new Error(path + " → HTTP " + r.status + " " + await r.text());
+  return r.json();
+}
+
+const fmt = (x, d=4) => (x == null || isNaN(x)) ? "—" : Number(x).toFixed(d);
+const cls = x => x > 0 ? "pos" : x < 0 ? "neg" : "";
+const ts = ms => ms ? new Date(Number(ms)).toLocaleString("zh-CN", {hour12:false}) : "—";
+const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;")
+                 .replace(/"/g,"&quot;");
+
+/* ---------------- 中文化字典 ---------------- */
+const STATE_CN = {
+  SIGNAL_RECEIVED:"收到信号", POSITION_CHECKING:"持仓检查", SELECTING_LEGS:"选腿中",
+  OPENING:"开仓中", OPEN:"持仓中", PARTIALLY_CLOSED:"部分平仓", CLOSING:"平仓中",
+  CLOSED:"已平仓", FORCE_CLOSED:"已强平", OPEN_FAILED:"开仓失败",
+  HEDGE_INACTIVE:"对冲未激活", HEDGE_ACTIVE:"对冲激活", HEDGE_REBALANCING:"对冲调整中",
+  HEDGE_RELEASE_PENDING:"撤销待确认", HEDGE_CLOSING:"对冲平仓中",
+};
+const STATE_CLS = {
+  OPEN:"st-good", HEDGE_ACTIVE:"st-good",
+  OPENING:"st-busy", CLOSING:"st-busy", SELECTING_LEGS:"st-busy",
+  HEDGE_REBALANCING:"st-busy", HEDGE_RELEASE_PENDING:"st-busy", HEDGE_CLOSING:"st-busy",
+  CLOSED:"st-done", HEDGE_INACTIVE:"st-done",
+  FORCE_CLOSED:"st-bad", OPEN_FAILED:"st-bad",
+};
+const st = s => STATE_CN[s] || s || "—";
+const stHtml = s => `<span class="${STATE_CLS[s]||''}">${st(s)}</span>`;
+const SPREAD_CN = { PUT_CREDIT:"PUT信用价差", CALL_CREDIT:"CALL信用价差" };
+const sp = s => SPREAD_CN[s] || s;
+const REASON_CN = {
+  EXIT_DVOL_ROLLING_30:"DVOL低于滚动30分位", EXPIRY_DTE:"临近到期",
+  RESUME:"重启续平", NORMAL:"正常", manual:"人工", ui_manual:"面板手动",
+  e2e_drill:"强平演练",
+};
+const rs = r => REASON_CN[r] || r || "";
+const EVENT_CN = {
+  STATE_TRANSITION:"状态变更", OPENED:"开仓完成", NORMAL_CLOSE:"正常平仓",
+  FORCE_CLOSE_MANUAL:"人工强平", FORCE_CLOSE_RISK:"风控强平",
+  BEP_HEDGE_ACTIVATED:"对冲激活", DELTA_HEDGE_REBALANCE:"对冲调整",
+  HEDGE_RELEASE_PENDING:"对冲撤销待确认", HEDGE_RELEASE_CANCELLED:"对冲撤销取消",
+  HEDGE_TARGET_ZERO:"对冲归零", EXIT_DVOL_ROLLING_30:"DVOL退出触发",
+  OPEN_FAILED_UNWOUND:"买腿回滚", RECONCILE_MISMATCH:"启动核对",
+  SCAN_ERROR:"处理异常",
+  REJECT_DUPLICATE_SIGNAL:"拒绝·重复信号", REJECT_EXISTING_OPTION_SHORT:"拒绝·已有卖方持仓",
+  REJECT_NO_VALID_LEGS:"拒绝·无可用腿", REJECT_INSUFFICIENT_RISK_BUDGET:"拒绝·预算不足",
+  REJECT_BAD_PAYLOAD:"拒绝·信号格式错误", REJECT_TRADING_DISABLED:"拒绝·交易未开启",
+};
+
+/* 事件详情 → 中文句子 */
+function evText(e) {
+  let p = {};
+  try { p = JSON.parse(e.payload_json || "{}"); } catch {}
+  const tr = (p.from_state && p.to_state)
+    ? `${st(p.from_state)} → ${st(p.to_state)}` : null;
+  switch (e.code) {
+    case "STATE_TRANSITION": {
+      let s = tr ? `状态：${tr}` : "";
+      if (p.sell) s += `；卖腿 ${p.sell} / 买腿 ${p.buy}，计划 ${fmt(p.qty,1)} 张，` +
+                       `预估净权利金 ${fmt(p.credit_est)} BTC/张`;
+      if (p.note) s += `（${p.note}）`;
+      return s || "—";
+    }
+    case "OPENED": {
+      let s = `成交 ${fmt(p.qty,1)} 张，净权利金 ${fmt(p.net_credit)} BTC/张，` +
+              `盈亏平衡点 ${fmt(p.bep,1)}`;
+      if (p.groups) s += `，子组 [${p.groups.join(", ")}]`;
+      if (p.combo_qty > 0) s += `（其中组合簿原子成交 ${fmt(p.combo_qty,1)} 张）`;
+      if (p.note === "reconciled from trades") s += "（重启后按 Deribit 成交记录恢复）";
+      return s;
+    }
+    case "NORMAL_CLOSE": {
+      if (p.closed_qty != null)
+        return `平仓完成：${fmt(p.closed_qty,1)} 张，原因「${rs(p.reason)}」，` +
+               `每张盈亏 ${fmt(p.per_contract_pnl,5)} BTC` +
+               (p.execution_complete === false ? "（⚠执行未完整）" : "");
+      return `开始平仓，原因「${rs(p.reason)}」` + (tr ? `（${tr}）` : "");
+    }
+    case "FORCE_CLOSE_MANUAL":
+    case "FORCE_CLOSE_RISK": {
+      const src = e.code === "FORCE_CLOSE_MANUAL" ? "人工" : "风控";
+      if (p.stage === "start") return `${src}强平开始，原因「${rs(p.reason)}」`;
+      if (p.stage === "done")
+        return `${src}强平完成` + (p.clean ? "，账户已全部清仓 ✓"
+               : `，⚠未清干净：${(p.incomplete||[]).join(", ")}`);
+      if (tr) return `状态：${tr}（${src}强平）`;
+      return `${src}强平指令已入队，原因「${rs(p.reason)}」`;
+    }
+    case "BEP_HEDGE_ACTIVATED":
+      return `3分钟K线收盘价 ${fmt(p.bar_close,1)} 触及盈亏平衡点 ${fmt(p.bep,1)}，` +
+             `开始 Delta 对冲`;
+    case "DELTA_HEDGE_REBALANCE":
+      return `净Delta ${fmt(p.net_delta)} 超过阈值，调整期货 ${fmt(p.order_usd,0)} USD`;
+    case "HEDGE_RELEASE_PENDING":
+      return `价格 ${fmt(p.bar_close,1)} 回到撤销线内侧，等下一根3分钟K线确认后平掉对冲`;
+    case "HEDGE_RELEASE_CANCELLED":
+      return `价格 ${fmt(p.bar_close,1)} 重新突破盈亏平衡点，取消撤销、继续对冲`;
+    case "HEDGE_TARGET_ZERO":
+      return "对冲目标归零，平掉全部对冲期货";
+    case "EXIT_DVOL_ROLLING_30": {
+      const src = {backend:"后端自算", tradingview:"TradingView信号", "ui-test":"面板模拟"}[p.source] || p.source || "";
+      let s = `DVOL 跌破滚动30分位（${src}）`;
+      if (p.current != null) s += `：当前 ${fmt(p.current,2)} < 阈值 ${fmt(p.threshold,2)}`;
+      if (p.parents && p.parents.length) s += `，平仓交易 #${p.parents.join(", #")}`;
+      return s;
+    }
+    case "OPEN_FAILED_UNWOUND":
+      return `卖腿未能跟上，已回滚多余买腿 ${fmt(p.unwound,1)} 张` +
+             (p.note ? `（${p.note}）` : "");
+    case "RECONCILE_MISMATCH":
+      return (p.note || "启动时与交易所核对发现差异") + (tr ? `；状态：${tr}` : "");
+    case "SCAN_ERROR":
+      return `处理「${p.command || "?"}」命令时出错：${p.error || "（进程中断）"}`;
+    case "REJECT_DUPLICATE_SIGNAL": return `信号 ${p.signal_id || ""} 已处理过，忽略`;
+    case "REJECT_EXISTING_OPTION_SHORT":
+      return "账户已存在期权卖方持仓，拒绝新开仓" +
+             (p.shorts ? `：${p.shorts.join(", ")}` : "") +
+             (p.active_parent_ids ? `（活跃交易 #${p.active_parent_ids.join(", #")}）` : "");
+    case "REJECT_NO_VALID_LEGS":
+      return `没有满足约束的腿组合（到期 ${fmt(p.dte,1)} 天，检查了 ${p.checked || "?"} 个到期日）`;
+    case "REJECT_INSUFFICIENT_RISK_BUDGET":
+      return `风险预算不足：权益 ${fmt(p.equity,2)} BTC，每张最大亏损 ${fmt(p.max_loss)} BTC`;
+    case "REJECT_BAD_PAYLOAD":
+      return "信号内容不合法：" + (p.error || p.reason ||
+             (p.spread_type ? `spread_type=${p.spread_type}` : "") ||
+             (p.dvol_tier != null ? `档位${p.dvol_tier}与分位${p.dvol_percentile}不自洽` : ""));
+    case "REJECT_TRADING_DISABLED":
+      return p.force_close ? "强平锁定中，拒绝开仓" : "交易开关未开启，拒绝开仓";
+    default:
+      return e.payload_json || "";
+  }
+}
+
+let lastStatus = null;
+
+async function refresh() {
+  try {
+    const st_ = await api("/status");
+    lastStatus = st_;
+    $("err").style.display = "none";
+    $("envBadge").textContent = st_.env.toUpperCase();
+    $("envBadge").className = "badge " + st_.env;
+    $("testBtns").style.display = st_.env === "testnet" ? "inline" : "none";
+    $("tradingState").textContent = (st_.trading_enabled ? "交易开启" : "交易关闭")
+      + (st_.force_close_active ? " · ⛔强平锁定中" : "")
+      + (st_.hedge_frozen ? " · 对冲冻结" : "");
+    $("btnTrading").textContent = st_.trading_enabled ? "关闭交易" : "开启交易";
+    $("btnClearFC").style.display = st_.force_close_active ? "" : "none";
+    const age = st_.last_scan_ts ? Math.round((st_.server_ts - st_.last_scan_ts)/1000) : null;
+    $("scanAge").textContent = age == null ? "尚未扫描"
+      : "上次扫描 " + age + " 秒前" + (age > 400 ? " ⚠扫描停滞" : "");
+
+    $("active").innerHTML = st_.active_trades.length ? st_.active_trades.map(t => {
+      const p = t.parent, h = t.hedge;
+      return `<div style="border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:8px">
+        <b>#${p.id} ${sp(p.spread_type)}</b> ${stHtml(p.state)}
+        <div class="kv" style="margin-top:4px">
+          <span>卖腿</span><span>${p.sell_instrument || "选腿中…"}</span>
+          <span>买腿</span><span>${p.buy_instrument || "选腿中…"}</span>
+          <span>数量 / 净权利金</span><span>${fmt(p.qty_total,1)} 张 · ${fmt(p.net_credit_btc)} BTC/张</span>
+          <span>盈亏平衡点</span><span>${fmt(p.bep_price,1)}</span>
+          <span>对冲</span><span>${h ? stHtml(h.state) + " · 期货 " + fmt(h.futures_usd,0) +
+            " USD (Δ" + fmt(h.futures_delta_btc) + ")" : "—"}</span>
+          <span>子组</span><span>${t.groups.length ? t.groups.map(g =>
+            `G${g.group_index}: ${fmt(g.qty,1)}张 ${stHtml(g.state)}`).join("　") : "开仓完成后拆分"}</span>
+        </div></div>`;
+    }).join("") : "<span class='muted'>无活跃交易</span>";
+
+    const [acc, evs, tr, hs] = await Promise.all([
+      api("/account"), api("/events?limit=60"), api("/trades?limit=30"),
+      api("/hedge_stats?days=7")]);
+
+    $("account").innerHTML = `
+      <span>权益</span><span class="num">${fmt(acc.equity_btc)} BTC</span>
+      <span>可用</span><span class="num">${fmt(acc.available_funds)} BTC</span>
+      <span>维持保证金率</span><span class="num">${fmt(acc.margin_ratio*100,2)}%</span>
+      <span>BTC 指数价</span><span class="num">${fmt(acc.index_price,1)}</span>
+      <span>期权净Delta</span><span class="num ${cls(acc.net_option_delta)}">${fmt(acc.net_option_delta)}</span>
+      <span>永续对冲</span><span class="num">${fmt(acc.perp_usd,0)} USD (Δ${fmt(acc.perp_delta)})</span>`;
+
+    $("positions").innerHTML = (acc.option_positions.length || acc.open_orders.length) ?
+      "<table><tr><th>合约</th><th>数量</th><th>Delta</th><th>标记价</th><th>浮盈</th></tr>" +
+      acc.option_positions.map(p =>
+        `<tr><td>${p.instrument}</td><td class="${cls(p.size)}">${fmt(p.size,1)}</td>
+         <td>${fmt(p.delta)}</td><td>${fmt(p.mark_price)}</td>
+         <td class="${cls(p.pnl)}">${fmt(p.pnl)}</td></tr>`).join("") +
+      acc.open_orders.map(o =>
+        `<tr><td>${o.instrument} <span class="muted">[挂单]</span></td>
+         <td>${o.direction === "buy" ? "买" : "卖"} ${o.amount}</td>
+         <td colspan=3>@ ${o.price}</td></tr>`).join("") +
+      "</table>" : "<span class='muted'>无持仓、无挂单</span>";
+
+    $("events").innerHTML = "<tr><th>时间</th><th>事件</th><th>说明</th></tr>" +
+      evs.map(e => `<tr title="${esc(e.code)} ${esc(e.payload_json)}">
+        <td class="muted" style="white-space:nowrap">${ts(e.ts)}</td>
+        <td class="lv-${e.level}" style="white-space:nowrap">${EVENT_CN[e.code] || e.code}</td>
+        <td>${esc(evText(e)) || "<span class='muted'>—</span>"}</td></tr>`).join("");
+
+    $("trades").innerHTML = "<tr><th>#</th><th>类型</th><th>状态</th><th>数量</th>" +
+      "<th>净权利金</th><th>平衡点</th><th>已实现盈亏</th></tr>" +
+      tr.map(p => {
+        const pnl = p.groups.reduce((s,g) => s + (g.realized_pnl_btc||0), 0);
+        return `<tr><td>${p.id}</td><td>${sp(p.spread_type)}</td>
+          <td>${stHtml(p.state)}</td><td>${fmt(p.qty_total,1)}</td>
+          <td>${fmt(p.net_credit_btc)}</td><td>${fmt(p.bep_price,1)}</td>
+          <td class="${cls(pnl)}">${fmt(pnl,5)} BTC</td></tr>`;
+      }).join("");
+
+    $("hedgeStats").innerHTML = "<tr><th>日期</th><th>对冲次数</th><th>手续费(BTC)</th>" +
+      "<th>平均单量(USD)</th><th>低于最小量跳过</th><th>低于阈值跳过</th></tr>" +
+      (hs.length ? hs.map(h => `<tr><td>${h.day}</td><td>${h.hedge_trades||0}</td>
+        <td>${fmt(h.total_fee,8)}</td><td>${h.avg_order_usd??"—"}</td>
+        <td>${h.skipped_min_amount||0}</td><td>${h.skipped_below_trigger||0}</td></tr>`).join("")
+        : "<tr><td colspan=6 class='muted'>暂无对冲记录</td></tr>");
+  } catch (e) {
+    $("err").textContent = "后端不可达或出错：" + e.message;
+    $("err").style.display = "block";
+  }
+}
+
+async function toggleTrading() {
+  const on = !(lastStatus && lastStatus.trading_enabled);
+  if (!on && !confirm("确定关闭交易？（停止接受新开仓信号）")) return;
+  await api("/control/trading?enabled=" + on, {method:"POST"});
+  refresh();
+}
+async function forceClose() {
+  const w = prompt("⚠ 将撤销全部挂单、平掉全部期权腿和期货对冲。\n输入 YES 确认执行：");
+  if (w !== "YES") return;
+  await api("/control/force_close?reason=ui_manual", {method:"POST"});
+  refresh();
+}
+async function clearForceClose() {
+  if (!confirm("确认账户已核对清仓，解除强平锁定？")) return;
+  await api("/control/clear_force_close", {method:"POST"});
+  refresh();
+}
+async function testSignal(kind) {
+  if (!confirm("发送模拟信号 " + (SPREAD_CN[kind] || "DVOL退出") + "（仅 testnet）？")) return;
+  try {
+    const r = await api("/control/test_signal?kind=" + kind + "&tier=2", {method:"POST"});
+    alert("已入队: " + JSON.stringify(r));
+  } catch (e) { alert(e.message); }
+  refresh();
+}
+
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>
