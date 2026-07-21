@@ -37,8 +37,10 @@ call_hedge_release_pct = input.float(98.0, "call_hedge_release_pct (%)", group =
 put_hedge_release_pct = input.float(102.0, "put_hedge_release_pct (%)", group = grpMisc)
 
 grpWh = "Webhook"
-passphrase = input.string("", "passphrase（与后端 WEBHOOK_SECRET 一致）", group = grpWh)
+passphrase = input.string("", "passphrase（与后端 WEBHOOK_PASSPHRASE 一致）", group = grpWh)
 strategy_name = input.string("BTC_OPTION_SELLER_V2", "strategy", group = grpWh)
+heartbeat_on = input.bool(true, "每根2h bar上报心跳（信号中心看板 + 链路存活证明）",
+     group = grpWh)
 
 // ---------------------------------------------------------------- 参数有效性（规范第四.1节）
 cfgOk = dvol_entry_level_1 < dvol_entry_level_2 and dvol_entry_level_2 < dvol_entry_level_3
@@ -140,10 +142,11 @@ hvOk = not na(hvPct2) and hvPct2 >= hv_pctl_min
 cciOk = not na(cci2) and math.abs(cci2) < cci_max
 tierOk = tier != 0        // -1=样本不足交由后端判定也放行；明确低于L1才拦
 
-putSignal = newBar2h and cfgOk and tierOk and hvOk and cciOk and
-     not na(bbL2) and l2 < bbL2 and c2 > o2          // 最低价跌破下轨 + 阳线
-callSignal = newBar2h and cfgOk and tierOk and hvOk and cciOk and
-     not na(bbU2) and h2 > bbU2 and c2 < o2          // 最高价突破上轨 + 阴线
+// 触发形态与前四道门槛拆开：心跳要能分别上报"哪一条没过"
+putShape = not na(bbL2) and l2 < bbL2 and c2 > o2    // 最低价跌破下轨 + 阳线
+callShape = not na(bbU2) and h2 > bbU2 and c2 < o2   // 最高价突破上轨 + 阴线
+putSignal = newBar2h and cfgOk and tierOk and hvOk and cciOk and putShape
+callSignal = newBar2h and cfgOk and tierOk and hvOk and cciOk and callShape
 
 var int lastSigT = na
 canFire = na(lastSigT) or t2 != lastSigT             // 每根 2h bar 至多一枚信号
@@ -168,6 +171,40 @@ f_open_json(spreadType) =>
      "\"put_hedge_release_pct\":" + str.tostring(put_hedge_release_pct / 100.0, "#.####") +
      "}"
 
+// na 必须写成 JSON null —— str.tostring(na) 会输出 "NaN"，那不是合法 JSON，
+// 后端解析会整条丢弃，心跳反而变成新的盲区。
+f_num(v, fmt) =>
+    na(v) ? "null" : str.tostring(v, fmt)
+
+// 每根 2h bar 无条件上报：面板据此显示 Pine 眼里的真值，
+// 同时心跳本身就是链路+口令的存活证明（断了立刻可见，
+// 不必靠"几天才出现一次的开仓信号"来发现配置错误）。
+f_status_json() =>
+    "{" +
+     "\"passphrase\":\"" + passphrase + "\"," +
+     "\"event\":\"STATUS\"," +
+     "\"strategy\":\"" + strategy_name + "\"," +
+     // 时间戳单独处理：f_num 的形参已由 float 实参定型，传 int 会编译报错
+     "\"bar_ts\":" + (na(t2) ? "null" : str.tostring(t2, "#")) + "," +
+     "\"btc_price\":" + f_num(c2, "#.#") + "," +
+     "\"bar_open\":" + f_num(o2, "#.#") + "," +
+     "\"bar_high\":" + f_num(h2, "#.#") + "," +
+     "\"bar_low\":" + f_num(l2, "#.#") + "," +
+     "\"cci\":" + f_num(cci2, "#.##") + "," +
+     "\"hv_percentile\":" + f_num(hvPct2 / 100.0, "#.####") + "," +
+     "\"boll_upper\":" + f_num(bbU2, "#.#") + "," +
+     "\"boll_lower\":" + f_num(bbL2, "#.#") + "," +
+     "\"dvol_percentile\":" + (na(dvolPct) ? "-1" : str.tostring(dvolPct / 100.0, "#.####")) + "," +
+     "\"dvol_tier\":" + str.tostring(tier) + "," +
+     "\"dvol_samples\":" + str.tostring(array.size(dvolHist)) + "," +
+     "\"cfg_ok\":" + str.tostring(cfgOk) + "," +
+     "\"tier_ok\":" + str.tostring(tierOk) + "," +
+     "\"hv_ok\":" + str.tostring(hvOk) + "," +
+     "\"cci_ok\":" + str.tostring(cciOk) + "," +
+     "\"put_shape\":" + str.tostring(putShape) + "," +
+     "\"call_shape\":" + str.tostring(callShape) +
+     "}"
+
 f_exit_json() =>
     sid = strategy_name + "_EXIT_DVOL_" + str.tostring(tDvol)
     "{" +
@@ -185,8 +222,12 @@ if putSignal and canFire
 if callSignal and canFire
     alert(f_open_json("CALL_CREDIT"), alert.freq_once_per_bar)
     lastSigT := t2
-if dvolExitHit and cfgOk
+// 档位配置错误只阻止开仓，不能阻断安全退出信号。
+if dvolExitHit
     alert(f_exit_json(), alert.freq_once_per_bar)
+// 心跳与信号相互独立：配置错误、门槛不通过时心跳照发，否则最该看到状态的时候反而没有。
+if newBar2h and heartbeat_on
+    alert(f_status_json(), alert.freq_once_per_bar)
 
 // ---------------------------------------------------------------- 图面展示
 plot(dvolPct, "DVOL分位%", color = color.orange)
