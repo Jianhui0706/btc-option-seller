@@ -5,6 +5,7 @@ strategy:
   name: BTC_OPTION_SELLER_V2
   currency: BTC
   min_lot: 0.1                       # Deribit BTC 期权最小下单量（张）
+  dvol_entry_levels: [0.40, 0.60, 0.85]   # 与 Pine dvol_entry_level_1/2/3 一致（0~1）
 
 # ⚠ 待确认口径：档位→卖腿|Delta|/DTE 映射为占位值（DTE 分段参考 V1 文档
 # "高波动短 DTE"），实盘前必须由用户确认后修改。
