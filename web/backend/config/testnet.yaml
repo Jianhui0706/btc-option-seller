@@ -1,0 +1,5 @@
+# Testnet 覆盖项
+# e2e 验证期的 risk.account_risk_pct 小规模覆盖已于 2026-07-22 移除，
+# 现按 base.yaml 正式值 0.02 运行。
+debug:
+  dry_run: false

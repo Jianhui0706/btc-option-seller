@@ -5,6 +5,14 @@ __pycache__/
 *.db
 *.db-wal
 *.db-shm
-server/data/
-server/logs/
+web/backend/data/
+web/backend/logs/
 .qa_docx/
+web/frontend/node_modules/
+web/frontend/.vite/
+web/frontend/logs/
+npm-debug.log*
+backups/
+.runtime/
+.cloud-package/
+dist/

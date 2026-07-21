@@ -1,5 +1,0 @@
-# Testnet 覆盖项
-risk:
-  account_risk_pct: 0.0005   # e2e 验证用小规模（正式值在 base.yaml：0.02）
-debug:
-  dry_run: false

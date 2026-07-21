@@ -1,0 +1,17 @@
+btc-option-seller-43-160-202-151.sslip.io {
+    encode zstd gzip
+
+    @tradingview_webhook path /webhook/tradingview
+    handle @tradingview_webhook {
+        reverse_proxy 127.0.0.1:8310
+    }
+
+    @dashboard_owner remote_ip 120.19.167.133
+    handle @dashboard_owner {
+        reverse_proxy 127.0.0.1:8310
+    }
+
+    handle {
+        respond "Forbidden" 403
+    }
+}
