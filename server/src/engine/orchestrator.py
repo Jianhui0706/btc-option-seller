@@ -101,6 +101,13 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
     await repo.transition_parent(parent_id, "OPENING",
                                  sell=sel.sell.instrument, buy=sel.buy.instrument,
                                  qty=qty, credit_est=sel.net_credit_est)
+    # 执行前先落库合约信息：进程中断后 reconcile 才能按合约认领交易所持仓
+    await repo.set_instruments(parent_id,
+                               sell_instrument=sel.sell.instrument,
+                               buy_instrument=sel.buy.instrument,
+                               sell_strike=sel.sell.strike,
+                               buy_strike=sel.buy.strike,
+                               expiry_ts=chain.expiration_timestamp)
     await repo.set_signal_status(signal_id, "ACCEPTED")
     idx_price = await market_data.get_index_price(ws, cfg.strategy.currency)
 

@@ -97,6 +97,23 @@ class Repo:
         await ev.emit(self.conn, event_code, parent_id=parent_id,
                       from_state=row["state"], to_state=to_state, **extra)
 
+    async def set_instruments(self, parent_id: int, *, sell_instrument: str,
+                              buy_instrument: str, sell_strike: float,
+                              buy_strike: float, expiry_ts: int) -> None:
+        """开仓执行前先落库合约信息——进程中断后 reconcile 才能认领交易所持仓。"""
+        await self.conn.execute(
+            "UPDATE parent_trades SET sell_instrument=?, buy_instrument=?, "
+            "sell_strike=?, buy_strike=?, expiry_ts=? WHERE id=?",
+            (sell_instrument, buy_instrument, sell_strike, buy_strike, expiry_ts,
+             parent_id))
+        await self.conn.commit()
+
+    async def get_signal_payload(self, signal_id: str) -> Optional[dict]:
+        cur = await self.conn.execute(
+            "SELECT payload_json FROM signals WHERE signal_id=?", (signal_id,))
+        row = await cur.fetchone()
+        return json.loads(row["payload_json"]) if row else None
+
     async def fill_open_details(self, parent_id: int, *, sell_instrument: str,
                                 buy_instrument: str, expiry_ts: int,
                                 sell_strike: float, buy_strike: float,

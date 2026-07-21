@@ -199,21 +199,103 @@ async def reconcile_on_startup(ctx: Ctx) -> None:
                                          note="startup reconcile: 未完成即中断")
             continue
         if p["state"] == "OPENING":
-            short = -by_instr.get(p["sell_instrument"] or "", 0.0)
-            long_ = by_instr.get(p["buy_instrument"] or "", 0.0)
-            matched = round(min(short, long_), 10)
-            if matched >= cfg.strategy.min_lot - EPS and p["net_credit_btc"]:
-                await repo.transition_parent(pid, "OPEN", ev.RECONCILE_MISMATCH,
-                                             note=f"startup: 按交易所实际 {matched} 张恢复")
-            else:
-                # 交易所没有等量持仓：可能有跛腿 → 交给人工/强平
-                if short > EPS or long_ > EPS:
-                    await ev.emit(repo.conn, ev.RECONCILE_MISMATCH, level="ERROR",
-                                  parent_id=pid, short=short, long=long_,
-                                  note="OPENING 中断留下不等量持仓，触发 FORCE_CLOSE")
-                    ctx.queue.put(ctx.queue.force_close(
-                        "RISK_ENGINE", f"startup reconcile: parent {pid} 跛腿"))
-                await repo.transition_parent(pid, "OPEN_FAILED", ev.RECONCILE_MISMATCH)
+            await _reconcile_opening(ctx, p, by_instr)
         elif p["state"] == "CLOSING":
             # 继续未完成的平仓（幂等）
             ctx.queue.put(ctx.queue.normal_close(pid, p["close_reason"] or "RESUME"))
+
+
+async def _reconcile_opening(ctx: Ctx, p: dict, by_instr: dict) -> None:
+    """OPENING 中断恢复：回滚多余腿 → 从 Deribit 成交记录重建净权利金/BEP → 认领为 OPEN。"""
+    repo, cfg = ctx.repo, ctx.cfg
+    pid = p["id"]
+    min_lot = cfg.strategy.min_lot
+    sell_i, buy_i = p["sell_instrument"], p["buy_instrument"]
+    if not sell_i or not buy_i:
+        await ev.emit(repo.conn, ev.RECONCILE_MISMATCH, level="ERROR", parent_id=pid,
+                      note="OPENING 中断且无合约信息，无法认领持仓，请人工核对账户")
+        await repo.transition_parent(pid, "OPEN_FAILED", ev.RECONCILE_MISMATCH)
+        return
+
+    short = -by_instr.get(sell_i, 0.0)
+    long_ = by_instr.get(buy_i, 0.0)
+    # 多余腿回滚（买先设计下通常是买腿多）
+    excess = round(long_ - short, 10)
+    if excess >= min_lot - EPS:
+        res = await adapter.close_long_leg(ctx.ws, instrument=buy_i, qty=excess,
+                                           min_lot=min_lot)
+        long_ = round(long_ - res.closed_qty, 10)
+        await ev.emit(repo.conn, ev.OPEN_FAILED_UNWOUND, level="WARN", parent_id=pid,
+                      unwound=res.closed_qty, note="reconcile 回滚多余买腿")
+    elif excess <= -(min_lot - EPS):
+        res = await adapter.close_sell_leg_only(ctx.ws, sell_instrument=sell_i,
+                                               qty=-excess, min_lot=min_lot)
+        short = round(short - res.closed_qty, 10)
+        await ev.emit(repo.conn, ev.OPEN_FAILED_UNWOUND, level="WARN", parent_id=pid,
+                      unwound=res.closed_qty, note="reconcile 回滚多余卖腿")
+
+    matched = round(min(short, long_), 10)
+    if matched < min_lot - EPS:
+        await repo.transition_parent(pid, "OPEN_FAILED", ev.RECONCILE_MISMATCH,
+                                     note="reconcile: 交易所无等量持仓")
+        return
+
+    rebuilt = await _rebuild_open_from_trades(ctx, p, matched)
+    if rebuilt:
+        await repo.transition_parent(pid, "OPEN", ev.RECONCILE_MISMATCH,
+                                     note=f"reconcile: 认领 {matched} 张，"
+                                          f"净权利金按成交记录重建")
+    else:
+        # 重建失败：无法计算 BEP 就无法管理，安全起见把这笔认不回来的腿平掉
+        await adapter.close_spread_both_legs(
+            ctx.ws, sell_instrument=sell_i, buy_instrument=buy_i, qty=matched,
+            min_lot=min_lot, n_exec_groups=cfg.execution.n_exec_groups)
+        await repo.transition_parent(pid, "OPEN_FAILED", ev.RECONCILE_MISMATCH,
+                                     note="reconcile: 成交记录重建失败，已平掉认领腿")
+
+
+async def _rebuild_open_from_trades(ctx: Ctx, p: dict, matched: float) -> bool:
+    """用 private/get_user_trades_by_instrument 重建两腿均价 → BEP/分组/OPEN 落库。"""
+    from ..exchange import market_data
+    from ..engine import bep as bep_mod, grouping
+    repo, cfg = ctx.repo, ctx.cfg
+    pid = p["id"]
+
+    async def leg_avg(instrument: str, direction: str) -> Optional[float]:
+        try:
+            r = await ctx.ws.request("private/get_user_trades_by_instrument", {
+                "instrument_name": instrument,
+                "start_timestamp": p["created_at"],
+                "count": 1000, "sorting": "asc"})
+        except Exception:  # noqa: BLE001
+            return None
+        qty = cost = 0.0
+        for t in r.get("trades", []):
+            if t.get("direction") == direction:
+                a = float(t.get("amount") or 0.0)
+                qty += a
+                cost += a * float(t.get("price") or 0.0)
+        return (cost / qty) if qty > EPS else None
+
+    sell_avg = await leg_avg(p["sell_instrument"], "sell")
+    buy_avg = await leg_avg(p["buy_instrument"], "buy")
+    if sell_avg is None or buy_avg is None:
+        return False
+    net_credit = sell_avg - buy_avg
+    idx = await market_data.get_index_price(ctx.ws, cfg.strategy.currency)
+    bep = cfg.debug.bep_override or bep_mod.bep_price(
+        p["spread_type"], p["sell_strike"], net_credit, idx)
+    await repo.fill_open_details(
+        pid, sell_instrument=p["sell_instrument"], buy_instrument=p["buy_instrument"],
+        expiry_ts=p["expiry_ts"] or 0, sell_strike=p["sell_strike"],
+        buy_strike=p["buy_strike"], qty_total=matched, net_credit_btc=net_credit,
+        open_index_price=idx, bep_price=bep)
+    await repo.create_legs(pid, p["sell_instrument"], matched, sell_avg,
+                           p["buy_instrument"], matched, buy_avg)
+    payload = await repo.get_signal_payload(p["signal_id"]) or {}
+    n = int(payload.get("group_split_count") or cfg.group_split_count_default)
+    await repo.create_groups(pid, grouping.split_groups(matched, n, cfg.strategy.min_lot))
+    await repo.ensure_hedge_row(pid)
+    await ev.emit(repo.conn, ev.OPENED, parent_id=pid, qty=matched,
+                  net_credit=net_credit, bep=bep, note="reconciled from trades")
+    return True

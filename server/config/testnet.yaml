@@ -3,5 +3,3 @@ risk:
   account_risk_pct: 0.0005   # e2e 验证用小规模（正式值在 base.yaml：0.02）
 debug:
   dry_run: false
-  bep_override: 64000        # M5 撤销验证：PUT 撤销线 64000×1.02=65280，现价在线内侧
-  trigger_override: 0.01
