@@ -29,6 +29,28 @@ def quantile(sorted_values: Sequence[float], q: float) -> float:
     return sorted_values[lo] * (1 - frac) + sorted_values[hi] * frac
 
 
+def dvol_entry_tier(completed_closes: Sequence[float], window_bars: int,
+                    levels: Sequence[float]) -> tuple[Optional[float], int]:
+    """DVOL 开仓分位与档位（后端权威口径，规范第四.1节）。
+
+    completed_closes: 已完成 12h DVOL 收盘序列（升序）；取最近 window_bars 个
+    算当前值的中位秩分位（0~1）。档位：< L1 → 0（不开仓）；L1~L2 → 1；
+    L2~L3 → 2；≥ L3 → 3。样本为空返回 (None, 0)。
+    """
+    if not completed_closes:
+        return None, 0
+    tail = completed_closes[-window_bars:]
+    pct = percentile_rank(tail)
+    if pct is None:
+        return None, 0
+    pct /= 100.0
+    tier = 0
+    for lv in levels:
+        if pct >= lv:
+            tier += 1
+    return pct, tier
+
+
 def dvol_exit_triggered(completed_closes: Sequence[float], window: int = 120,
                         pct: float = 30.0) -> tuple[bool, Optional[float]]:
     """DVOL 滚动退出（规范第八节，防前视）。

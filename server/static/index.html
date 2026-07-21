@@ -155,6 +155,7 @@ const EVENT_CN = {
   REJECT_DUPLICATE_SIGNAL:"拒绝·重复信号", REJECT_EXISTING_OPTION_SHORT:"拒绝·已有卖方持仓",
   REJECT_NO_VALID_LEGS:"拒绝·无可用腿", REJECT_INSUFFICIENT_RISK_BUDGET:"拒绝·预算不足",
   REJECT_BAD_PAYLOAD:"拒绝·信号格式错误", REJECT_TRADING_DISABLED:"拒绝·交易未开启",
+  REJECT_DVOL_BELOW_ENTRY:"拒绝·DVOL低于开仓档位", DVOL_TIER_MISMATCH:"档位口径差异",
 };
 
 /* 事件详情 → 中文句子 */
@@ -236,6 +237,12 @@ function evText(e) {
              (p.dvol_tier != null ? `档位${p.dvol_tier}与分位${p.dvol_percentile}不自洽` : ""));
     case "REJECT_TRADING_DISABLED":
       return p.force_close ? "强平锁定中，拒绝开仓" : "交易开关未开启，拒绝开仓";
+    case "REJECT_DVOL_BELOW_ENTRY":
+      return `后端权威计算 DVOL 分位 ${fmt(p.dvol_percentile*100,1)}%（${p.samples||"?"} 个样本），` +
+             "低于一档开仓线，不开仓";
+    case "DVOL_TIER_MISMATCH":
+      return `Pine 档位 ${p.pine_tier} 与后端权威档位 ${p.backend_tier} 不一致` +
+             `（后端分位 ${fmt(p.backend_pct*100,1)}%），以后端为准`;
     default:
       return e.payload_json || "";
   }

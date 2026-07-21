@@ -37,19 +37,12 @@ class TVSignal(BaseModel):
     group_split_count: Optional[int] = None
 
 
-def _tier_consistent(cfg, tier: Optional[int], pct: Optional[float]) -> bool:
-    """dvol_tier 与 dvol_percentile 自洽性兜底（阈值以后端配置为准，留 2% 容差）。"""
-    if tier is None or pct is None:
+def _payload_sane(tier: Optional[int], pct: Optional[float]) -> bool:
+    """基本合法性检查。DVOL 档位由后端在开仓时权威计算（Pine 3分钟图历史不足，
+    其 tier 仅作参考，-1/缺失表示样本不足交由后端判定）。"""
+    if tier is not None and not (-1 <= int(tier) <= 3):
         return False
-    levels = cfg.strategy.dvol_entry_levels
-    tol = 0.02
-    lo = levels[tier - 1] if 1 <= tier <= len(levels) else None
-    hi = levels[tier] if tier < len(levels) else None
-    if lo is None:
-        return False
-    if pct < lo - tol:
-        return False
-    if hi is not None and pct > hi + tol:
+    if pct is not None and pct != -1 and not (0.0 <= pct <= 1.0):
         return False
     return True
 
@@ -87,12 +80,12 @@ async def tradingview_webhook(request: Request):
             await ev.emit(repo.conn, ev.REJECT_BAD_PAYLOAD, level="WARN",
                           signal_id=sig.signal_id, spread_type=sig.spread_type)
             return {"status": "rejected", "reason": "bad_spread_type"}
-        if not _tier_consistent(ctx.cfg, sig.dvol_tier, sig.dvol_percentile):
-            await repo.set_signal_status(sig.signal_id, "REJECTED", "tier mismatch")
+        if not _payload_sane(sig.dvol_tier, sig.dvol_percentile):
+            await repo.set_signal_status(sig.signal_id, "REJECTED", "bad tier/pct")
             await ev.emit(repo.conn, ev.REJECT_BAD_PAYLOAD, level="WARN",
                           signal_id=sig.signal_id, dvol_tier=sig.dvol_tier,
                           dvol_percentile=sig.dvol_percentile)
-            return {"status": "rejected", "reason": "tier_mismatch"}
+            return {"status": "rejected", "reason": "bad_tier_or_pct"}
         ctx.queue.put(ctx.queue.open(payload))
         return {"status": "queued", "signal_id": sig.signal_id}
 

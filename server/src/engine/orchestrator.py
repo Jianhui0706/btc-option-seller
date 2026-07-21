@@ -58,9 +58,34 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
                                      ev.REJECT_EXISTING_OPTION_SHORT)
         return
 
-    # 2. 选腿
+    # 2a. DVOL 档位权威判定（后端拉全历史计算——Pine 3分钟图历史不足，其档位仅参考）
+    from . import indicators
+    force_tier = signal.get("force_tier")
+    if force_tier and cfg.env.is_testnet:
+        # testnet 调试旁路：面板模拟信号跳过档位判定
+        dvol_pct, tier_no = None, int(force_tier)
+    else:
+        dvol_bars = await market_data.fetch_dvol_12h_days(
+            ws, cfg.strategy.currency, cfg.strategy.dvol_entry_window_days)
+        completed = [b.close for b in dvol_bars if b.completed()]
+        dvol_pct, tier_no = indicators.dvol_entry_tier(
+            completed, cfg.strategy.dvol_entry_window_days * 2,
+            cfg.strategy.dvol_entry_levels)
+    if tier_no == 0:
+        await repo.transition_parent(parent_id, "OPEN_FAILED",
+                                     ev.REJECT_DVOL_BELOW_ENTRY,
+                                     dvol_percentile=dvol_pct,
+                                     samples=len(completed))
+        await repo.set_signal_status(signal_id, "REJECTED", ev.REJECT_DVOL_BELOW_ENTRY)
+        return
+    pine_tier = signal.get("dvol_tier")
+    if pine_tier not in (None, -1) and int(pine_tier) != tier_no:
+        await ev.emit(repo.conn, ev.DVOL_TIER_MISMATCH, level="WARN",
+                      parent_id=parent_id, pine_tier=pine_tier,
+                      backend_tier=tier_no, backend_pct=dvol_pct)
+
+    # 2b. 选腿
     await repo.transition_parent(parent_id, "SELECTING_LEGS")
-    tier_no = int(signal.get("dvol_tier") or 0)
     tier = cfg.leg_selection.tier_map.get(tier_no)
     if tier is None:
         await repo.transition_parent(parent_id, "OPEN_FAILED", ev.REJECT_BAD_PAYLOAD,

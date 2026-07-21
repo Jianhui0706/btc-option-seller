@@ -74,6 +74,29 @@ async def fetch_dvol_12h(ws: DeribitWS, currency: str = "BTC",
     return [DvolBar(ts=int(row[0]), close=float(row[4])) for row in data]
 
 
+async def fetch_dvol_12h_days(ws: DeribitWS, currency: str = "BTC",
+                              days: int = 730) -> list[DvolBar]:
+    """分页拉取 N 天的 12h DVOL 全历史（开仓分位窗口用，约 730 天 = 1460 根）。
+
+    TradingView 3 分钟图加载不了 2 年历史，DVOL 开仓分位由后端在此权威计算。
+    """
+    end = now_ms()
+    start = end - days * 86400 * 1000
+    step = 120 * DVOL_12H_SEC * 1000          # 每页约 120 根
+    out: dict[int, float] = {}
+    cur = start
+    while cur < end:
+        chunk_end = min(end, cur + step)
+        r = await ws.request("public/get_volatility_index_data", {
+            "currency": currency, "start_timestamp": cur,
+            "end_timestamp": chunk_end, "resolution": str(DVOL_12H_SEC),
+        })
+        for row in r.get("data") or []:
+            out[int(row[0])] = float(row[4])
+        cur = chunk_end + 1
+    return [DvolBar(ts=t, close=c) for t, c in sorted(out.items())]
+
+
 @dataclass
 class OptionChain:
     tickers: list[dict]          # 含 greeks.delta / best_bid_price / best_ask_price / strike

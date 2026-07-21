@@ -174,6 +174,7 @@ async def test_signal(request: Request, kind: str = "PUT_CREDIT", tier: int = 2)
         "spread_type": kind, "signal_id": f"UI_{kind}_{now}",
         "hv_percentile": 0.5, "dvol_percentile": round(pct, 4), "dvol_tier": tier,
         "group_split_count": ctx.cfg.group_split_count_default,
+        "force_tier": tier,   # testnet 调试旁路：跳过后端 DVOL 档位权威判定
     }
     fresh = await ctx.repo.insert_signal(payload["signal_id"], "OPEN_REQUEST",
                                          ctx.cfg.strategy.name, kind, payload)

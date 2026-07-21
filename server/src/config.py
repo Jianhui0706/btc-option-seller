@@ -98,8 +98,10 @@ class StrategyCfg(BaseModel):
     name: str = "BTC_OPTION_SELLER_V2"
     currency: str = "BTC"
     min_lot: float = 0.1
-    # 与 Pine 的 dvol_entry_level_1/2/3 对应（0~1），用于 webhook 档位自洽兜底
+    # 与 Pine 的 dvol_entry_level_1/2/3 对应（0~1）。后端为权威判定方：
+    # 收到开仓信号时自行拉全历史计算分位与档位（Pine 3分钟图历史不足）。
     dvol_entry_levels: list[float] = [0.40, 0.60, 0.85]
+    dvol_entry_window_days: int = 730
 
 
 class DebugCfg(BaseModel):
