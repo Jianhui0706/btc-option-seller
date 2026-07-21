@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS hedge_state (
   activated_at    INTEGER,
   release_pending_bar_ts INTEGER,            -- 触发撤销线的 3min bar 时间戳
   futures_usd     REAL DEFAULT 0,            -- 当前对冲永续仓位（USD，正=多）
+  futures_delta_btc REAL DEFAULT 0,          -- 对冲仓位 Delta（BTC）
   last_rebalance_at INTEGER
 );
 

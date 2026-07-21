@@ -55,13 +55,14 @@ async def _check_dvol_exit(ctx: Ctx) -> bool:
     checked = await repo.get_state("last_dvol_bar_ts")
     if checked is not None and int(checked) >= last_ts:
         return False   # 该 12h bar 已判过
-    await repo.set_state("last_dvol_bar_ts", str(last_ts))
-    triggered, level = indicators.dvol_exit_triggered(
+    triggered, threshold = indicators.dvol_exit_triggered(
         [b.close for b in completed],
         window=cfg.exit.dvol_window_bars, pct=cfg.exit.dvol_percentile)
     if triggered:
         await ev.emit(repo.conn, ev.EXIT_DVOL_ROLLING_30, source="backend",
-                      current=completed[-1].close, level=level)
+                      current=completed[-1].close, threshold=threshold)
+    # 标记放最后：中途异常时该 12h bar 下轮扫描重判，退出信号不会被吞
+    await repo.set_state("last_dvol_bar_ts", str(last_ts))
     return triggered
 
 

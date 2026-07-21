@@ -21,6 +21,12 @@ class Database:
         await conn.execute("PRAGMA journal_mode=WAL")
         await conn.execute("PRAGMA foreign_keys=ON")
         await conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        # 增量迁移：老库补列（CREATE TABLE IF NOT EXISTS 不会更新已有表）
+        for ddl in ("ALTER TABLE hedge_state ADD COLUMN futures_delta_btc REAL DEFAULT 0",):
+            try:
+                await conn.execute(ddl)
+            except Exception:  # noqa: BLE001 - 列已存在
+                pass
         await conn.commit()
         self._conn = conn
         return conn
