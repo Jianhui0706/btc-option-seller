@@ -6,14 +6,27 @@ DEPLOY = ROOT / "deploy" / "cloud"
 DOMAIN = "btc-option-seller-43-160-202-151.sslip.io"
 
 
-def test_caddy_site_isolated_from_existing_projects_and_protects_the_dashboard():
+def test_caddy_site_isolated_from_existing_projects():
     source = (DEPLOY / "btc-option-seller.caddy").read_text(encoding="utf-8")
 
     assert DOMAIN in source
     assert "reverse_proxy 127.0.0.1:8310" in source
     assert "path /webhook/tradingview" in source
-    assert "remote_ip 120.19.167.133" in source
-    assert 'respond "Forbidden" 403' in source
+
+
+def test_unrestricted_dashboard_cannot_reach_mainnet():
+    """面板取消 IP 白名单后对公网全开，后端又不校验令牌 ——
+    /control/force_close 等于对所有人开放。testnet 模拟盘可以接受，
+    实盘绝对不行，所以安装器必须仍然把部署锁死在 testnet。"""
+    caddy = (DEPLOY / "btc-option-seller.caddy").read_text(encoding="utf-8")
+    installer = (DEPLOY / "install.sh").read_text(encoding="utf-8")
+
+    restricted = "remote_ip" in caddy or "basic_auth" in caddy
+    if not restricted:
+        assert '"$(read_env_value DERIBIT_ENV)" != "testnet"' in installer
+        assert "exit 1" in installer
+        # 开放访问是刻意选择，必须在配置里写明代价，别让后人以为是疏漏
+        assert "force_close" in caddy
 
 
 def test_systemd_service_runs_only_on_the_private_application_port():
