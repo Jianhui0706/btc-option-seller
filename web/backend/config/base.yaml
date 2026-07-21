@@ -55,7 +55,7 @@ scan:
 entry_signal:
   boll_len: 20                       # 布林带周期（2h）⚠待核对
   boll_mult: 2.0                     # 布林带标准差倍数 ⚠待核对
-  cci_len: 20                        # CCI 周期（2h）
+  cci_len: 20                        # CCI 周期（2h），输入源 = 典型价 hlc3
   cci_max: 101.0                     # abs(CCI) 上限，超过即不发信号
   hv_len: 20                         # HV 计算窗口（2h bar 数）⚠待核对
   hv_pctl_window: 252                # HV 分位窗口（2h bar 数）⚠待核对

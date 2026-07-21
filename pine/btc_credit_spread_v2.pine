@@ -23,7 +23,10 @@ dvol_exit_percentile = input.float(30.0, "dvol_exit_percentile (%)", group = grp
 grpSig = "开仓信号（2小时）"
 boll_len = input.int(20, "布林带周期 ⚠待核对", group = grpSig, minval = 2)
 boll_mult = input.float(2.0, "布林带标准差倍数 ⚠待核对", group = grpSig, minval = 0.1)
-cci_len = input.int(20, "CCI 周期", group = grpSig, minval = 2)
+// 规范第五节：abs(CCI20) < 101。未加限定词的 CCI 即标准指标，
+// 输入源为典型价 hlc3（Lambert 原始定义，也是 TV 内置 CCI 的默认）。
+// ⚠ 改成 close 会得到不同的值，阈值附近会一个放行一个拦截。
+cci_len = input.int(20, "CCI 周期（源=hlc3 典型价）", group = grpSig, minval = 2)
 cci_max = input.float(101.0, "abs(CCI) 上限", group = grpSig)
 hv_len = input.int(20, "HV 计算窗口(2h bar数) ⚠待核对", group = grpSig, minval = 5)
 hv_pctl_window = input.int(252, "HV 分位窗口(2h bar数) ⚠待核对", group = grpSig, minval = 20)
@@ -68,7 +71,7 @@ f_pctl(src, len) =>
      [close[1], open[1], high[1], low[1],
       (ta.sma(close, boll_len) + boll_mult * ta.stdev(close, boll_len))[1],
       (ta.sma(close, boll_len) - boll_mult * ta.stdev(close, boll_len))[1],
-      ta.cci(close, cci_len)[1],
+      ta.cci(hlc3, cci_len)[1],
       f_pctl(f_hv(), hv_pctl_window)[1],
       time[1]],
      lookahead = barmerge.lookahead_on)

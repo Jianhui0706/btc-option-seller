@@ -40,16 +40,27 @@ def bollinger(closes: Sequence[float], length: int,
     return mid, mid + dev, mid - dev
 
 
-def cci(closes: Sequence[float], length: int) -> Optional[float]:
-    """Pine ta.cci(close, len)：(close - sma) / (0.015 × 平均绝对偏差)。"""
-    if len(closes) < length:
+def typical_price(bars: Sequence[market_data.Candle]) -> list[float]:
+    """典型价 HLC3 —— 标准 CCI 的输入源（规范第五节的 CCI20）。"""
+    return [(b.high + b.low + b.close) / 3 for b in bars]
+
+
+def cci(source: Sequence[float], length: int) -> Optional[float]:
+    """CCI = (src - sma) / (0.015 × 平均绝对偏差)。
+
+    source 传典型价 HLC3（Lambert 原始定义，也是 TradingView 内置 CCI
+    指标的默认源）。⚠ 传收盘价会得到不同的值 —— 2026-07-22 实测同一批
+    数据 close 口径 135.2、HLC3 口径 163.4，在阈值 101 附近会一个放行
+    一个拦截。
+    """
+    if len(source) < length:
         return None
-    window = closes[-length:]
+    window = source[-length:]
     mean = _sma(window)
     mad = sum(abs(x - mean) for x in window) / length
     if mad == 0:
         return None
-    return (closes[-1] - mean) / (0.015 * mad)
+    return (source[-1] - mean) / (0.015 * mad)
 
 
 def hv_annualized(closes: Sequence[float], hv_len: int) -> Optional[float]:
@@ -71,13 +82,19 @@ def hv_series(closes: Sequence[float], hv_len: int, count: int) -> list[float]:
     return out
 
 
-def evaluate(bar: market_data.Candle, closes: Sequence[float], dvol_pct: Optional[float],
+def evaluate(bars: Sequence[market_data.Candle], dvol_pct: Optional[float],
              dvol_tier: int, dvol_samples: int, cfg) -> dict:
-    """把一根已收盘 2h bar 与各窗口数据折算成逐条门槛结论。"""
+    """把最后一根已收盘 2h bar 与各窗口数据折算成逐条门槛结论。
+
+    bars 需按时间升序且只含已收盘 bar，最后一个即待判定的那根。
+    三个指标的输入源不同：布林带与 HV 用收盘价，CCI 用典型价 HLC3。
+    """
     es = cfg.entry_signal
     levels = cfg.strategy.dvol_entry_levels
+    bar = bars[-1]
+    closes = [b.close for b in bars]
     band = bollinger(closes, es.boll_len, es.boll_mult)
-    cci_value = cci(closes, es.cci_len)
+    cci_value = cci(typical_price(bars), es.cci_len)
     hvs = hv_series(closes, es.hv_len, es.hv_pctl_window)
     hv_pct = indicators.percentile_rank(hvs) if len(hvs) >= es.hv_pctl_window else None
 
@@ -138,8 +155,7 @@ async def snapshot(ctx) -> dict:
     if dvol_pct is None:
         tier = -1          # 样本不足：与 Pine 一致标记为"待判定"，不算作 tier=0 拦截
 
-    result = evaluate(done[-1], [c.close for c in done], dvol_pct, tier,
-                      len(completed), cfg)
+    result = evaluate(done, dvol_pct, tier, len(completed), cfg)
     result.update({
         "source": "backend",
         "instrument": cfg.hedge.perp_instrument,

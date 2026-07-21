@@ -25,10 +25,19 @@ def _cfg(**overrides):
                                  dvol_entry_window_days=730))
 
 
-def test_cci_matches_pine_mean_absolute_deviation():
-    # closes 1..20: sma=10.5, 平均绝对偏差=5.0 → (20-10.5)/(0.015*5)
-    closes = [float(i) for i in range(1, 21)]
-    assert ec.cci(closes, 20) == 9.5 / (0.015 * 5.0)
+def test_cci_uses_mean_absolute_deviation():
+    # 源 1..20: sma=10.5, 平均绝对偏差=5.0 → (20-10.5)/(0.015*5)
+    src = [float(i) for i in range(1, 21)]
+    assert ec.cci(src, 20) == 9.5 / (0.015 * 5.0)
+
+
+def test_cci_input_is_typical_price_not_close():
+    """规范第五节的 CCI20 是标准 CCI，源必须是 HLC3；用收盘价会算错。"""
+    bars = [Candle(i, 100.0, 100.0 + i, 90.0, 95.0 + i) for i in range(30)]
+    assert ec.typical_price(bars)[-1] == (129.0 + 90.0 + 124.0) / 3
+    result = ec.evaluate(bars, 0.7, 2, 1460, _cfg())
+    assert result["checks"]["cci"]["value"] == ec.cci(ec.typical_price(bars), 20)
+    assert result["checks"]["cci"]["value"] != ec.cci([b.close for b in bars], 20)
 
 
 def test_bollinger_uses_population_stdev_like_pine():
@@ -50,8 +59,15 @@ def test_flat_series_gives_zero_hv():
     assert ec.hv_annualized([100.0] * 25, 20) == 0.0
 
 
+def _bars(closes, last):
+    """把收盘价序列补成 K 线；最后一根用调用方指定的 O/H/L/C。"""
+    out = [Candle(i, c, c, c, c) for i, c in enumerate(closes[:-1])]
+    out.append(last)
+    return out
+
+
 def _evaluate(bar, closes, cfg=None, dvol_pct=0.7, tier=2):
-    return ec.evaluate(bar, closes, dvol_pct, tier, 1460, cfg or _cfg())
+    return ec.evaluate(_bars(closes, bar), dvol_pct, tier, 1460, cfg or _cfg())
 
 
 def test_put_shape_needs_break_below_band_and_bullish_close():
@@ -79,8 +95,8 @@ def test_high_cci_blocks_signal_even_with_valid_shape():
 def test_tier_minus_one_does_not_block_but_tier_zero_does():
     closes = [100.0] * 20
     bar = Candle(0, 100.0, 100.0, 100.0, 100.0)
-    assert ec.evaluate(bar, closes, None, -1, 88, _cfg())["checks"]["dvol_tier"]["ok"]
-    assert not ec.evaluate(bar, closes, 0.1, 0, 1460, _cfg())["checks"]["dvol_tier"]["ok"]
+    assert ec.evaluate(_bars(closes, bar), None, -1, 88, _cfg())["checks"]["dvol_tier"]["ok"]
+    assert not ec.evaluate(_bars(closes, bar), 0.1, 0, 1460, _cfg())["checks"]["dvol_tier"]["ok"]
 
 
 def test_config_gate_fails_when_levels_not_ascending():
