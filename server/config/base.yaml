@@ -17,7 +17,8 @@ leg_selection:
   sell_delta_max: 0.70
   # ⚠ 待确认口径：买腿按"反向盈亏比"选择的占位实现——
   # 在满足 max_loss/net_credit ≤ risk_reward_max 的候选中选权利金最便宜（最虚值）者。
-  risk_reward_max: 6.0
+  # （Delta≈0.2 的信用价差典型盈亏比 8~13，阈值 12 为流程验证用占位值）
+  risk_reward_max: 12.0
   min_credit_btc: 0.0005             # 每张最低净收权利金（实际 bid/ask 口径）
 
 risk:
