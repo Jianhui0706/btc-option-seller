@@ -1,0 +1,3 @@
+# Testnet 覆盖项
+debug:
+  dry_run: false

@@ -1,0 +1,5 @@
+# Mainnet 覆盖项 — debug 旁路必须全部关闭
+debug:
+  bep_override: null
+  trigger_override: null
+  dry_run: false
