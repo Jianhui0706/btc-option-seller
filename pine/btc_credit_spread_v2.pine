@@ -107,9 +107,12 @@ f_arr_pctl(arr, cnt) =>
 dvolPct = f_arr_pctl(dvolHist, entryWinBars)
 
 // 档位（规范第四.1节）：<L1 不开仓；L1~L2 → 1；L2~L3 → 2；>L3 → 3
-// 注意：3分钟图加载不到730天历史，样本不足时 tier=-1 —— 信号照发，
-// 由后端拉 Deribit 全历史权威判定档位（后端 tier=0 时会拒绝开仓）
-tier = na(dvolPct) ? -1 : dvolPct < dvol_entry_level_1 ? 0 :
+// 3分钟图最多加载约40天历史，凑不满 730 天窗口。样本不足时 tier=-1：
+// 短窗口分位没有可比性，绝不能用它拦信号 —— 信号照发，
+// 由后端拉 Deribit 全历史权威判定档位（后端算出 tier=0 才真正拒绝开仓）。
+dvolReady = array.size(dvolHist) >= entryWinBars
+tier = (na(dvolPct) or not dvolReady) ? -1 :
+     dvolPct < dvol_entry_level_1 ? 0 :
      dvolPct < dvol_entry_level_2 ? 1 : dvolPct < dvol_entry_level_3 ? 2 : 3
 
 // DVOL 滚动退出（规范第八节）：当前完成值 < 之前 exitWinBars 个值的 exit 分位
@@ -197,7 +200,8 @@ if barstate.islast
     table.cell(tb, 1, 0, cfgOk ? "OK" : "档位配置错误 L1<L2<L3！",
          text_color = cfgOk ? color.green : color.red, text_size = size.small)
     table.cell(tb, 0, 1, "DVOL分位", text_size = size.small)
-    table.cell(tb, 1, 1, na(dvolPct) ? "样本不足(后端判定)" : str.tostring(dvolPct, "#.#") + "%",
+    table.cell(tb, 1, 1, na(dvolPct) ? "样本不足"
+         : str.tostring(dvolPct, "#.#") + "%" + (dvolReady ? "" : "(窗口不足·仅参考)"),
          text_size = size.small)
     table.cell(tb, 0, 2, "档位", text_size = size.small)
     table.cell(tb, 1, 2, tier == -1 ? "由后端判定" : str.tostring(tier), text_size = size.small)
