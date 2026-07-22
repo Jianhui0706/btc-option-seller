@@ -70,3 +70,11 @@ test("tab switcher sticks independently below the scrolling overview", () => {
   assert.match(html, /@media\(max-width:1120px\)[\s\S]*\.mobile-only\{display:grid\}/);
   assert.match(html, /onclick="openForceDialog\(\)"/);
 });
+
+test("mobile safety menu remains inside the sticky tab switcher", () => {
+  const switcher = html.indexOf('class="page-switcher"');
+  const mobileMenu = html.indexOf('class="btn icon-btn mobile-only primary-mobile-menu"');
+  assert.ok(switcher >= 0 && mobileMenu > switcher);
+  assert.match(html, /@media\(max-width:1120px\)[^}]*[\s\S]*?\.topbar-command \.actions\{display:none\}/);
+  assert.match(html, /@media\(max-width:700px\)[\s\S]*\.page-switcher \.topbar-command\{display:grid;grid-template-columns:minmax\(0,1fr\) 40px/);
+});
