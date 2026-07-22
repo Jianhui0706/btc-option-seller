@@ -115,15 +115,6 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
       <div class="spacer"></div>
       <button class="btn icon-btn mobile-only primary-mobile-menu" aria-label="打开策略操作" onclick="toggleMobileMenu()">⋯</button>
     </div>
-    <div class="topbar-command">
-      <nav class="main-nav reference-tabs"><button class="nav-btn" data-page="positions" onclick="navigateTo('/')"><span>仓位</span><small>Positions</small></button><button class="nav-btn" data-page="active-signals" onclick="navigateTo('/signals')"><span>活跃信号</span><small>Active Signals</small></button><button class="nav-btn" data-page="signal-log" onclick="navigateTo('/signal-log')"><span>信号日志</span><small>Signal Log</small></button><button class="nav-btn" data-page="position-log" onclick="navigateTo('/returns')"><span>仓位日志</span><small>Position Log</small></button></nav>
-      <div class="spacer"></div>
-      <div class="actions">
-        <button class="btn btn-ghost hide-tablet" onclick="refresh(true)">刷新数据</button>
-        <button class="btn btn-primary hide-tablet" id="tradeButton" onclick="toggleTrading()">交易开关</button>
-        <button class="btn btn-danger hide-tablet" onclick="openForceDialog()">全账户强平</button>
-      </div>
-    </div>
   </header>
   <div id="errorBanner" class="alert"></div>
 
@@ -138,6 +129,17 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
     <div class="global-metric"><div class="metric-label">开仓信号 / 收到信号</div><div id="gSignals" class="metric-value">0 / 0</div><div class="metric-note">收到数包含连接回报</div></div>
     <div class="global-metric"><div class="metric-label">今日收益</div><div id="gTodayPnl" class="metric-value">—</div><div class="metric-note">今日已实现 BTC</div></div>
   </section>
+  <div class="page-switcher">
+    <div class="topbar-command">
+      <nav class="main-nav reference-tabs"><button class="nav-btn" data-page="positions" onclick="navigateTo('/')"><span>仓位</span><small>Positions</small></button><button class="nav-btn" data-page="active-signals" onclick="navigateTo('/signals')"><span>活跃信号</span><small>Active Signals</small></button><button class="nav-btn" data-page="signal-log" onclick="navigateTo('/signal-log')"><span>信号日志</span><small>Signal Log</small></button><button class="nav-btn" data-page="position-log" onclick="navigateTo('/returns')"><span>仓位日志</span><small>Position Log</small></button></nav>
+      <div class="spacer"></div>
+      <div class="actions">
+        <button class="btn btn-ghost hide-tablet" onclick="refresh(true)">刷新数据</button>
+        <button class="btn btn-primary hide-tablet" id="tradeButton" onclick="toggleTrading()">交易开关</button>
+        <button class="btn btn-danger hide-tablet" onclick="openForceDialog()">全账户强平</button>
+      </div>
+    </div>
+  </div>
 
   <div id="page-positions" class="page-view">
   <section class="hero">

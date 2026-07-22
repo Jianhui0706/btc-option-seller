@@ -16,6 +16,14 @@ test("dashboard navigation follows the teacher's four-tab workflow", () => {
   pages.forEach((page) => assert.match(html, new RegExp(`id="page-${page}"`)));
 });
 
+test("shared overview appears before the four-tab switcher", () => {
+  const hero = html.indexOf('class="dashboard-hero"');
+  const metrics = html.indexOf('class="global-metrics"');
+  const tabs = html.indexOf('class="main-nav reference-tabs"');
+  assert.ok(hero >= 0 && metrics > hero && tabs > metrics);
+  assert.match(html, /class="page-switcher"/);
+});
+
 test("shared shell keeps five core metrics visible across all tabs", () => {
   assert.match(html, /class="dashboard-hero"/);
   assert.match(html, /class="global-metrics"/);
