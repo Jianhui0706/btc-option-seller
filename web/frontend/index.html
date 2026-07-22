@@ -37,14 +37,69 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .page-view{display:none}.page-view.active{display:block}.webhook-card{display:flex;align-items:center;gap:18px}.webhook-icon{width:48px;height:48px;border-radius:14px;background:rgba(70,215,195,.1);color:var(--cyan);display:grid;place-items:center;font-size:22px;font-weight:850}.endpoint{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:#080e15;border-radius:10px;padding:10px 12px;margin-top:8px;min-width:0}.endpoint code{color:#b8c8d9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.signal-list{display:grid;gap:10px}.signal-card{border:1px solid var(--line);background:#0b121a;border-radius:13px;padding:13px}.signal-top{display:flex;align-items:center;gap:9px}.source-pill{font-size:9px;font-weight:850;letter-spacing:.7px;border-radius:6px;padding:4px 6px;color:var(--blue);background:rgba(102,166,255,.1)}.signal-name{font-weight:760}.signal-id{font-size:10px;color:var(--muted);margin-top:2px}.signal-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}.signal-meta .datum{padding:8px 9px}.signal-card details{margin-top:9px;color:var(--muted);font-size:10px}.signal-card summary{cursor:pointer}.signal-card pre{white-space:pre-wrap;word-break:break-word;color:#9fb0c3;background:#080d13;border-radius:8px;padding:9px;max-height:190px;overflow:auto}.pnl-chart{height:230px;display:flex;align-items:stretch;gap:7px;padding:18px 8px 0;border-bottom:1px solid var(--line);position:relative}.pnl-chart:after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line2)}.chart-col{flex:1;min-width:18px;display:grid;grid-template-rows:1fr 18px;gap:7px;position:relative;z-index:1}.chart-track{position:relative}.chart-bar{position:absolute;left:18%;right:18%;border-radius:5px 5px 2px 2px;min-height:2px;background:var(--green)}.chart-bar.neg{background:var(--red);border-radius:2px 2px 5px 5px}.chart-label{font-size:9px;color:var(--faint);text-align:center;white-space:nowrap}.pnl-note{color:var(--muted);font-size:11px;padding:12px 2px 0}.metric-value.small{font-size:18px}.status-rejected{color:var(--red)}.status-accepted{color:var(--green)}.status-pending{color:var(--amber)}
 .chart-bar.zero{display:none}
 .cond-summary{display:flex;align-items:center;gap:11px;border:1px solid var(--line);background:#0b121a;border-radius:12px;padding:12px 14px;margin-bottom:14px}.cond-summary.blocked{border-color:rgba(246,184,74,.28);background:rgba(246,184,74,.06)}.cond-summary.ready{border-color:rgba(84,214,154,.3);background:rgba(84,214,154,.06)}.cond-summary.broken{border-color:rgba(255,101,119,.3);background:rgba(255,101,119,.06)}.cond-summary-icon{width:34px;height:34px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:16px;font-weight:850;background:rgba(255,255,255,.05)}.cond-summary-title{font-weight:760;font-size:13px}.cond-summary-copy{color:var(--muted);font-size:11px;margin-top:2px}
-.cond-head,.cond-row{display:grid;grid-template-columns:minmax(118px,1fr) minmax(0,1fr) minmax(0,1fr) 74px;gap:14px;align-items:center}.cond-head{color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.55px;text-transform:uppercase;padding-bottom:9px;border-bottom:1px solid var(--line)}.cond-head .cond-src-state{font-style:normal;text-transform:none;letter-spacing:0;color:var(--faint);font-weight:650}.cond-head .cond-src-state.live{color:var(--cyan)}.cond-head .cond-src-state.stale{color:var(--amber)}
+/* 满足全部条件时更醒目：绿色高亮 + 呼吸光晕 */
+.cond-summary.ready{border-color:rgba(84,214,154,.6);background:linear-gradient(90deg,rgba(84,214,154,.17),rgba(84,214,154,.05));animation:readyPulse 1.9s ease-in-out infinite}
+.cond-summary.ready .cond-summary-icon{background:var(--green);color:#04140c;box-shadow:0 0 16px rgba(84,214,154,.75)}
+.cond-summary.ready .cond-summary-title{color:var(--green);font-size:14px}
+@keyframes readyPulse{0%,100%{box-shadow:0 0 0 1px rgba(84,214,154,.22),0 0 14px rgba(84,214,154,.16)}50%{box-shadow:0 0 0 1px rgba(84,214,154,.45),0 0 30px rgba(84,214,154,.45)}}
+/* 实时价格条 */
+.cond-live{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-bottom:14px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#0b121a}
+.cond-live .lv-dot{align-self:center;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:lvBlink 1.4s ease-in-out infinite}
+.cond-live .lv-tag{font-size:10px;font-weight:750;color:var(--faint);text-transform:uppercase;letter-spacing:.5px}
+.cond-live .lv-price{font-size:22px;font-weight:820;font-variant-numeric:tabular-nums;font-family:"SFMono-Regular",Consolas,monospace;color:var(--text);line-height:1}
+.cond-live .lv-dist{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}.cond-live .lv-dist b{color:var(--text);font-weight:750}.cond-live .lv-dist.hot b{color:var(--green)}
+.cond-live .lv-upd{font-size:10px;color:var(--faint);margin-left:auto}
+@keyframes lvBlink{0%,100%{opacity:1}50%{opacity:.25}}
+/* 次要列（非本行权威源）淡化，突出「以 TradingView 为主」 */
+.cond-src.dim{opacity:.45}
+/* 推送看门狗横幅 */
+.cond-watch{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 13px;margin-bottom:14px;font-size:12px;line-height:1.5}
+.cond-watch .cw-ico{width:26px;height:26px;flex:none;border-radius:8px;display:grid;place-items:center;font-size:14px;font-weight:850;background:rgba(255,255,255,.05)}
+.cond-watch b{color:var(--text);font-weight:750}
+.cond-watch.ok{border-color:rgba(84,214,154,.3);background:rgba(84,214,154,.06)}.cond-watch.ok .cw-ico{background:var(--green);color:#04140c}
+.cond-watch.idle{color:var(--muted)}
+.cond-watch.alarm{border-color:rgba(255,101,119,.5);background:rgba(255,101,119,.09);animation:alarmPulse 1.6s ease-in-out infinite}.cond-watch.alarm .cw-ico{background:var(--red);color:#2a0a0e}
+@keyframes alarmPulse{0%,100%{box-shadow:0 0 0 1px rgba(255,101,119,.25),0 0 14px rgba(255,101,119,.16)}50%{box-shadow:0 0 0 1px rgba(255,101,119,.5),0 0 30px rgba(255,101,119,.48)}}
+/* 合并后的单一「判定」列：权威值在上，来源+后端校验小字在下 */
+.cond-cell{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cond-main{font-size:16px;font-weight:730;font-variant-numeric:tabular-nums;font-family:"SFMono-Regular",Consolas,monospace;line-height:1.2}
+.cond-main.no{color:var(--red)}.cond-main.ok{color:var(--text)}.cond-main.na{color:var(--faint);font-size:14px}
+.cond-sub{font-size:10px;color:var(--faint)}.cond-sub .warn{color:var(--amber)}
+.cond-srctag{font-weight:750;color:var(--muted);margin-right:5px}
+/* 标准与差距列 */
+.cond-std{font-size:11px;min-width:0}
+.cond-std .std-line{color:var(--faint)}.cond-std .std-line b{color:var(--muted);font-weight:700}
+.std-gap{display:inline-block;margin-top:3px;font-weight:750;font-size:11px}
+.std-gap.ok{color:var(--green)}.std-gap.no{color:var(--red)}.std-gap.na{color:var(--faint)}
+.mbar{position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.06);margin-top:8px;max-width:250px;overflow:visible}
+.mbar>.fail{position:absolute;top:0;bottom:0;background:rgba(255,101,119,.22);border-radius:4px}
+.mbar>.tick{position:absolute;top:1px;bottom:1px;width:1px;background:rgba(255,255,255,.28)}
+.mbar>.thr{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);opacity:.6;border-radius:1px}
+.mbar>.mk{position:absolute;top:-2px;width:3px;height:12px;border-radius:2px;transform:translateX(-50%)}
+.mbar>.mk.ok{background:var(--green)}.mbar>.mk.no{background:var(--red)}.mbar>.mk.na{background:var(--faint)}
+.mbar-cap{font-size:9.5px;color:var(--faint);margin-top:3px}
+/* 布林形态 · 两方向数据清单 */
+.shp3{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.dircard{flex:1;min-width:220px;border:1px solid var(--line);border-radius:9px;padding:7px 10px 8px;background:rgba(255,255,255,.02)}
+.dircard.hit{border-color:rgba(84,214,154,.4);background:rgba(84,214,154,.06)}
+.dc-head{display:flex;justify-content:space-between;align-items:center}
+.dc-head b{font-size:12px;color:var(--text);font-weight:750}
+.dc-verdict{font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px}
+.dc-verdict.ok{color:var(--green);background:rgba(84,214,154,.14)}.dc-verdict.no{color:var(--muted);background:rgba(255,255,255,.05)}
+.dc-rule{font-size:9.5px;color:var(--faint);margin:1px 0 4px}
+.dc-cond{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:9px;align-items:center;padding:3px 0;border-top:1px solid rgba(255,255,255,.05);font-size:10.5px}
+.dc-name{color:var(--muted);font-weight:700;white-space:nowrap}
+.dc-cmp{color:var(--text);font-variant-numeric:tabular-nums}
+.dc-res{font-weight:750;white-space:nowrap}.dc-res.ok{color:var(--green)}.dc-res.no{color:var(--red)}
+.cond-head,.cond-row{display:grid;grid-template-columns:minmax(96px,.82fr) minmax(74px,.66fr) minmax(0,2fr) 62px;gap:13px;align-items:center}.cond-head{color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.55px;text-transform:uppercase;padding-bottom:9px;border-bottom:1px solid var(--line)}.cond-head .cond-src-state{font-style:normal;text-transform:none;letter-spacing:0;color:var(--faint);font-weight:650}.cond-head .cond-src-state.live{color:var(--cyan)}.cond-head .cond-src-state.stale{color:var(--amber)}
 .cond-row{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}.cond-name{font-size:12px;font-weight:700}.cond-hint{color:var(--faint);font-size:10px;margin-top:2px}
 .cond-val{font-size:16px;font-weight:730;font-variant-numeric:tabular-nums;font-family:"SFMono-Regular",Consolas,monospace;line-height:1.25}.cond-val.no{color:var(--red)}.cond-val.ok{color:var(--text)}.cond-val.na{color:var(--faint);font-size:14px}.cond-note{color:var(--faint);font-size:10px;margin-top:3px}
 .cond-pill{justify-self:end;border-radius:999px;padding:4px 9px;font-size:10px;font-weight:800;white-space:nowrap}.cond-pill.ok{color:var(--green);background:rgba(84,214,154,.12)}.cond-pill.no{color:#ff9aa5;background:rgba(255,101,119,.12)}.cond-pill.na{color:var(--faint);background:rgba(82,97,115,.14)}
+.activity-stream{max-height:520px;overflow-y:auto;padding:10px;display:grid;gap:6px;scrollbar-color:var(--line2) transparent}.activity-item{border:1px solid var(--line);border-left:3px solid var(--faint);background:#0b121a;border-radius:10px;overflow:hidden}.activity-item.activity-heartbeat{border-left-color:var(--blue)}.activity-item.activity-open{border-left-color:var(--green)}.activity-item.activity-exit{border-left-color:#a78bfa}.activity-summary{width:100%;min-height:52px;border:0;background:transparent;color:inherit;display:grid;grid-template-columns:minmax(130px,1.2fr) minmax(150px,1fr) auto auto;align-items:center;gap:10px;padding:9px 12px;text-align:left;cursor:pointer}.activity-summary:hover{background:rgba(255,255,255,.025)}.activity-title{font-size:12px;font-weight:760;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.activity-subtitle{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.activity-time{font-size:10px;color:var(--muted);white-space:nowrap}.activity-badges{display:flex;align-items:center;justify-content:flex-end;gap:6px;white-space:nowrap}.activity-chevron{color:var(--muted);transition:transform .18s}.activity-summary[aria-expanded="true"] .activity-chevron{transform:rotate(180deg)}.activity-detail{border-top:1px solid var(--line);padding:12px 14px;background:#080e15}.activity-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:9px}.activity-detail-label{font-size:9px;color:var(--faint)}.activity-detail-value{font-size:11px;margin-top:2px;word-break:break-word}.activity-reason{border:1px solid rgba(255,101,119,.24);background:rgba(255,101,119,.07);border-radius:8px;padding:9px 10px;margin-bottom:9px;color:#ffb3bc;font-size:11px}.activity-detail pre{white-space:pre-wrap;word-break:break-word;color:#9fb0c3;background:#060a0f;border-radius:8px;padding:9px;max-height:190px;overflow:auto;margin:0;font-size:10px}.activity-heartbeat .source-pill{color:var(--blue);background:rgba(102,166,255,.1)}.activity-open .source-pill{color:var(--green);background:rgba(84,214,154,.1)}.activity-exit .source-pill{color:#bca7ff;background:rgba(167,139,250,.1)}
 .cond-foot{display:grid;gap:6px;color:var(--muted);font-size:10px;padding-top:13px}.cond-foot .warning{color:var(--amber)}
-@media(max-width:700px){.cond-head{display:none}.cond-row{grid-template-columns:1fr auto;gap:8px}.cond-row>.cond-src{grid-column:1}.cond-row>.cond-src+.cond-src{grid-column:2;text-align:right}.cond-pill{grid-column:2;justify-self:end}}
+@media(max-width:700px){.cond-head{display:none}.cond-row{grid-template-columns:1fr auto;gap:4px 10px}.cond-row>div:first-child{grid-column:1;grid-row:1}.cond-pill{grid-column:2;grid-row:1;justify-self:end}.cond-cell{grid-column:1/-1;grid-row:2}.cond-std{grid-column:1/-1;grid-row:3}.mbar{max-width:none}.dircard{min-width:0}}
 @media(max-width:1120px){.metrics{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}.trade-grid{grid-template-columns:repeat(2,1fr)}.actions .hide-tablet{display:none}}
-@media(max-width:700px){.shell{padding:0 14px 28px}.topbar-primary{height:58px;gap:9px}.topbar-command{height:58px}.brand-sub,.system-line{display:none}.brand-name{display:none}.mark{width:34px;height:34px}.main-nav{width:100%;gap:6px}.nav-btn{min-width:0;flex:1;height:43px;padding:7px 6px;text-align:center;font-size:12px;white-space:nowrap;background:#0b1119;border-color:var(--line)}.nav-btn small{display:none}.topbar-command>.spacer,.topbar-command .actions{display:none}.mobile-only{display:grid}.hero{padding:23px 0 17px;align-items:flex-start}.hero h1{font-size:23px}.hero p{font-size:12px}.health{display:none}.metrics{grid-template-columns:repeat(2,1fr);gap:8px}.metric{padding:13px;min-height:91px}.metric-value{font-size:17px}.panel-head,.panel-body{padding:15px}.trade-grid,.legs{grid-template-columns:1fr 1fr}.groups{grid-template-columns:repeat(2,1fr)}.event{grid-template-columns:78px 8px 1fr}.event-code{grid-column:3}.event-copy{grid-column:3}.full{grid-column:auto}.webhook-card{align-items:flex-start}.webhook-icon{display:none}.signal-meta{grid-template-columns:1fr 1fr}.monitor-time{display:none}.pnl-chart{height:190px;gap:3px}.chart-label{font-size:8px}}
+@media(max-width:700px){.shell{padding:0 14px 28px}.topbar-primary{height:58px;gap:9px}.topbar-command{height:58px}.brand-sub,.system-line{display:none}.brand-name{display:none}.mark{width:34px;height:34px}.main-nav{width:100%;gap:6px}.nav-btn{min-width:0;flex:1;height:43px;padding:7px 6px;text-align:center;font-size:12px;white-space:nowrap;background:#0b1119;border-color:var(--line)}.nav-btn small{display:none}.topbar-command>.spacer,.topbar-command .actions{display:none}.mobile-only{display:grid}.hero{padding:23px 0 17px;align-items:flex-start}.hero h1{font-size:23px}.hero p{font-size:12px}.health{display:none}.metrics{grid-template-columns:repeat(2,1fr);gap:8px}.metric{padding:13px;min-height:91px}.metric-value{font-size:17px}.panel-head,.panel-body{padding:15px}.trade-grid,.legs{grid-template-columns:1fr 1fr}.groups{grid-template-columns:repeat(2,1fr)}.event{grid-template-columns:78px 8px 1fr}.event-code{grid-column:3}.event-copy{grid-column:3}.full{grid-column:auto}.webhook-card{align-items:flex-start}.webhook-icon{display:none}.signal-meta{grid-template-columns:1fr 1fr}.monitor-time{display:none}.pnl-chart{height:190px;gap:3px}.chart-label{font-size:8px}.activity-stream{max-height:390px;padding:7px}.activity-summary{grid-template-columns:minmax(0,1fr) auto auto;min-height:58px;padding:8px 9px}.activity-summary .signal-id{display:none}.activity-time{display:none}.activity-detail-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -122,12 +177,14 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
     </section>
     <section class="panel" style="margin-bottom:14px"><div class="panel-head"><div><div class="panel-title">开仓条件实时看板</div><div class="panel-kicker">TradingView 要发出开仓信号，下面每一道门槛都必须同时满足</div></div><span id="condVerdict" class="tag">检查中</span></div><div class="panel-body">
       <div id="condSummary" class="cond-summary"><div class="cond-summary-icon">…</div><div><div class="cond-summary-title">正在读取行情</div><div class="cond-summary-copy">首次计算需要拉取 2h K 线与 DVOL 全历史</div></div></div>
-      <div class="cond-head"><span>门槛</span><span>后端自算 · Deribit 永续</span><span>Pine 心跳 · TradingView <em id="condPineState" class="cond-src-state">检查中</em></span><span style="text-align:right">结论</span></div>
+      <div id="condWatch" class="cond-watch" style="display:none"></div>
+      <div id="condLive" class="cond-live" style="display:none"></div>
+      <div class="cond-head"><span>门槛</span><span>当前值 · 来源 <em id="condPineState" class="cond-src-state">检查中</em></span><span>标准与差距</span><span style="text-align:right">结论</span></div>
       <div id="condRows"></div>
       <div id="condFoot" class="cond-foot"></div>
     </div></section>
     <section class="panel" style="margin-bottom:14px"><div class="panel-body webhook-card"><div class="webhook-icon">↗</div><div style="min-width:0;flex:1"><div class="panel-title">TradingView Webhook 接收地址</div><div class="panel-kicker">部署公网后，把下面完整地址填入 TradingView Alert 的 Webhook URL</div><div class="endpoint"><code id="webhookUrl">正在生成地址…</code><div class="spacer"></div><button class="mini-btn" onclick="copyWebhook()">复制</button></div></div><span id="webhookBadge" class="tag">检查中</span></div></section>
-    <section class="panel"><div class="panel-head"><div><div class="panel-title">TradingView 实时信号流</div><div class="panel-kicker">仅显示从外部 Webhook 实际收到并完成鉴权的信号</div></div><span id="tvSignalBadge" class="tag">0 条</span></div><div id="tvSignals" class="panel-body signal-list"></div></section>
+    <section class="panel"><div class="panel-head"><div><div class="panel-title">TradingView 链路与信号活动</div><div class="panel-kicker">蓝色是链路心跳；绿色是 TradingView 开仓信号；红色徽标表示系统拒绝</div></div><span id="tvSignalBadge" class="tag">0 条</span></div><div id="tvSignals" class="activity-stream"></div></section>
   </div>
 
   <div id="page-returns" class="page-view">
@@ -150,7 +207,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 <div id="toasts" class="toast-wrap"></div>
 
 <script>
-const $=id=>document.getElementById(id);let model=null,eventLevel="ALL",refreshing=false;
+const $=id=>document.getElementById(id);let model=null,eventLevel="ALL",refreshing=false,expandedSignalKey=null;
 async function api(path,opts={}){const r=await fetch(path,opts);if(!r.ok)throw Error(`${path} · HTTP ${r.status} · ${await r.text()}`);return r.json()}
 const num=(x,d=4)=>x==null||Number.isNaN(Number(x))?"—":Number(x).toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d});
 const money=x=>x==null?"—":"$"+Number(x).toLocaleString("en-US",{maximumFractionDigits:1});
@@ -178,17 +235,116 @@ const SIGNAL_EVENT={OPEN_REQUEST:"开仓请求",EXIT_DVOL:"DVOL 退出",EXIT_DVO
 const SIGNAL_STATUS={ACCEPTED:"已接受",REJECTED:"已拒绝",RECEIVED:"处理中"};
 function signalCard(s){const p=s.payload||{},statusClass=s.status==="ACCEPTED"?"status-accepted":s.status==="REJECTED"?"status-rejected":"status-pending";return `<article class="signal-card"><div class="signal-top"><span class="source-pill">TRADINGVIEW</span><div><div class="signal-name">${esc(SIGNAL_EVENT[s.event]||s.event)}${s.spread_type?` · ${esc(s.spread_type==="PUT_CREDIT"?"PUT 信用价差":"CALL 信用价差")}`:""}</div><div class="signal-id mono">${esc(s.signal_id)}</div></div><div class="spacer"></div><span class="tag ${s.status==="ACCEPTED"?"live":s.status==="REJECTED"?"bad":"busy"}">${esc(SIGNAL_STATUS[s.status]||s.status)}</span></div><div class="signal-meta"><div class="datum"><div class="datum-label">接收时间</div><div class="datum-value number">${time(s.received_at)}</div></div><div class="datum"><div class="datum-label">BTC 价格</div><div class="datum-value number">${p.btc_price==null?"—":money(p.btc_price)}</div></div><div class="datum"><div class="datum-label">DVOL 档位 / 分位</div><div class="datum-value number">${p.dvol_tier==null?"—":`L${p.dvol_tier}`} / ${p.dvol_percentile==null?"—":num(p.dvol_percentile*100,1)+"%"}</div></div></div>${s.reject_reason?`<div class="panel-kicker ${statusClass}" style="margin-top:9px">原因：${esc(s.reject_reason)}</div>`:""}<details><summary>查看完整信号参数</summary><pre>${esc(JSON.stringify(p,null,2))}</pre></details></article>`}
 function renderSignals(data){const signals=data.items,sum=data.summary;$("sConfigured").textContent=data.configured?"接收器已就绪":"未配置口令";$("sConfigured").className=`metric-value small ${data.configured?"positive":"negative"}`;$("sLastTime").textContent=data.last_received_at?time(data.last_received_at):"尚未收到";$("sTvCount").textContent=sum.total;$("sAccepted").textContent=sum.accepted;$("sRejected").textContent=sum.rejected;$("sRejected").className=`metric-value ${sum.rejected?"negative":""}`;$("sPending").textContent=sum.pending;$("sPending").className=`metric-value ${sum.pending?"warning":""}`;const last=data.last_received_at?time(data.last_received_at):null,url=location.origin+(data.webhook_path||"/webhook/tradingview");$("overviewSignalDot").className=`monitor-dot ${data.configured?"live":"bad"}`;$("overviewSignalState").textContent=data.configured?"Webhook 已就绪，持续等待真实信号":"Webhook 未配置，暂时无法接收";$("overviewLastSignal").textContent=last?`最近 ${last}`:"等待首个信号";$("webhookUrl").textContent=url;$("webhookBadge").textContent=data.configured?"已配置":"缺少口令";$("webhookBadge").className=`tag ${data.configured?"live":"bad"}`;$("signalHealthRing").style.setProperty("--value",data.configured?100:35);$("signalHealthRing").style.setProperty("--ring",data.configured?"var(--cyan)":"var(--red)");$("signalHealthTitle").textContent=last?"实时接收正常":data.configured?"Webhook 正在监听":"Webhook 未配置";$("signalHealthCopy").textContent=last?`最近接收于 ${last}`:data.configured?"等待首个 TradingView 信号":"请配置 WEBHOOK_PASSPHRASE";$("tvSignalBadge").textContent=`${signals.length} 条`;$("tvSignals").innerHTML=signals.length?signals.map(signalCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>正在实时监听 TradingView</strong><span>收到并通过鉴权的 Webhook 信号会立即出现在这里</span></div></div>`}
+const REJECT_REASON={REJECT_TRADING_DISABLED:"交易开关已关闭或强平锁定",REJECT_EXISTING_OPTION_SHORT:"账户已有期权卖方仓位",REJECT_DVOL_BELOW_ENTRY:"DVOL 低于开仓门槛",REJECT_NO_VALID_LEGS:"没有符合要求的期权腿",REJECT_INSUFFICIENT_RISK_BUDGET:"账户风险预算不足",REJECT_BAD_PAYLOAD:"信号参数不合法",REJECT_DUPLICATE_SIGNAL:"重复信号",bad_strategy:"策略名称不匹配",bad_spread_type:"价差类型不合法",bad_tier_or_pct:"DVOL 档位或百分比参数不合法",unknown_event:"未知事件",trading_disabled:"交易开关已关闭"};
+function toggleSignalActivity(key){expandedSignalKey=expandedSignalKey===key?null:key;if(model)renderSignals(model.signals)}
+function signalActivityCard(item){
+  const key=String(item.key||`${item.kind||"activity"}:${item.received_at||0}`),expanded=expandedSignalKey===key;
+  const safePayload={...(item.payload||{})};delete safePayload.passphrase;
+  const isHeartbeat=item.kind==="HEARTBEAT",isOpen=item.kind==="OPEN_SIGNAL",isExit=item.kind==="EXIT_SIGNAL";
+  const activityClass=isHeartbeat?"activity-heartbeat":isOpen?"activity-open":isExit?"activity-exit":"";
+  const eventLabel=isHeartbeat?"链路心跳":isOpen?"开仓信号":"退出信号";
+  const title=isHeartbeat?"TradingView 已连接 · 不触发开仓":isOpen?`${item.spread_type==="CALL_CREDIT"?"CALL":"PUT"} 开仓条件已成立`:"TradingView 发出退出信号";
+  const subtitle=isHeartbeat?(item.strategy||"TradingView STATUS"):(item.signal_id||item.event||"TradingView");
+  const reasonCode=String(item.reject_reason||"");
+  const reasonText=REJECT_REASON[reasonCode]||reasonCode||"系统未提供具体原因";
+  const statusBadge=item.status==="REJECTED"?`<span class="tag bad">系统拒绝</span>`:item.status==="ACCEPTED"?`<span class="tag live">系统接受</span>`:(!isHeartbeat?`<span class="tag busy">处理中</span>`:"");
+  const sourceClass=isHeartbeat?"":isOpen?"live":"busy";
+  const reason=item.status==="REJECTED"?`<div class="activity-reason"><strong>系统拒绝原因：</strong>${esc(reasonText)}<br><span class="mono">原始代码：${esc(reasonCode)}</span></div>`:"";
+  const details=expanded?`<div class="activity-detail"><div class="activity-detail-grid"><div><div class="activity-detail-label">事件</div><div class="activity-detail-value">${esc(item.event||eventLabel)}</div></div><div><div class="activity-detail-label">系统状态</div><div class="activity-detail-value">${esc(item.status||"—")}</div></div><div><div class="activity-detail-label">接收时间</div><div class="activity-detail-value number">${time(item.received_at)}</div></div></div>${reason}<pre>${esc(JSON.stringify(safePayload,null,2))}</pre></div>`:"";
+  return `<article class="activity-item ${activityClass}" data-key="${esc(key)}"><button type="button" class="activity-summary" aria-expanded="${expanded}" onclick="toggleSignalActivity(this.closest('article').dataset.key)"><div><div class="activity-title">${esc(title)}</div><div class="activity-subtitle signal-id mono">${esc(subtitle)}</div></div><div class="activity-time number">${time(item.received_at)}</div><div class="activity-badges"><span class="source-pill ${sourceClass}">${esc(eventLabel)}</span>${statusBadge}</div><span class="activity-chevron">⌄</span></button>${details}</article>`;
+}
+function renderSignals(data){const items=data.items||[],sum=data.summary||{};$("sConfigured").textContent=data.configured?"接收器已就绪":"未配置口令";$("sConfigured").className=`metric-value small ${data.configured?"positive":"negative"}`;$("sLastTime").textContent=data.last_received_at?time(data.last_received_at):"尚未收到";$("sTvCount").textContent=sum.signal_total||0;$("sAccepted").textContent=sum.accepted||0;$("sRejected").textContent=sum.rejected||0;$("sRejected").className=`metric-value ${sum.rejected?"negative":""}`;$("sPending").textContent=sum.pending||0;$("sPending").className=`metric-value ${sum.pending?"warning":""}`;const last=data.last_received_at?time(data.last_received_at):null,url=location.origin+(data.webhook_path||"/webhook/tradingview");$("overviewSignalDot").className=`monitor-dot ${data.configured?"live":"bad"}`;$("overviewSignalState").textContent=data.configured?"Webhook 已就绪，持续监听 TradingView":"Webhook 未配置，暂时无法接收";$("overviewLastSignal").textContent=last?`最近活动 ${last}`:"等待首个心跳或信号";$("webhookUrl").textContent=url;$("webhookBadge").textContent=data.configured?"已配置":"缺少口令";$("webhookBadge").className=`tag ${data.configured?"live":"bad"}`;$("signalHealthRing").style.setProperty("--value",data.configured?100:35);$("signalHealthRing").style.setProperty("--ring",data.configured?"var(--cyan)":"var(--red)");$("signalHealthTitle").textContent=last?"TradingView 链路已有活动":data.configured?"Webhook 正在监听":"Webhook 未配置";$("signalHealthCopy").textContent=last?`最近接收于 ${last}`:data.configured?"等待首个 TradingView 心跳或信号":"请配置 WEBHOOK_PASSPHRASE";$("tvSignalBadge").textContent=`${sum.heartbeats||0} 心跳 · ${sum.signal_total||0} 信号`;$("tvSignals").innerHTML=items.length?items.map(signalActivityCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>正在实时监听 TradingView</strong><span>尚未收到 TradingView 心跳或信号</span></div></div>`}
 const COND_ROWS=[{key:"config",name:"档位配置",hint:"L1 < L2 < L3 递增"},{key:"dvol_tier",name:"DVOL 档位",hint:"档位 ≠ 0（低于 L1 不开仓）"},{key:"hv",name:"HV 分位 (2h)",hint:"≥ 分位下限"},{key:"cci",name:"CCI (2h)",hint:"|CCI| < 上限（避开单边趋势）"},{key:"shape",name:"布林触发形态",hint:"破轨 + 反向收线"}];
 // 心跳每 2h 一次，留够一根 bar 的余量再判定为断流
 const HEARTBEAT_STALE_MS=150*60*1000;
 const pct1=x=>x==null?"—":num(x,1)+"%";
 const NA_CELL={ok:null,value:"—",note:""};
-function condSrc(cell){const cls=cell.ok==null?"na":cell.ok?"ok":"no";return `<div class="cond-src"><div class="cond-val ${cls}">${esc(cell.value)}</div>${cell.note?`<div class="cond-note">${esc(cell.note)}</div>`:""}</div>`}
+function condSrc(cell,dim){const cls=cell.ok==null?"na":cell.ok?"ok":"no";return `<div class="cond-src${dim?" dim":""}"><div class="cond-val ${cls}">${esc(cell.value)}</div>${cell.note?`<div class="cond-note">${esc(cell.note)}</div>`:""}</div>`}
 function condBackend(key,b){if(!b)return{ok:null,value:"—",note:"行情不可用"};const c=b.checks[key];switch(key){case"config":return{ok:c.ok,value:c.levels.map(v=>num(v*100,0)+"%").join(" / "),note:"L1 / L2 / L3"};case"dvol_tier":return{ok:c.ok,value:c.percentile==null?"样本不足":pct1(c.percentile*100),note:`${c.tier<0?"档位待定":"档位 L"+c.tier} · ${c.samples}/${c.window_bars} 根`};case"hv":return{ok:c.ok,value:pct1(c.value),note:`需 ≥ ${pct1(c.threshold)}`};case"cci":return{ok:c.ok,value:c.value==null?"—":num(c.value,1),note:`需 < ${num(c.threshold,0)}`};default:return{ok:c.ok,value:c.put?"PUT 成立":c.call?"CALL 成立":"未成立",note:c.lower==null?"":`轨道 ${num(c.lower,0)} ~ ${num(c.upper,0)}`}}}
 function condPine(key,p){if(!p)return NA_CELL;const noPct=p.dvol_percentile==null||p.dvol_percentile<0;switch(key){case"config":return{ok:p.cfg_ok,value:p.cfg_ok?"递增":"配置错误",note:"L1 / L2 / L3"};case"dvol_tier":{const deferred=p.dvol_tier==null||p.dvol_tier<0;
  // Pine 交给后端判定时不能算"通过"——它根本没下结论
  return{ok:deferred?null:p.tier_ok,value:noPct?"样本不足":pct1(p.dvol_percentile*100),note:`${deferred?"交后端判定":"档位 L"+p.dvol_tier} · ${p.dvol_samples??"—"} 根`}}case"hv":return{ok:p.hv_ok,value:pct1(p.hv_percentile==null?null:p.hv_percentile*100),note:"TradingView 口径"};case"cci":return{ok:p.cci_ok,value:p.cci==null?"—":num(p.cci,1),note:"TradingView 口径"};default:return{ok:p.put_shape||p.call_shape,value:p.put_shape?"PUT 成立":p.call_shape?"CALL 成立":"未成立",note:p.boll_lower==null?"":`轨道 ${num(p.boll_lower,0)} ~ ${num(p.boll_upper,0)}`}}}
+function mbarHtml(valPct,thrPct,failSide,cls,ticks){
+  // failSide: "lo"=不达标区在左(下限，越高越安全) | "hi"=不达标区在右(上限，越低越安全)
+  const v=Math.max(0,Math.min(100,valPct)),t=Math.max(0,Math.min(100,thrPct));
+  const fail=failSide==="hi"?`<i class="fail" style="left:${t}%;right:0"></i>`:`<i class="fail" style="left:0;width:${t}%"></i>`;
+  const tk=(ticks||[]).map(k=>`<i class="tick" style="left:${Math.max(0,Math.min(100,k))}%"></i>`).join("");
+  const dir=failSide==="hi"?"↓ 越低越安全（红=超上限）":"↑ 越高越安全（红=低于下限）";
+  return `<div class="mbar">${fail}${tk}<i class="thr" style="left:${t}%"></i><i class="mk ${cls}" style="left:${v}%"></i></div><div class="mbar-cap">${dir}</div>`;
+}
+function condRow(r,data,pineFresh,deferred){
+  // 每行给出：权威值 + 来源 + 标准 + 离标准差多少（差距条/形态明细）
+  const b=data.backend,p=data.pine,params=data.params||{};
+  const bc=condBackend(r.key,b),pc=condPine(r.key,p);
+  const pAuth=pineFresh&&!(r.key==="dvol_tier"&&deferred);
+  const main=pAuth?pc:bc,cls=main.ok==null?"na":main.ok?"ok":"no";
+  const srcTag=pAuth?"TradingView":r.key==="dvol_tier"?"后端·DVOL权威":!pineFresh?"后端·心跳降级":"后端";
+  const gp=(txt,g)=>`<span class="std-gap ${g}">${txt}</span>`;
+  let value=main.value,standard="",gap="",extra="";
+  if(r.key==="config"){
+    const lv=b&&b.checks.config.levels;standard="L1 < L2 < L3 严格递增";
+    if(lv){const asc=lv[0]<lv[1]&&lv[1]<lv[2];value=lv.map(v=>num(v*100,0)+"%").join(asc?" < ":" ✗ ");gap=gp(asc?"✓ 严格递增":"✗ 未严格递增，停发信号",asc?"ok":"no");}
+  }else if(r.key==="dvol_tier"){
+    const lv=((b&&b.checks.config.levels)||[.4,.6,.85]).map(x=>x*100);
+    const pct=pAuth?(p&&p.dvol_percentile>=0?p.dvol_percentile*100:null):(b&&b.checks.dvol_tier.percentile!=null?b.checks.dvol_tier.percentile*100:null);
+    standard=`≥ ${num(lv[0],0)}% 开仓下限（L1）`;
+    if(pct!=null){value=num(pct,1)+"%";const tier=pct>=lv[2]?3:pct>=lv[1]?2:pct>=lv[0]?1:0,above=pct-lv[0];
+      let nxt="";if(tier>=1&&tier<3)nxt=`，距 L${tier+1}(${num(lv[tier],0)}%) 还差 ${num(lv[tier]-pct,1)}pt`;
+      gap=gp(`现 ${num(pct,1)}% ${above>=0?"≥":"<"} 下限 ${num(lv[0],0)}% · ${above>=0?`达 L${tier}，高出 +${num(above,1)}pt${nxt}`:`低 ${num(-above,1)}pt，不开仓`}`,above>=0?"ok":"no");
+      extra=mbarHtml(pct,lv[0],"lo",above>=0?"ok":"no",[lv[1],lv[2]]);}
+  }else if(r.key==="hv"){
+    const thr=params.hv_pctl_min!=null?params.hv_pctl_min:(b?b.checks.hv.threshold:30);
+    const val=pAuth?(p&&p.hv_percentile!=null?p.hv_percentile*100:null):(b?b.checks.hv.value:null);
+    standard=`≥ ${num(thr,0)}% 下限（越高越好）`;
+    if(val!=null){value=num(val,1)+"%";const g=val-thr;gap=gp(`现 ${num(val,1)}% ${g>=0?"≥":"<"} 下限 ${num(thr,0)}% · ${g>=0?`高出 +${num(g,1)}pt`:`还差 ${num(-g,1)}pt`}`,g>=0?"ok":"no");extra=mbarHtml(val,thr,"lo",g>=0?"ok":"no");}
+  }else if(r.key==="cci"){
+    const thr=params.cci_max!=null?params.cci_max:(b?b.checks.cci.threshold:101);
+    const val=pAuth?(p&&p.cci!=null?p.cci:null):(b?b.checks.cci.value:null);
+    standard=`|CCI| < ${num(thr,0)} 上限（越低越好）`;
+    if(val!=null){const a=Math.abs(val);value=num(val,1);const g=thr-a,scale=thr*1.5;gap=gp(`现 |${num(a,1)}| ${g>0?"<":"≥"} 上限 ${num(thr,0)} · ${g>0?`离上限还有 ${num(g,1)}`:`超限 ${num(-g,1)}，被拦`}`,g>0?"ok":"no");extra=mbarHtml(a/scale*100,thr/scale*100,"hi",g>0?"ok":"no");}
+  }else{
+    const s=pAuth?{up:p&&p.boll_upper,lo:p&&p.boll_lower,o:p&&p.bar_open,h:p&&p.bar_high,l:p&&p.bar_low,c:p&&p.btc_price}
+                :(b&&b.bar?{up:b.checks.shape.upper,lo:b.checks.shape.lower,o:b.bar.open,h:b.bar.high,l:b.bar.low,c:b.bar.close}:null);
+    standard="破轨 + 反向收线（同方向两项都满足即触发）";
+    if(s&&s.lo!=null){const bull=s.c>s.o,bear=s.c<s.o;
+      const putOk=s.l<s.lo&&bull,callOk=s.h>s.up&&bear;
+      value=putOk?"PUT 成立":callOk?"CALL 成立":"未成立";
+      const cmpCK=`收 ${num(s.c,0)} ${s.c>s.o?"＞":s.c<s.o?"＜":"＝"} 开 ${num(s.o,0)}`;
+      const card=(dir,rule,ok,n1,cmp1,ok1,res1,n2,cmp2,ok2,res2)=>
+        `<div class="dircard ${ok?"hit":""}"><div class="dc-head"><b>${dir}</b><span class="dc-verdict ${ok?"ok":"no"}">${ok?"✓ 成立":"未成立"}</span></div><div class="dc-rule">${rule}</div>`
+        +`<div class="dc-cond"><span class="dc-name">${n1}</span><span class="dc-cmp">${cmp1}</span><span class="dc-res ${ok1?"ok":"no"}">${res1}</span></div>`
+        +`<div class="dc-cond"><span class="dc-name">${n2}</span><span class="dc-cmp">${cmp2}</span><span class="dc-res ${ok2?"ok":"no"}">${res2}</span></div></div>`;
+      const put=card("PUT 方向","最低跌破下轨 + 阳线",putOk,
+        "① 破下轨",`最低 ${num(s.l,0)} ／ 下轨 ${num(s.lo,0)}`,s.l<s.lo,s.l<s.lo?`已破 ${num(s.lo-s.l,0)} ✓`:`还差 ${num(s.l-s.lo,0)} ✗`,
+        "② 阳线",cmpCK,bull,bull?"阳线 ✓":"非阳 ✗");
+      const call=card("CALL 方向","最高突破上轨 + 阴线",callOk,
+        "① 破上轨",`最高 ${num(s.h,0)} ／ 上轨 ${num(s.up,0)}`,s.h>s.up,s.h>s.up?`已破 ${num(s.h-s.up,0)} ✓`:`还差 ${num(s.up-s.h,0)} ✗`,
+        "② 阴线",cmpCK,bear,bear?"阴线 ✓":"非阴 ✗");
+      extra=`<div class="shp3">${put}${call}</div>`;}
+  }
+  return {ok:main.ok,cls,value,srcTag,standard,gap,extra};
+}
 function renderConditions(data){const b=data.backend,p=data.pine,now=data.server_ts||Date.now();
+  // 实时价格条：每次刷新都取一次真实价格，随行情跳动；「距轨道」越接近 0 越可能触发形态
+  const lv=data.live,lvEl=$("condLive");
+  if(lv&&lv.price!=null){const near=x=>x==null?"—":x<=0?`已越轨 ${num(Math.abs(x),2)}%`:`${num(x,2)}%`;
+    const hot=x=>x!=null&&x<=0.5?"hot":"";
+    lvEl.style.display="flex";
+    lvEl.innerHTML=`<span class="lv-dot"></span><span class="lv-tag">实时价格 · Deribit 永续</span>`+
+      `<span class="lv-price">$${num(lv.price,0)}</span>`+
+      `<span class="lv-dist ${hot(lv.to_upper_pct)}">距上轨(Call触发) <b>${near(lv.to_upper_pct)}</b></span>`+
+      `<span class="lv-dist ${hot(lv.to_lower_pct)}">距下轨(Put触发) <b>${near(lv.to_lower_pct)}</b></span>`+
+      `<span class="lv-upd">更新于 ${time(lv.ts)}</span>`;
+  }else if(lv&&lv.error){lvEl.style.display="flex";lvEl.innerHTML=`<span class="lv-tag" style="color:var(--amber)">实时价格获取失败：${esc(lv.error)}</span>`;}
+  else{lvEl.style.display="none";}
+  // 推送看门狗：Pine 自报满足全部条件时，核对 TradingView 到底有没有把开仓信号推给我们
+  const wd=data.watchdog,wdEl=$("condWatch");
+  if(wd&&wd.armed){const side=wd.side==="PUT_CREDIT"?"PUT 信用价差":"CALL 信用价差";
+    if(wd.alarm){wdEl.className="cond-watch alarm";wdEl.innerHTML=`<div class="cw-ico">!</div><div><b>条件满足，但没收到 TradingView 推送</b> —— ${side} · 2h K线 ${time(wd.bar_close)}。请检查 TradingView Alert 是否在运行、Webhook 地址与口令是否正确。</div>`;}
+    else if(wd.signal_received){wdEl.className="cond-watch ok";wdEl.innerHTML=`<div class="cw-ico">✓</div><div>上一根满足条件的 2h K线（${time(wd.bar_close)} · ${side}）<b>已收到 TradingView 推送</b>${wd.signal_status?` · 状态 ${esc(wd.signal_status)}`:""}。</div>`;}
+    else{wdEl.className="cond-watch idle";wdEl.innerHTML=`<div class="cw-ico">…</div><div>${side} 条件刚满足，等待 TradingView 推送到达（收盘后 2 分钟宽限）…</div>`;}
+    wdEl.style.display="flex";}
+  else{wdEl.style.display="none";}
   const pineAge=p&&p.received_at?now-p.received_at:null,pineFresh=pineAge!=null&&pineAge<=HEARTBEAT_STALE_MS;
   // 心跳是整列一次性到达的状态，只在表头交代一次；逐行重复毫无信息量
   const state=$("condPineState");
@@ -201,8 +357,8 @@ function renderConditions(data){const b=data.backend,p=data.pine,now=data.server
   const deferred=pineFresh&&(!p||p.dvol_tier==null||p.dvol_tier<0);
   const pick=r=>((r.key==="dvol_tier"&&deferred)||!pineFresh)?r.b.ok:r.p.ok;
   const authority=!pineFresh?"后端自算":deferred?"Pine 心跳 + 后端 DVOL 判定":"Pine 心跳";
-  $("condRows").innerHTML=rows.map(r=>{const v=pick(r),cls=v==null?"na":v?"ok":"no";
-    return `<div class="cond-row"><div><div class="cond-name">${esc(r.name)}</div><div class="cond-hint">${esc(r.hint)}</div></div>${condSrc(r.b)}${condSrc(r.p)}<span class="cond-pill ${cls}">${v==null?"待定":v?"通过":"未通过"}</span></div>`}).join("");
+  $("condRows").innerHTML=COND_ROWS.map(r=>{const c=condRow(r,data,pineFresh,deferred);
+    return `<div class="cond-row"><div><div class="cond-name">${esc(r.name)}</div><div class="cond-hint">${esc(r.hint)}</div></div><div class="cond-cell"><div class="cond-main ${c.cls}">${esc(c.value)}</div><div class="cond-sub"><span class="cond-srctag">${esc(c.srcTag)}</span></div></div><div class="cond-std"><div class="std-line">标准 <b>${esc(c.standard)}</b></div>${c.gap}${c.extra}</div><span class="cond-pill ${c.cls}">${c.ok==null?"待定":c.ok?"通过":"未通过"}</span></div>`}).join("");
   const gates=rows.slice(0,4),blocked=gates.filter(r=>pick(r)===false).map(r=>r.name),shapeOk=pick(rows[4]);
   let cls,icon,title,copy;
   if(gates.some(r=>pick(r)==null)){cls="broken";icon="!";title="暂时无法判定";copy=pineFresh?"心跳数据不完整":"后端行情不可用，且尚未收到 Pine 心跳"}
