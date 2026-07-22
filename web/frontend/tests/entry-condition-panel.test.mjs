@@ -41,3 +41,8 @@ test("evidence is visually secondary and expandable", () => {
   assert.match(html, /数据与判断依据/);
   assert.match(html, /conditionSections\.evidence/);
 });
+
+test("condition cards collapse to one column on compact screens", () => {
+  assert.match(html, /@media\(max-width:900px\)[^{]*\{[^}]*\.condition-card-grid\{grid-template-columns:1fr\}/s);
+  assert.match(html, /@media\(max-width:700px\)[^{]*\{[^}]*\.condition-toggle-note\{display:none\}/s);
+});
