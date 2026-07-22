@@ -111,3 +111,13 @@ CREATE TABLE IF NOT EXISTS system_state (
 );
 -- keys: trading_enabled / force_close_active / day_start_equity /
 --       day_start_date / last_scan_ts / last_dvol_bar_ts / hedge_frozen
+
+CREATE TABLE IF NOT EXISTS pine_heartbeats (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  received_at  INTEGER NOT NULL,
+  bar_ts       INTEGER,
+  strategy     TEXT,
+  payload_json TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_pine_heartbeats_received
+  ON pine_heartbeats(received_at DESC);

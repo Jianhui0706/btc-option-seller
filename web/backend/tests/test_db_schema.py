@@ -18,5 +18,10 @@ async def test_group_pnl_and_hedge_attribution_columns(tmp_path):
         group_cols = {r[1] for r in group_rows}
         assert {"futures_usd", "futures_delta_btc"} <= hedge_cols
         assert {"unrealized_pnl_btc", "profit_ratio"} <= group_cols
+
+        heartbeat_rows = await (await conn.execute(
+            "PRAGMA table_info(pine_heartbeats)")).fetchall()
+        heartbeat_cols = {r[1] for r in heartbeat_rows}
+        assert {"id", "received_at", "bar_ts", "strategy", "payload_json"} <= heartbeat_cols
     finally:
         await db.close()
