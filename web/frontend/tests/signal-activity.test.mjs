@@ -31,3 +31,24 @@ test("activity details remove secrets and escape dynamic values", () => {
   assert.match(html, /toggleSignalActivity\(this\.closest\('article'\)\.dataset\.key\)/);
   assert.doesNotMatch(html, /toggleSignalActivity\('\$\{esc\(key\)\}'\)/);
 });
+
+test("signal metric combines open signals with all received webhook activity", () => {
+  assert.match(html, /<div class="metric-label">开仓信号 \/ 收到信号<\/div>/);
+  assert.match(
+    html,
+    /\$\("sTvCount"\)\.textContent=`\$\{sum\.open_signals\|\|0\} \/ \$\{sum\.total\|\|0\}`/,
+  );
+  assert.match(html, /收到信号包含连接回报/);
+});
+
+test("user-facing heartbeat terminology is connection report", () => {
+  assert.match(html, /const eventLabel=isHeartbeat\?"连接回报"/);
+  assert.match(
+    html,
+    /\$\{sum\.heartbeats\|\|0\} 回报 · \$\{sum\.signal_total\|\|0\} 信号/,
+  );
+  assert.doesNotMatch(
+    html,
+    /["`](?:[^"`]*)(?:链路心跳|Pine 心跳|TradingView 心跳)(?:[^"`]*)["`]/,
+  );
+});

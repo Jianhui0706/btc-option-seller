@@ -170,7 +170,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
     <section class="metrics">
       <div class="metric"><div class="metric-label">Webhook 状态</div><div id="sConfigured" class="metric-value small">检查中</div><div class="metric-note">口令只在后端校验</div></div>
       <div class="metric"><div class="metric-label">最近一次信号</div><div id="sLastTime" class="metric-value small">—</div><div class="metric-note">以服务器接收时间为准</div></div>
-      <div class="metric"><div class="metric-label">真实信号总数</div><div id="sTvCount" class="metric-value">0</div><div class="metric-note">当前历史窗口内</div></div>
+      <div class="metric"><div class="metric-label">开仓信号 / 收到信号</div><div id="sTvCount" class="metric-value">0 / 0</div><div class="metric-note">收到信号包含连接回报</div></div>
       <div class="metric"><div class="metric-label">已接受</div><div id="sAccepted" class="metric-value positive">0</div><div class="metric-note">已进入策略处理链路</div></div>
       <div class="metric"><div class="metric-label">已拒绝</div><div id="sRejected" class="metric-value">0</div><div class="metric-note">点击信号查看原因</div></div>
       <div class="metric"><div class="metric-label">处理中</div><div id="sPending" class="metric-value">0</div><div class="metric-note">等待策略引擎确认</div></div>
@@ -184,7 +184,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
       <div id="condFoot" class="cond-foot"></div>
     </div></section>
     <section class="panel" style="margin-bottom:14px"><div class="panel-body webhook-card"><div class="webhook-icon">↗</div><div style="min-width:0;flex:1"><div class="panel-title">TradingView Webhook 接收地址</div><div class="panel-kicker">部署公网后，把下面完整地址填入 TradingView Alert 的 Webhook URL</div><div class="endpoint"><code id="webhookUrl">正在生成地址…</code><div class="spacer"></div><button class="mini-btn" onclick="copyWebhook()">复制</button></div></div><span id="webhookBadge" class="tag">检查中</span></div></section>
-    <section class="panel"><div class="panel-head"><div><div class="panel-title">TradingView 链路与信号活动</div><div class="panel-kicker">蓝色是链路心跳；绿色是 TradingView 开仓信号；红色徽标表示系统拒绝</div></div><span id="tvSignalBadge" class="tag">0 条</span></div><div id="tvSignals" class="activity-stream"></div></section>
+    <section class="panel"><div class="panel-head"><div><div class="panel-title">TradingView 链路与信号活动</div><div class="panel-kicker">蓝色是连接回报；绿色是 TradingView 开仓信号；红色徽标表示系统拒绝</div></div><span id="tvSignalBadge" class="tag">0 条</span></div><div id="tvSignals" class="activity-stream"></div></section>
   </div>
 
   <div id="page-returns" class="page-view">
@@ -242,7 +242,7 @@ function signalActivityCard(item){
   const safePayload={...(item.payload||{})};delete safePayload.passphrase;
   const isHeartbeat=item.kind==="HEARTBEAT",isOpen=item.kind==="OPEN_SIGNAL",isExit=item.kind==="EXIT_SIGNAL";
   const activityClass=isHeartbeat?"activity-heartbeat":isOpen?"activity-open":isExit?"activity-exit":"";
-  const eventLabel=isHeartbeat?"链路心跳":isOpen?"开仓信号":"退出信号";
+  const eventLabel=isHeartbeat?"连接回报":isOpen?"开仓信号":"退出信号";
   const title=isHeartbeat?"TradingView 已连接 · 不触发开仓":isOpen?`${item.spread_type==="CALL_CREDIT"?"CALL":"PUT"} 开仓条件已成立`:"TradingView 发出退出信号";
   const subtitle=isHeartbeat?(item.strategy||"TradingView STATUS"):(item.signal_id||item.event||"TradingView");
   const reasonCode=String(item.reject_reason||"");
@@ -253,7 +253,7 @@ function signalActivityCard(item){
   const details=expanded?`<div class="activity-detail"><div class="activity-detail-grid"><div><div class="activity-detail-label">事件</div><div class="activity-detail-value">${esc(item.event||eventLabel)}</div></div><div><div class="activity-detail-label">系统状态</div><div class="activity-detail-value">${esc(item.status||"—")}</div></div><div><div class="activity-detail-label">接收时间</div><div class="activity-detail-value number">${time(item.received_at)}</div></div></div>${reason}<pre>${esc(JSON.stringify(safePayload,null,2))}</pre></div>`:"";
   return `<article class="activity-item ${activityClass}" data-key="${esc(key)}"><button type="button" class="activity-summary" aria-expanded="${expanded}" onclick="toggleSignalActivity(this.closest('article').dataset.key)"><div><div class="activity-title">${esc(title)}</div><div class="activity-subtitle signal-id mono">${esc(subtitle)}</div></div><div class="activity-time number">${time(item.received_at)}</div><div class="activity-badges"><span class="source-pill ${sourceClass}">${esc(eventLabel)}</span>${statusBadge}</div><span class="activity-chevron">⌄</span></button>${details}</article>`;
 }
-function renderSignals(data){const items=data.items||[],sum=data.summary||{};$("sConfigured").textContent=data.configured?"接收器已就绪":"未配置口令";$("sConfigured").className=`metric-value small ${data.configured?"positive":"negative"}`;$("sLastTime").textContent=data.last_received_at?time(data.last_received_at):"尚未收到";$("sTvCount").textContent=sum.signal_total||0;$("sAccepted").textContent=sum.accepted||0;$("sRejected").textContent=sum.rejected||0;$("sRejected").className=`metric-value ${sum.rejected?"negative":""}`;$("sPending").textContent=sum.pending||0;$("sPending").className=`metric-value ${sum.pending?"warning":""}`;const last=data.last_received_at?time(data.last_received_at):null,url=location.origin+(data.webhook_path||"/webhook/tradingview");$("overviewSignalDot").className=`monitor-dot ${data.configured?"live":"bad"}`;$("overviewSignalState").textContent=data.configured?"Webhook 已就绪，持续监听 TradingView":"Webhook 未配置，暂时无法接收";$("overviewLastSignal").textContent=last?`最近活动 ${last}`:"等待首个心跳或信号";$("webhookUrl").textContent=url;$("webhookBadge").textContent=data.configured?"已配置":"缺少口令";$("webhookBadge").className=`tag ${data.configured?"live":"bad"}`;$("signalHealthRing").style.setProperty("--value",data.configured?100:35);$("signalHealthRing").style.setProperty("--ring",data.configured?"var(--cyan)":"var(--red)");$("signalHealthTitle").textContent=last?"TradingView 链路已有活动":data.configured?"Webhook 正在监听":"Webhook 未配置";$("signalHealthCopy").textContent=last?`最近接收于 ${last}`:data.configured?"等待首个 TradingView 心跳或信号":"请配置 WEBHOOK_PASSPHRASE";$("tvSignalBadge").textContent=`${sum.heartbeats||0} 心跳 · ${sum.signal_total||0} 信号`;$("tvSignals").innerHTML=items.length?items.map(signalActivityCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>正在实时监听 TradingView</strong><span>尚未收到 TradingView 心跳或信号</span></div></div>`}
+function renderSignals(data){const items=data.items||[],sum=data.summary||{};$("sConfigured").textContent=data.configured?"接收器已就绪":"未配置口令";$("sConfigured").className=`metric-value small ${data.configured?"positive":"negative"}`;$("sLastTime").textContent=data.last_received_at?time(data.last_received_at):"尚未收到";$("sTvCount").textContent=`${sum.open_signals||0} / ${sum.total||0}`;$("sAccepted").textContent=sum.accepted||0;$("sRejected").textContent=sum.rejected||0;$("sRejected").className=`metric-value ${sum.rejected?"negative":""}`;$("sPending").textContent=sum.pending||0;$("sPending").className=`metric-value ${sum.pending?"warning":""}`;const last=data.last_received_at?time(data.last_received_at):null,url=location.origin+(data.webhook_path||"/webhook/tradingview");$("overviewSignalDot").className=`monitor-dot ${data.configured?"live":"bad"}`;$("overviewSignalState").textContent=data.configured?"Webhook 已就绪，持续监听 TradingView":"Webhook 未配置，暂时无法接收";$("overviewLastSignal").textContent=last?`最近活动 ${last}`:"等待首个连接回报或信号";$("webhookUrl").textContent=url;$("webhookBadge").textContent=data.configured?"已配置":"缺少口令";$("webhookBadge").className=`tag ${data.configured?"live":"bad"}`;$("signalHealthRing").style.setProperty("--value",data.configured?100:35);$("signalHealthRing").style.setProperty("--ring",data.configured?"var(--cyan)":"var(--red)");$("signalHealthTitle").textContent=last?"TradingView 链路已有活动":data.configured?"Webhook 正在监听":"Webhook 未配置";$("signalHealthCopy").textContent=last?`最近接收于 ${last}`:data.configured?"等待首个 TradingView 连接回报或信号":"请配置 WEBHOOK_PASSPHRASE";$("tvSignalBadge").textContent=`${sum.heartbeats||0} 回报 · ${sum.signal_total||0} 信号`;$("tvSignals").innerHTML=items.length?items.map(signalActivityCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>正在实时监听 TradingView</strong><span>尚未收到 TradingView 连接回报或信号</span></div></div>`}
 const COND_ROWS=[{key:"config",name:"档位配置",hint:"L1 < L2 < L3 递增"},{key:"dvol_tier",name:"DVOL 档位",hint:"档位 ≠ 0（低于 L1 不开仓）"},{key:"hv",name:"HV 分位 (2h)",hint:"≥ 分位下限"},{key:"cci",name:"CCI (2h)",hint:"|CCI| < 上限（避开单边趋势）"},{key:"shape",name:"布林触发形态",hint:"破轨 + 反向收线"}];
 // 心跳每 2h 一次，留够一根 bar 的余量再判定为断流
 const HEARTBEAT_STALE_MS=150*60*1000;
@@ -278,7 +278,7 @@ function condRow(r,data,pineFresh,deferred){
   const bc=condBackend(r.key,b),pc=condPine(r.key,p);
   const pAuth=pineFresh&&!(r.key==="dvol_tier"&&deferred);
   const main=pAuth?pc:bc,cls=main.ok==null?"na":main.ok?"ok":"no";
-  const srcTag=pAuth?"TradingView":r.key==="dvol_tier"?"后端·DVOL权威":!pineFresh?"后端·心跳降级":"后端";
+  const srcTag=pAuth?"TradingView":r.key==="dvol_tier"?"后端·DVOL权威":!pineFresh?"后端·连接回报降级":"后端";
   const gp=(txt,g)=>`<span class="std-gap ${g}">${txt}</span>`;
   let value=main.value,standard="",gap="",extra="";
   if(r.key==="config"){
@@ -356,12 +356,12 @@ function renderConditions(data){const b=data.backend,p=data.pine,now=data.server
   // 否则面板会说"只差 CCI"，而实际后端还会以 DVOL 过低把开仓请求拒掉。
   const deferred=pineFresh&&(!p||p.dvol_tier==null||p.dvol_tier<0);
   const pick=r=>((r.key==="dvol_tier"&&deferred)||!pineFresh)?r.b.ok:r.p.ok;
-  const authority=!pineFresh?"后端自算":deferred?"Pine 心跳 + 后端 DVOL 判定":"Pine 心跳";
+  const authority=!pineFresh?"后端自算":deferred?"Pine 连接回报 + 后端 DVOL 判定":"Pine 连接回报";
   $("condRows").innerHTML=COND_ROWS.map(r=>{const c=condRow(r,data,pineFresh,deferred);
     return `<div class="cond-row"><div><div class="cond-name">${esc(r.name)}</div><div class="cond-hint">${esc(r.hint)}</div></div><div class="cond-cell"><div class="cond-main ${c.cls}">${esc(c.value)}</div><div class="cond-sub"><span class="cond-srctag">${esc(c.srcTag)}</span></div></div><div class="cond-std"><div class="std-line">标准 <b>${esc(c.standard)}</b></div>${c.gap}${c.extra}</div><span class="cond-pill ${c.cls}">${c.ok==null?"待定":c.ok?"通过":"未通过"}</span></div>`}).join("");
   const gates=rows.slice(0,4),blocked=gates.filter(r=>pick(r)===false).map(r=>r.name),shapeOk=pick(rows[4]);
   let cls,icon,title,copy;
-  if(gates.some(r=>pick(r)==null)){cls="broken";icon="!";title="暂时无法判定";copy=pineFresh?"心跳数据不完整":"后端行情不可用，且尚未收到 Pine 心跳"}
+  if(gates.some(r=>pick(r)==null)){cls="broken";icon="!";title="暂时无法判定";copy=pineFresh?"连接回报数据不完整":"后端行情不可用，且尚未收到 Pine 连接回报"}
   else if(blocked.length){cls="blocked";icon="✕";title="当前不会发出开仓信号";copy=`被「${blocked.join(" / ")}」拦住 · 依据${authority}`}
   else if(!shapeOk){cls="blocked";icon="⏳";title="门槛已全部通过，等待触发形态";copy=`还需 2h K 线出现破轨 + 反向收线 · 依据${authority}`}
   else{cls="ready";icon="✓";title="最近一根 2h K 线满足全部条件";copy=`信号应已发出，请核对下方实时信号流 · 依据${authority}`}
@@ -372,9 +372,9 @@ function renderConditions(data){const b=data.backend,p=data.pine,now=data.server
   const foot=[];
   if(b)foot.push(`后端自算 · ${esc(b.instrument)} · 2h K 线 ${time(b.bar_ts)} · 计算于 ${time(b.computed_at)}`);
   if(data.backend_error)foot.push(`<span class="warning">后端行情计算失败：${esc(data.backend_error)}${b?"（上方为上一次成功的结果）":""}</span>`);
-  if(!p)foot.push(`<span class="warning">尚未收到 Pine 心跳 —— 需在 TradingView 更新脚本并重建 Alert；口令不匹配时心跳同样不会到达。心跳每根 2h K 线收盘发一次。</span>`);
-  else if(!pineFresh)foot.push(`<span class="warning">Pine 心跳已停 ${Math.floor(pineAge/60000)} 分钟（正常每 2 小时一次）—— 请检查 TradingView Alert 是否仍在运行。</span>`);
-  else foot.push(`Pine 心跳 · 对应 2h K 线 ${time(p.bar_ts)}`);
+  if(!p)foot.push(`<span class="warning">尚未收到 Pine 连接回报 —— 需在 TradingView 更新脚本并重建 Alert；口令不匹配时连接回报同样不会到达。连接回报每根 2h K 线收盘发一次。</span>`);
+  else if(!pineFresh)foot.push(`<span class="warning">Pine 连接回报已停 ${Math.floor(pineAge/60000)} 分钟（正常每 2 小时一次）—— 请检查 TradingView Alert 是否仍在运行。</span>`);
+  else foot.push(`Pine 连接回报 · 对应 2h K 线 ${time(p.bar_ts)}`);
   foot.push("两列数据源不同：Pine 用 TradingView 的 BTCUSDT，后端用 Deribit 永续，数值有小幅偏差属正常。信号由 Pine 决定是否发出；DVOL 档位由后端权威判定，档位为 0 时后端会拒绝已经发出的开仓信号。");
   $("condFoot").innerHTML=foot.map(x=>`<div>${x}</div>`).join("")}
 function renderPerformance(data){const s=data.summary;for(const [id,v] of [["pNet",s.tracked_net_pnl_btc],["pRealized",s.realized_pnl_btc],["pUnrealized",s.unrealized_pnl_btc],["pToday",s.today_realized_btc]]){const el=$(id);el.textContent=`${signed(v,6)} BTC`;el.className=`metric-value ${tone(v)}`}$("pPeriods").textContent=`${signed(s.last_7d_realized_btc,5)} / ${signed(s.last_30d_realized_btc,5)} BTC`;$("pPeriods").className=`metric-value small ${tone(s.last_30d_realized_btc)}`;$("pWinRate").textContent=`${num(s.win_rate*100,1)}%`;$("pWinNote").textContent=`${s.wins} 胜 · ${s.losses} 负 · ${s.closed_trades} 笔结束`;$("pFeeBadge").textContent=`对冲手续费 ${num(s.hedge_fees_btc,6)} BTC`;$("pTradeBadge").textContent=`${data.trades.length} 笔`;renderPnlChart(data.daily);$("pnlTradesTable").innerHTML=`<thead><tr><th>交易</th><th>信号</th><th>类型</th><th>状态</th><th>开仓</th><th>平仓</th><th>已实现</th><th>未实现</th><th>合计</th></tr></thead><tbody>${data.trades.length?data.trades.map(t=>{const total=Number(t.realized_pnl_btc)+Number(t.unrealized_pnl_btc);return `<tr><td class="number">#${t.id}</td><td class="mono">${esc(t.signal_id||"—")}</td><td>${t.spread_type==="CALL_CREDIT"?"CALL":"PUT"}</td><td>${stateTag(t.state)}</td><td class="number">${time(t.opened_at)}</td><td class="number">${time(t.closed_at)}</td><td class="number ${tone(t.realized_pnl_btc)}">${signed(t.realized_pnl_btc,6)}</td><td class="number ${tone(t.unrealized_pnl_btc)}">${signed(t.unrealized_pnl_btc,6)}</td><td class="number ${tone(total)}">${signed(total,6)} BTC</td></tr>`}).join(""):`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">暂无策略交易收益记录</td></tr>`}</tbody>`}
