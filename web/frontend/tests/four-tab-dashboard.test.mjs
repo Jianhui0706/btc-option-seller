@@ -63,3 +63,10 @@ test("four-tab shell is responsive and keeps danger actions explicit", () => {
   assert.match(html, /function enhanceMobileTables\(\)/);
   assert.match(html, /@media\(max-width:700px\)[\s\S]*\.data-table tr\{display:block/);
 });
+
+test("tab switcher sticks independently below the scrolling overview", () => {
+  assert.match(html, /\.topbar\{[^}]*position:static/);
+  assert.match(html, /\.page-switcher\{[^}]*position:sticky;top:0;z-index:20/);
+  assert.match(html, /@media\(max-width:1120px\)[\s\S]*\.mobile-only\{display:grid\}/);
+  assert.match(html, /onclick="openForceDialog\(\)"/);
+});
