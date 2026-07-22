@@ -365,6 +365,13 @@ function renderConditionCard(row,resolved){
   if(resolved.ok==null)return `<article class="condition-card pending">${body}</article>`;
   return `<article class="condition-card passed">${body}</article>`;
 }
+function conditionSummary(gateStates,blockedNames,shapeOk,authority,pineFresh){
+  if(blockedNames.length)return {cls:"blocked",icon:"✕",title:"当前不会发出开仓信号",copy:`被「${blockedNames.join(" / ")}」拦住 · 依据${authority}`};
+  if(gateStates.some(value=>value==null))return {cls:"broken",icon:"!",title:"暂时无法判定",copy:pineFresh?"连接回报数据不完整":"后端行情不可用，且尚未收到 Pine 连接回报"};
+  if(shapeOk==null)return {cls:"broken",icon:"!",title:"暂时无法判定",copy:`前置门槛已通过，但布林触发形态数据不完整 · 依据${authority}`};
+  if(shapeOk===false)return {cls:"blocked",icon:"⏳",title:"门槛已全部通过，等待触发形态",copy:`还需 2h K 线出现破轨 + 反向收线 · 依据${authority}`};
+  return {cls:"ready",icon:"✓",title:"最近一根 2h K 线满足全部条件",copy:`信号应已发出，请核对下方实时信号流 · 依据${authority}`};
+}
 function renderConditions(data){const b=data.backend,p=data.pine,now=data.server_ts||Date.now();
   // 实时价格条：每次刷新都取一次真实价格，随行情跳动；「距轨道」越接近 0 越可能触发形态
   const lv=data.live,lvEl=$("condLive");
@@ -418,11 +425,7 @@ function renderConditions(data){const b=data.backend,p=data.pine,now=data.server
   shapeEl.className="condition-section visible";
   shapeEl.innerHTML=`<button type="button" class="condition-toggle" aria-expanded="${shapeExpanded}" onclick="toggleConditionSection('shape')"><span class="condition-toggle-icon">◎</span><span class="condition-toggle-copy"><span class="condition-toggle-title">${esc(shapeTitle)}</span><span class="condition-toggle-note">PUT/CALL 触发详情 · 最终开仓触发条件</span></span><span class="condition-chevron">⌄</span></button>${shapeExpanded?`<div class="condition-collapsible condition-card-grid">${renderConditionCard(shapeCard.row,shapeCard.resolved)}</div>`:""}`;
   const gates=rows.slice(0,4),blocked=blockedCards.map(x=>x.row.name),shapeOk=pick(rows[4]);
-  let cls,icon,title,copy;
-  if(gates.some(r=>pick(r)==null)){cls="broken";icon="!";title="暂时无法判定";copy=pineFresh?"连接回报数据不完整":"后端行情不可用，且尚未收到 Pine 连接回报"}
-  else if(blocked.length){cls="blocked";icon="✕";title="当前不会发出开仓信号";copy=`被「${blocked.join(" / ")}」拦住 · 依据${authority}`}
-  else if(!shapeOk){cls="blocked";icon="⏳";title="门槛已全部通过，等待触发形态";copy=`还需 2h K 线出现破轨 + 反向收线 · 依据${authority}`}
-  else{cls="ready";icon="✓";title="最近一根 2h K 线满足全部条件";copy=`信号应已发出，请核对下方实时信号流 · 依据${authority}`}
+  const {cls,icon,title,copy}=conditionSummary(gates.map(r=>pick(r)),blocked,shapeOk,authority,pineFresh);
   $("condSummary").className=`cond-summary ${cls}`;
   $("condSummary").innerHTML=`<div class="cond-summary-icon">${icon}</div><div><div class="cond-summary-title">${esc(title)}</div><div class="cond-summary-copy">${esc(copy)}</div></div>`;
   $("condVerdict").textContent=blocked.length?`${blocked.length} 项未满足`:cls==="ready"?"条件满足":cls==="broken"?"数据缺失":"等待形态";
