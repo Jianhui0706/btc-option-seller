@@ -22,3 +22,22 @@ test("indeterminate conditions are separated from blockers", () => {
   assert.match(html, /const pendingCards=gateCards\.filter\(x=>x\.resolved\.ok==null\)/);
   assert.match(html, /暂时无法判定/);
 });
+
+test("passed conditions are collapsed but expandable", () => {
+  assert.match(html, /const conditionSections=\{passed:false,shape:false,evidence:false\}/);
+  assert.match(html, /function toggleConditionSection\(name\)/);
+  assert.match(html, /aria-expanded="\$\{conditionSections\.passed\}"/);
+  assert.match(html, /已通过 \$\{passedCards\.length\} 项/);
+});
+
+test("bollinger shape is rendered as the final trigger", () => {
+  assert.match(html, /等待前置门槛/);
+  assert.match(html, /等待破轨 \+ 反向收线/);
+  assert.match(html, /PUT\/CALL 触发详情/);
+  assert.match(html, /shapeCard\.resolved\.ok===true/);
+});
+
+test("evidence is visually secondary and expandable", () => {
+  assert.match(html, /数据与判断依据/);
+  assert.match(html, /conditionSections\.evidence/);
+});
