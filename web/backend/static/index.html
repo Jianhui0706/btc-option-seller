@@ -98,6 +98,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .cond-row{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}.cond-name{font-size:12px;font-weight:700}.cond-hint{color:var(--faint);font-size:10px;margin-top:2px}
 .cond-val{font-size:16px;font-weight:730;font-variant-numeric:tabular-nums;font-family:"SFMono-Regular",Consolas,monospace;line-height:1.25}.cond-val.no{color:var(--red)}.cond-val.ok{color:var(--text)}.cond-val.na{color:var(--faint);font-size:14px}.cond-note{color:var(--faint);font-size:10px;margin-top:3px}
 .cond-pill{justify-self:end;border-radius:999px;padding:4px 9px;font-size:10px;font-weight:800;white-space:nowrap}.cond-pill.ok{color:var(--green);background:rgba(84,214,154,.12)}.cond-pill.no{color:#ff9aa5;background:rgba(255,101,119,.12)}.cond-pill.na{color:var(--faint);background:rgba(82,97,115,.14)}
+.condition-section{display:none;margin-top:16px}.condition-section.visible{display:block}.condition-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}.condition-section-title h3{margin:0;font-size:12px}.condition-section-title span{color:var(--muted);font-size:10px}.condition-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.condition-card{min-width:0;border:1px solid var(--line);border-left:3px solid var(--faint);border-radius:13px;background:linear-gradient(145deg,#111923,#0c131b);padding:14px 15px}.condition-card.blocker{border-color:rgba(255,101,119,.28);border-left-color:var(--red);background:linear-gradient(145deg,rgba(255,101,119,.075),rgba(12,19,27,.98))}.condition-card.pending{border-color:rgba(246,184,74,.25);border-left-color:var(--amber)}.condition-card.passed{border-left-color:var(--green)}.condition-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.condition-card-name{font-size:13px;font-weight:780}.condition-card-hint{font-size:10px;color:var(--faint);margin-top:2px}.condition-card-status{flex:none;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:800}.condition-card.blocker .condition-card-status{color:#ff9aa5;background:rgba(255,101,119,.12)}.condition-card.pending .condition-card-status{color:var(--amber);background:rgba(246,184,74,.1)}.condition-card.passed .condition-card-status{color:var(--green);background:rgba(84,214,154,.1)}.condition-card-value{font:800 23px/1.1 "SFMono-Regular",Consolas,monospace;margin:14px 0 3px}.condition-card.blocker .condition-card-value{color:var(--red)}.condition-card-gap{min-height:20px;font-size:11px;font-weight:720}.condition-card.blocker .condition-card-gap{color:#ff8d9a}.condition-card.pending .condition-card-gap{color:var(--amber)}.condition-card.passed .condition-card-gap{color:var(--green)}.condition-card-standard{color:var(--muted);font-size:10px;margin-top:3px}.condition-card-source{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid rgba(255,255,255,.06);margin-top:12px;padding-top:9px;color:var(--faint);font-size:9px}.condition-card-details{margin-top:8px}.condition-evidence{margin-top:14px}.condition-empty{display:none}
 .activity-stream{max-height:520px;overflow-y:auto;padding:10px;display:grid;gap:6px;scrollbar-color:var(--line2) transparent}.activity-item{border:1px solid var(--line);border-left:3px solid var(--faint);background:#0b121a;border-radius:10px;overflow:hidden}.activity-item.activity-heartbeat{border-left-color:var(--blue)}.activity-item.activity-open{border-left-color:var(--green)}.activity-item.activity-exit{border-left-color:var(--cyan)}.activity-item.activity-rejected{border-left-color:var(--red)}.activity-item.activity-pending{border-left-color:var(--amber)}.activity-summary{width:100%;min-height:52px;border:0;background:transparent;color:inherit;display:grid;grid-template-columns:minmax(130px,1.2fr) minmax(150px,1fr) auto auto;align-items:center;gap:10px;padding:9px 12px;text-align:left;cursor:pointer}.activity-summary:hover{background:rgba(255,255,255,.025)}.activity-title{font-size:12px;font-weight:760;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.activity-subtitle{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.activity-time{font-size:10px;color:var(--muted);white-space:nowrap}.activity-badges{display:flex;align-items:center;justify-content:flex-end;gap:6px;white-space:nowrap}.activity-chevron{color:var(--muted);transition:transform .18s}.activity-summary[aria-expanded="true"] .activity-chevron{transform:rotate(180deg)}.activity-detail{border-top:1px solid var(--line);padding:12px 14px;background:#080e15}.activity-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:9px}.activity-detail-label{font-size:9px;color:var(--faint)}.activity-detail-value{font-size:11px;margin-top:2px;word-break:break-word}.activity-reason{border:1px solid rgba(255,101,119,.24);background:rgba(255,101,119,.07);border-radius:8px;padding:9px 10px;margin-bottom:9px;color:#ffb3bc;font-size:11px}.activity-detail pre{white-space:pre-wrap;word-break:break-word;color:#9fb0c3;background:#060a0f;border-radius:8px;padding:9px;max-height:190px;overflow:auto;margin:0;font-size:10px}.activity-heartbeat .source-pill{color:var(--blue);background:rgba(102,166,255,.1)}.activity-open .source-pill{color:var(--green);background:rgba(84,214,154,.1)}.activity-exit .source-pill{color:var(--cyan);background:rgba(70,215,195,.1)}.activity-rejected .source-pill{color:var(--red);background:rgba(255,101,119,.1)}.activity-pending .source-pill{color:var(--amber);background:rgba(246,184,74,.1)}
 .cond-foot{display:grid;gap:6px;color:var(--muted);font-size:10px;padding-top:13px}.cond-foot .warning{color:var(--amber)}
 @media(max-width:700px){.cond-head{display:none}.cond-row{grid-template-columns:1fr auto;gap:4px 10px}.cond-row>div:first-child{grid-column:1;grid-row:1}.cond-pill{grid-column:2;grid-row:1;justify-self:end}.cond-cell{grid-column:1/-1;grid-row:2}.cond-std{grid-column:1/-1;grid-row:3}.mbar{max-width:none}.dircard{min-width:0}}
@@ -180,9 +181,11 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
       <div id="condSummary" class="cond-summary"><div class="cond-summary-icon">…</div><div><div class="cond-summary-title">正在读取行情</div><div class="cond-summary-copy">首次计算需要拉取 2h K 线与 DVOL 全历史</div></div></div>
       <div id="condWatch" class="cond-watch" style="display:none"></div>
       <div id="condLive" class="cond-live" style="display:none"></div>
-      <div class="cond-head"><span>门槛</span><span>当前值 · 来源 <em id="condPineState" class="cond-src-state">检查中</em></span><span>标准与差距</span><span style="text-align:right">结论</span></div>
-      <div id="condRows"></div>
-      <div id="condFoot" class="cond-foot"></div>
+      <section id="condBlockers" class="condition-section"></section>
+      <section id="condPending" class="condition-section"></section>
+      <section id="condPassed" class="condition-section"></section>
+      <section id="condShape" class="condition-section"></section>
+      <section id="condEvidence" class="condition-evidence"><div id="condPineState" class="cond-src-state">检查中</div><div id="condFoot" class="cond-foot"></div></section>
     </div></section>
     <section class="panel"><div class="panel-head"><div><div class="panel-title">待处理与最近信号</div><div class="panel-kicker">仅显示真实开仓或退出信号；连接回报请到“信号日志”查看</div></div><span class="tag">最近 6 条</span></div><div id="activeSignalList" class="activity-stream"></div></section>
   </div>
@@ -345,6 +348,17 @@ function condRow(r,data,pineFresh,deferred){
   }
   return {ok:main.ok,cls,value,srcTag,standard,gap,extra};
 }
+function renderConditionCard(row,resolved){
+  const body=`<div class="condition-card-head"><div><div class="condition-card-name">${esc(row.name)}</div><div class="condition-card-hint">${esc(row.hint)}</div></div><span class="condition-card-status">${resolved.ok==null?"待定":resolved.ok?"通过":"阻断"}</span></div>`+
+    `<div class="condition-card-value">${esc(resolved.value)}</div>`+
+    `<div class="condition-card-gap">${resolved.gap||"等待有效数据"}</div>`+
+    `<div class="condition-card-standard">标准：${esc(resolved.standard)}</div>`+
+    `<div class="condition-card-details">${resolved.extra||""}</div>`+
+    `<div class="condition-card-source"><span>判断来源</span><b>${esc(resolved.srcTag)}</b></div>`;
+  if(resolved.ok===false)return `<article class="condition-card blocker">${body}</article>`;
+  if(resolved.ok==null)return `<article class="condition-card pending">${body}</article>`;
+  return `<article class="condition-card passed">${body}</article>`;
+}
 function renderConditions(data){const b=data.backend,p=data.pine,now=data.server_ts||Date.now();
   // 实时价格条：每次刷新都取一次真实价格，随行情跳动；「距轨道」越接近 0 越可能触发形态
   const lv=data.live,lvEl=$("condLive");
@@ -378,9 +392,18 @@ function renderConditions(data){const b=data.backend,p=data.pine,now=data.server
   const deferred=pineFresh&&(!p||p.dvol_tier==null||p.dvol_tier<0);
   const pick=r=>((r.key==="dvol_tier"&&deferred)||!pineFresh)?r.b.ok:r.p.ok;
   const authority=!pineFresh?"后端自算":deferred?"Pine 连接回报 + 后端 DVOL 判定":"Pine 连接回报";
-  $("condRows").innerHTML=COND_ROWS.map(r=>{const c=condRow(r,data,pineFresh,deferred);
-    return `<div class="cond-row"><div><div class="cond-name">${esc(r.name)}</div><div class="cond-hint">${esc(r.hint)}</div></div><div class="cond-cell"><div class="cond-main ${c.cls}">${esc(c.value)}</div><div class="cond-sub"><span class="cond-srctag">${esc(c.srcTag)}</span></div></div><div class="cond-std"><div class="std-line">标准 <b>${esc(c.standard)}</b></div>${c.gap}${c.extra}</div><span class="cond-pill ${c.cls}">${c.ok==null?"待定":c.ok?"通过":"未通过"}</span></div>`}).join("");
-  const gates=rows.slice(0,4),blocked=gates.filter(r=>pick(r)===false).map(r=>r.name),shapeOk=pick(rows[4]);
+  const renderedRows=COND_ROWS.map(row=>({row,resolved:condRow(row,data,pineFresh,deferred)}));
+  const gateCards=renderedRows.slice(0,4);
+  const shapeCard=renderedRows[4];
+  const blockedCards=gateCards.filter(x=>x.resolved.ok===false);
+  const pendingCards=gateCards.filter(x=>x.resolved.ok==null);
+  const passedCards=gateCards.filter(x=>x.resolved.ok===true);
+  const renderSection=(id,title,cards,subtitle)=>{const el=$(id);if(!cards.length){el.className="condition-section";el.innerHTML="";return}el.className="condition-section visible";el.innerHTML=`<div class="condition-section-title"><h3>${esc(title)}</h3><span>${esc(subtitle||"")}</span></div><div class="condition-card-grid">${cards.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`};
+  renderSection("condBlockers","需要先解决",blockedCards,`${blockedCards.length} 项正在阻止开仓信号`);
+  renderSection("condPending","暂时无法判定",pendingCards,"等待完整数据后自动更新");
+  renderSection("condPassed",`已通过 ${passedCards.length} 项`,passedCards,"当前全部展开");
+  renderSection("condShape","最终触发：布林形态",[shapeCard],"破轨 + 反向收线");
+  const gates=rows.slice(0,4),blocked=blockedCards.map(x=>x.row.name),shapeOk=pick(rows[4]);
   let cls,icon,title,copy;
   if(gates.some(r=>pick(r)==null)){cls="broken";icon="!";title="暂时无法判定";copy=pineFresh?"连接回报数据不完整":"后端行情不可用，且尚未收到 Pine 连接回报"}
   else if(blocked.length){cls="blocked";icon="✕";title="当前不会发出开仓信号";copy=`被「${blocked.join(" / ")}」拦住 · 依据${authority}`}
