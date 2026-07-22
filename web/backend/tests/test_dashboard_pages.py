@@ -19,6 +19,7 @@ def test_dashboard_exposes_signal_and_returns_pages_and_apis():
     assert ("/api/signals", "GET") in routes
     assert ("/api/performance", "GET") in routes
     assert ("/signals", "GET") in routes
+    assert ("/signal-log", "GET") in routes
     assert ("/returns", "GET") in routes
     assert ("/control/test_signal", "POST") not in routes
 
@@ -43,14 +44,15 @@ def test_signals_page_has_entry_condition_panel():
     assert source.count("尚未收到心跳") <= 1
 
 
-def test_frontend_contains_three_distinct_dashboard_views():
+def test_frontend_contains_four_teacher_dashboard_views():
     source = (Path(__file__).resolve().parents[2] / "frontend" / "index.html").read_text(
         encoding="utf-8"
     )
 
-    assert 'id="page-overview"' in source
-    assert 'id="page-signals"' in source
-    assert 'id="page-returns"' in source
+    assert 'id="page-positions"' in source
+    assert 'id="page-active-signals"' in source
+    assert 'id="page-signal-log"' in source
+    assert 'id="page-position-log"' in source
     assert "TradingView 信号" in source
     assert "TradingView 实时监听" in source
     assert "测试工具" not in source
@@ -60,9 +62,10 @@ def test_frontend_contains_three_distinct_dashboard_views():
     assert "Array.from({length:30}" in source
     assert '<div class="topbar-primary">' in source
     assert '<div class="topbar-command">' in source
-    assert '<small>Overview</small>' in source
-    assert '<small>Signals</small>' in source
-    assert '<small>Performance</small>' in source
+    assert '<small>Positions</small>' in source
+    assert '<small>Active Signals</small>' in source
+    assert '<small>Signal Log</small>' in source
+    assert '<small>Position Log</small>' in source
     assert 'class="btn icon-btn mobile-only primary-mobile-menu"' in source
 
 

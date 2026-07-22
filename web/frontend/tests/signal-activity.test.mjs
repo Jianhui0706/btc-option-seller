@@ -20,8 +20,16 @@ test("activity colors distinguish connection, open signal, exit, and rejection",
   assert.match(html, /activity-heartbeat/);
   assert.match(html, /activity-open/);
   assert.match(html, /activity-exit/);
+  assert.match(html, /activity-rejected/);
+  assert.match(html, /activity-pending/);
+  assert.match(html, /item\.status==="REJECTED"\?"activity-rejected"/);
   assert.match(html, /系统拒绝/);
   assert.match(html, /REJECT_DVOL_BELOW_ENTRY:"DVOL 低于开仓门槛"/);
+});
+
+test("active signal panel contains opening signals only", () => {
+  assert.match(html, /filter\(x=>x\.kind==="OPEN_SIGNAL"\)/);
+  assert.doesNotMatch(html, /filter\(x=>x\.kind==="OPEN_SIGNAL"\|\|x\.kind==="EXIT_SIGNAL"\)/);
 });
 
 test("activity details remove secrets and escape dynamic values", () => {
