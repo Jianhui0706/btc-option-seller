@@ -38,9 +38,11 @@ def test_signals_page_has_entry_condition_panel():
     )
 
     assert "开仓条件实时看板" in source
-    assert 'id="condRows"' in source
+    assert 'id="condBlockers"' in source
+    assert 'id="condPassed"' in source
+    assert 'id="condShape"' in source
     # 心跳状态只在表头交代一次，不逐行重复
-    assert 'id="condPineState"' in source
+    assert 'id="condEvidence"' in source
     assert source.count("尚未收到心跳") <= 1
 
 
