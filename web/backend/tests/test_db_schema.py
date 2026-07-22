@@ -62,3 +62,45 @@ async def test_legacy_latest_pine_status_is_backfilled_into_history(tmp_path):
         assert "passphrase" not in json.loads(rows[0]["payload_json"])
     finally:
         await db.close()
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_migration_collapses_complete_duplicate_identities(tmp_path):
+    db_path = tmp_path / "legacy-duplicate-heartbeats.db"
+    legacy = sqlite3.connect(db_path)
+    legacy.execute(
+        "CREATE TABLE pine_heartbeats ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, received_at INTEGER NOT NULL, "
+        "bar_ts INTEGER, strategy TEXT, payload_json TEXT NOT NULL)"
+    )
+    legacy.executemany(
+        "INSERT INTO pine_heartbeats(received_at, bar_ts, strategy, payload_json) "
+        "VALUES(?,?,?,?)",
+        [
+            (100, 123, "BTC_OPTION_SELLER_V2", '{"copy":1}'),
+            (101, 123, "BTC_OPTION_SELLER_V2", '{"copy":2}'),
+            (102, 123, "", '{"diagnostic":1}'),
+            (103, 123, "", '{"diagnostic":2}'),
+        ],
+    )
+    legacy.commit()
+    legacy.close()
+
+    db = Database(db_path)
+    conn = await db.open()
+    try:
+        rows = await (await conn.execute(
+            "SELECT received_at, strategy FROM pine_heartbeats ORDER BY id"
+        )).fetchall()
+        indexes = await (await conn.execute(
+            "PRAGMA index_list(pine_heartbeats)"
+        )).fetchall()
+
+        assert [(row["received_at"], row["strategy"]) for row in rows] == [
+            (100, "BTC_OPTION_SELLER_V2"),
+            (102, ""),
+            (103, ""),
+        ]
+        assert "uq_pine_heartbeats_strategy_bar" in {row[1] for row in indexes}
+    finally:
+        await db.close()

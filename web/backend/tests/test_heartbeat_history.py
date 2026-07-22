@@ -37,3 +37,37 @@ async def test_heartbeat_history_is_sanitized_ordered_and_bounded(tmp_path):
         assert all("passphrase" not in row["payload"] for row in recent)
     finally:
         await db.close()
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_history_deduplicates_only_complete_strategy_bar_identity(tmp_path):
+    db = Database(tmp_path / "heartbeat-idempotency.db")
+    conn = await db.open()
+    try:
+        repo = Repo(conn)
+        base = {
+            "event": "STATUS",
+            "strategy": "BTC_OPTION_SELLER_V2",
+            "bar_ts": 100,
+            "received_at": 1000,
+        }
+
+        first = await repo.record_pine_heartbeat(base)
+        duplicate = await repo.record_pine_heartbeat({**base, "received_at": 1001})
+        next_bar = await repo.record_pine_heartbeat({**base, "bar_ts": 200})
+        other_strategy = await repo.record_pine_heartbeat({**base, "strategy": "OTHER"})
+        missing_strategy_1 = await repo.record_pine_heartbeat({**base, "strategy": ""})
+        missing_strategy_2 = await repo.record_pine_heartbeat({**base, "strategy": ""})
+        missing_bar_1 = await repo.record_pine_heartbeat({**base, "bar_ts": None})
+        missing_bar_2 = await repo.record_pine_heartbeat({**base, "bar_ts": None})
+
+        count = (await (await conn.execute(
+            "SELECT COUNT(*) FROM pine_heartbeats")).fetchone())[0]
+
+        assert first is True
+        assert duplicate is False
+        assert all((next_bar, other_strategy, missing_strategy_1,
+                    missing_strategy_2, missing_bar_1, missing_bar_2))
+        assert count == 7
+    finally:
+        await db.close()

@@ -105,8 +105,12 @@ async def _handle_status(ctx: Ctx, body: dict, expected: str) -> dict:
         return {"status": "rejected", "reason": "auth"}
     payload = status.model_dump(exclude={"passphrase"})
     payload["received_at"] = int(time.time() * 1000)
-    await ctx.repo.record_pine_heartbeat(payload)
-    return {"status": "ok", "bar_ts": status.bar_ts}
+    fresh = await ctx.repo.record_pine_heartbeat(payload)
+    return {
+        "status": "ok",
+        "bar_ts": status.bar_ts,
+        "duplicate": not fresh,
+    }
 
 
 @router.post("/webhook/tradingview")

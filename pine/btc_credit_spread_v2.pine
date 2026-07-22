@@ -153,6 +153,8 @@ callSignal = newBar2h and cfgOk and tierOk and hvOk and cciOk and callShape
 
 var int lastSigT = na
 canFire = na(lastSigT) or t2 != lastSigT             // 每根 2h bar 至多一枚信号
+varip int lastStatusT = na
+statusCanFire = na(lastStatusT) or t2 != lastStatusT // 每根 2h bar 至多一条连接回报
 
 // ---------------------------------------------------------------- Webhook JSON（规范第五节）
 f_open_json(spreadType) =>
@@ -219,18 +221,22 @@ f_exit_json() =>
      "\"dvol_exit_level\":" + str.tostring(dvolExitLevel, "#.##") +
      "}"
 
-if putSignal and canFire
-    alert(f_open_json("PUT_CREDIT"), alert.freq_once_per_bar)
+// 同一根 3m bar 可能同时需要 OPEN/EXIT/STATUS。freq_once_per_bar 只会放行
+// 该 bar 第一次 alert() 调用，会把后续心跳（以及极端情况下的退出）吞掉。
+// 因此只在 3m bar 收盘这一次计算中执行，并用 freq_all 允许同轮的多条消息全部发出。
+if barstate.isconfirmed and putSignal and canFire
+    alert(f_open_json("PUT_CREDIT"), alert.freq_all)
     lastSigT := t2
-if callSignal and canFire
-    alert(f_open_json("CALL_CREDIT"), alert.freq_once_per_bar)
+if barstate.isconfirmed and callSignal and canFire
+    alert(f_open_json("CALL_CREDIT"), alert.freq_all)
     lastSigT := t2
 // 档位配置错误只阻止开仓，不能阻断安全退出信号。
-if dvolExitHit
-    alert(f_exit_json(), alert.freq_once_per_bar)
+if barstate.isconfirmed and dvolExitHit
+    alert(f_exit_json(), alert.freq_all)
 // 心跳与信号相互独立：配置错误、门槛不通过时心跳照发，否则最该看到状态的时候反而没有。
-if newBar2h and heartbeat_on
-    alert(f_status_json(), alert.freq_once_per_bar)
+if barstate.isconfirmed and newBar2h and heartbeat_on and statusCanFire
+    alert(f_status_json(), alert.freq_all)
+    lastStatusT := t2
 
 // ---------------------------------------------------------------- 图面展示
 plot(dvolPct, "DVOL分位%", color = color.orange)

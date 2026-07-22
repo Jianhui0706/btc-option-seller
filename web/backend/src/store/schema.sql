@@ -122,6 +122,22 @@ CREATE TABLE IF NOT EXISTS pine_heartbeats (
 CREATE INDEX IF NOT EXISTS idx_pine_heartbeats_received
   ON pine_heartbeats(received_at DESC);
 
+-- 连接回报以策略 + 2h bar 时间戳为幂等身份。升级旧库时先保留每组最早一条，
+-- 再建立局部唯一索引；缺少身份字段的诊断记录不参与去重。
+DELETE FROM pine_heartbeats
+WHERE strategy IS NOT NULL
+  AND strategy <> ''
+  AND bar_ts IS NOT NULL
+  AND id NOT IN (
+    SELECT MIN(id)
+    FROM pine_heartbeats
+    WHERE strategy IS NOT NULL AND strategy <> '' AND bar_ts IS NOT NULL
+    GROUP BY strategy, bar_ts
+  );
+CREATE UNIQUE INDEX IF NOT EXISTS uq_pine_heartbeats_strategy_bar
+  ON pine_heartbeats(strategy, bar_ts)
+  WHERE strategy IS NOT NULL AND strategy <> '' AND bar_ts IS NOT NULL;
+
 -- 升级兼容：旧版本只在 system_state 保存最新一条真实 Pine 心跳。
 -- 新历史表首次创建且为空时回填该记录；后续启动不会重复插入。
 INSERT INTO pine_heartbeats(received_at, bar_ts, strategy, payload_json)

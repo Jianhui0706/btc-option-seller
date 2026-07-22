@@ -50,7 +50,7 @@ class Repo:
     # ------------------------------------------------------------ Pine heartbeats
 
     async def record_pine_heartbeat(self, payload: dict,
-                                    retention: int = 500) -> None:
+                                    retention: int = 500) -> bool:
         safe_payload = dict(payload)
         safe_payload.pop("passphrase", None)
         received_value = safe_payload.get("received_at")
@@ -59,21 +59,25 @@ class Repo:
         payload_json = json.dumps(safe_payload, ensure_ascii=False)
         keep = max(1, int(retention))
 
-        await self.conn.execute(
-            "INSERT INTO pine_heartbeats(received_at, bar_ts, strategy, payload_json) "
+        cur = await self.conn.execute(
+            "INSERT OR IGNORE INTO pine_heartbeats("
+            "received_at, bar_ts, strategy, payload_json) "
             "VALUES(?,?,?,?)",
             (received_at, safe_payload.get("bar_ts"),
              safe_payload.get("strategy"), payload_json))
-        await self.conn.execute(
-            "INSERT INTO system_state(key, value) VALUES('pine_status', ?) "
-            "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
-            (payload_json,))
-        await self.conn.execute(
-            "DELETE FROM pine_heartbeats WHERE id NOT IN ("
-            "SELECT id FROM pine_heartbeats "
-            "ORDER BY received_at DESC, id DESC LIMIT ?)",
-            (keep,))
+        fresh = cur.rowcount > 0
+        if fresh:
+            await self.conn.execute(
+                "INSERT INTO system_state(key, value) VALUES('pine_status', ?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                (payload_json,))
+            await self.conn.execute(
+                "DELETE FROM pine_heartbeats WHERE id NOT IN ("
+                "SELECT id FROM pine_heartbeats "
+                "ORDER BY received_at DESC, id DESC LIMIT ?)",
+                (keep,))
         await self.conn.commit()
+        return fresh
 
     async def recent_pine_heartbeats(self, limit: int = 100) -> list[dict]:
         safe_limit = max(1, min(int(limit), 500))

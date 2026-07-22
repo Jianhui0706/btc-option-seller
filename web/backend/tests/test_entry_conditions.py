@@ -119,11 +119,13 @@ def test_hv_gate_needs_full_percentile_window():
 # ---------------------------------------------------------------- Pine 心跳
 
 class _FakeRepo:
-    def __init__(self):
+    def __init__(self, fresh=True):
         self.heartbeat = None
+        self.fresh = fresh
 
     async def record_pine_heartbeat(self, payload):
         self.heartbeat = payload
+        return self.fresh
 
 
 class _FakeQueue:
@@ -148,12 +150,26 @@ def test_heartbeat_stored_without_passphrase():
     queue = _FakeQueue()
     ctx = SimpleNamespace(repo=repo, queue=queue)
     result = asyncio.run(_handle_status(ctx, _status_body(), "secret"))
-    assert result == {"status": "ok", "bar_ts": 1753000000000}
+    assert result == {
+        "status": "ok", "bar_ts": 1753000000000, "duplicate": False,
+    }
     saved = repo.heartbeat
     assert "passphrase" not in saved
     assert saved["cci"] == 141.1 and saved["cci_ok"] is False
     assert saved["received_at"] > 0
     assert queue.commands == []
+
+
+def test_duplicate_heartbeat_is_acknowledged_without_becoming_an_error():
+    repo = _FakeRepo(fresh=False)
+    ctx = SimpleNamespace(repo=repo, queue=_FakeQueue())
+
+    result = asyncio.run(_handle_status(ctx, _status_body(), "secret"))
+
+    assert result == {
+        "status": "ok", "bar_ts": 1753000000000, "duplicate": True,
+    }
+    assert repo.heartbeat is not None
 
 
 def test_heartbeat_rejects_wrong_passphrase_and_stores_nothing():
