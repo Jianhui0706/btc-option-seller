@@ -118,15 +118,46 @@ async def signal_feed(request: Request, limit: int = 100):
             payload = json.loads(item.pop("payload_json") or "{}")
         except (TypeError, json.JSONDecodeError):
             payload = {}
+        if not isinstance(payload, dict):
+            payload = {}
+        payload.pop("passphrase", None)
+        item["key"] = f"signal:{item['signal_id']}"
+        item["kind"] = (
+            "OPEN_SIGNAL" if item["event"] == "OPEN_REQUEST" else "EXIT_SIGNAL")
         item["source"] = "tradingview"
         item["payload"] = payload
         items.append(item)
 
+    for row in await ctx.repo.recent_pine_heartbeats(safe_limit):
+        payload = dict(row.get("payload") or {})
+        payload.pop("passphrase", None)
+        items.append({
+            "key": f"heartbeat:{row['id']}",
+            "kind": "HEARTBEAT",
+            "event": "STATUS",
+            "received_at": row["received_at"],
+            "status": "CONNECTED",
+            "reject_reason": None,
+            "source": "tradingview",
+            "strategy": row.get("strategy"),
+            "signal_id": None,
+            "spread_type": None,
+            "payload": payload,
+        })
+
+    items.sort(key=lambda item: (item["received_at"], item["key"]), reverse=True)
+    items = items[:safe_limit]
+    signal_items = [item for item in items if item["kind"] != "HEARTBEAT"]
     summary = {
         "total": len(items),
-        "accepted": sum(i["status"] == "ACCEPTED" for i in items),
-        "rejected": sum(i["status"] == "REJECTED" for i in items),
-        "pending": sum(i["status"] not in ("ACCEPTED", "REJECTED") for i in items),
+        "heartbeats": sum(i["kind"] == "HEARTBEAT" for i in items),
+        "signal_total": len(signal_items),
+        "open_signals": sum(i["kind"] == "OPEN_SIGNAL" for i in items),
+        "exit_signals": sum(i["kind"] == "EXIT_SIGNAL" for i in items),
+        "accepted": sum(i["status"] == "ACCEPTED" for i in signal_items),
+        "rejected": sum(i["status"] == "REJECTED" for i in signal_items),
+        "pending": sum(
+            i["status"] not in ("ACCEPTED", "REJECTED") for i in signal_items),
     }
     return {
         "configured": bool(ctx.cfg.env.webhook_auth_token),

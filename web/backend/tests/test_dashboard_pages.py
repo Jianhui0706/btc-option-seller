@@ -100,16 +100,22 @@ def test_windows_launcher_remains_ascii_safe_and_decodes_the_chinese_brand():
 
 
 @pytest.mark.asyncio
-async def test_signal_feed_exposes_only_real_tradingview_signals(tmp_path):
+async def test_signal_feed_merges_heartbeats_and_real_tradingview_signals(tmp_path):
     db = Database(tmp_path / "signals.db")
     conn = await db.open()
     try:
         repo = Repo(conn)
         await repo.insert_signal(
-            "TV-1", "OPEN_REQUEST", "BTC_OPTION_SELLER_V2", "PUT_CREDIT",
+            "TV-OPEN-1", "OPEN_REQUEST", "BTC_OPTION_SELLER_V2", "PUT_CREDIT",
             {"source": "tradingview", "btc_price": 66000, "dvol_tier": 2},
         )
-        await repo.set_signal_status("TV-1", "ACCEPTED")
+        await repo.set_signal_status(
+            "TV-OPEN-1", "REJECTED", "REJECT_DVOL_BELOW_ENTRY")
+        await repo.insert_signal(
+            "TV-EXIT-1", "EXIT_DVOL", "BTC_OPTION_SELLER_V2", "",
+            {"source": "tradingview", "dvol_percentile": 0.25},
+        )
+        await repo.set_signal_status("TV-EXIT-1", "ACCEPTED")
         await repo.insert_signal(
             "UI-1", "EXIT_DVOL", "BTC_OPTION_SELLER_V2", "",
             {"source": "test_tool"},
@@ -120,6 +126,19 @@ async def test_signal_feed_exposes_only_real_tradingview_signals(tmp_path):
             {"btc_price": 65000},
         )
         await repo.set_signal_status("TEST-LEGACY-1", "ACCEPTED")
+        await conn.execute(
+            "UPDATE signals SET received_at=300 WHERE signal_id='TV-OPEN-1'")
+        await conn.execute(
+            "UPDATE signals SET received_at=100 WHERE signal_id='TV-EXIT-1'")
+        await conn.commit()
+        await repo.record_pine_heartbeat({
+            "event": "STATUS", "strategy": "BTC_OPTION_SELLER_V2",
+            "bar_ts": 200, "received_at": 200, "passphrase": "hidden",
+        })
+        await repo.record_pine_heartbeat({
+            "event": "STATUS", "strategy": "BTC_OPTION_SELLER_V2",
+            "bar_ts": 400, "received_at": 400, "passphrase": "hidden",
+        })
         request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(
             ctx=SimpleNamespace(
                 repo=repo,
@@ -131,11 +150,48 @@ async def test_signal_feed_exposes_only_real_tradingview_signals(tmp_path):
 
         assert result["configured"] is True
         assert result["summary"] == {
-            "total": 1, "accepted": 1, "rejected": 0, "pending": 0,
+            "total": 4,
+            "heartbeats": 2,
+            "signal_total": 2,
+            "open_signals": 1,
+            "exit_signals": 1,
+            "accepted": 1,
+            "rejected": 1,
+            "pending": 0,
         }
-        assert [item["signal_id"] for item in result["items"]] == ["TV-1"]
-        assert result["items"][0]["source"] == "tradingview"
-        assert result["items"][0]["payload"]["btc_price"] == 66000
+        assert [item["kind"] for item in result["items"]] == [
+            "HEARTBEAT", "OPEN_SIGNAL", "HEARTBEAT", "EXIT_SIGNAL",
+        ]
+        assert result["items"][1]["key"] == "signal:TV-OPEN-1"
+        assert result["items"][1]["status"] == "REJECTED"
+        assert result["items"][1]["reject_reason"] == "REJECT_DVOL_BELOW_ENTRY"
+        assert result["items"][1]["payload"]["btc_price"] == 66000
+        assert all("passphrase" not in item["payload"] for item in result["items"])
+    finally:
+        await db.close()
+
+
+@pytest.mark.asyncio
+async def test_signal_feed_tolerates_corrupt_heartbeat_json(tmp_path):
+    db = Database(tmp_path / "corrupt-heartbeat.db")
+    conn = await db.open()
+    try:
+        await conn.execute(
+            "INSERT INTO pine_heartbeats(received_at, bar_ts, strategy, payload_json) "
+            "VALUES(1, 1, 'BTC_OPTION_SELLER_V2', '{bad json')")
+        await conn.commit()
+        repo = Repo(conn)
+        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(
+            ctx=SimpleNamespace(
+                repo=repo,
+                cfg=SimpleNamespace(env=SimpleNamespace(webhook_auth_token="configured")),
+            )
+        )))
+
+        result = await signal_feed(request, limit=20)
+
+        assert result["items"][0]["kind"] == "HEARTBEAT"
+        assert result["items"][0]["payload"] == {}
     finally:
         await db.close()
 
