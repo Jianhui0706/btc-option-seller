@@ -5,6 +5,12 @@ import vm from "node:vm";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
+test("production static dashboard stays synchronized with frontend source", () => {
+  const productionHtml=readFileSync(new URL("../../backend/static/index.html",import.meta.url),"utf8");
+  const normalize=text=>text.replace(/\r\n/g,"\n");
+  assert.equal(normalize(productionHtml),normalize(html),"run npm build before packaging or deployment");
+});
+
 test("entry conditions use a blocker-first hierarchy", () => {
   ["condBlockers", "condPending", "condPassed", "condShape"].forEach((id) =>
     assert.match(html, new RegExp(`id="${id}"`)),
@@ -114,6 +120,29 @@ test("backend stage distinguishes preflight from a real signal result", () => {
   assert.equal(rejected.state,"rejected");
   assert.equal(rejected.actual,true);
   assert.equal(rejected.reason,"REJECT_DVOL_BELOW_ENTRY");
+});
+
+test("stale Pine data cannot be presented as the current TradingView decision", () => {
+  const {buildTradingViewStage} = loadStageHelpers();
+  const stage = buildTradingViewStage({server_ts:2_000_000_000,pine:{
+    received_at:2_000_000_000-151*60*1000,
+    dvol_tier:-1,cfg_ok:true,hv_ok:true,cci_ok:true,put_shape:true,call_shape:false,
+  }});
+  assert.equal(stage.state,"unknown");
+});
+
+test("a nearby but unrelated open signal is not attached to the current Pine bar", () => {
+  const {buildBackendStage} = loadStageHelpers();
+  const barTs=1784707200000;
+  const stage=buildBackendStage({
+    pine:{bar_ts:barTs},
+    backend:{checks:{dvol_tier:{ok:false}}},
+  },{items:[{
+    kind:"OPEN_SIGNAL",signal_id:"BTC_OPTION_SELLER_V2_1784700000000",
+    status:"REJECTED",received_at:barTs+2*60*60*1000,payload:{},
+  }]});
+  assert.equal(stage.actual,false);
+  assert.equal(stage.state,"waiting");
 });
 
 test("dashboard renders separate TradingView and backend stages", () => {
