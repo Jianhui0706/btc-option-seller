@@ -115,3 +115,25 @@ test("backend stage distinguishes preflight from a real signal result", () => {
   assert.equal(rejected.actual,true);
   assert.equal(rejected.reason,"REJECT_DVOL_BELOW_ENTRY");
 });
+
+test("dashboard renders separate TradingView and backend stages", () => {
+  for (const id of ["tvStageSummary","backendStageSummary","tvSignalStage","signalTransit","backendExecutionStage"])
+    assert.match(html,new RegExp(`id="${id}"`));
+  assert.match(html,/① TradingView 是否发送开仓信号/);
+  assert.match(html,/② 后端收到后是否执行/);
+  assert.match(html,/等待 TradingView 开仓信号/);
+});
+
+test("delegated DVOL and backend preflight use unambiguous labels", () => {
+  assert.match(html,/condition-card delegated/);
+  assert.match(html,/交后端判断/);
+  assert.match(html,/样本不足不阻止 TradingView 发信/);
+  assert.match(html,/若现在收到开仓信号/);
+  assert.match(html,/后端 · Deribit DVOL 全历史/);
+  assert.match(html,/已通过.*交后端.*等待触发.*阻断/s);
+});
+
+test("condition rendering consumes signal results for stage two", () => {
+  assert.match(html,/function renderConditions\(data,signals\)/);
+  assert.match(html,/renderConditions\(conditions,signals\)/);
+});
