@@ -121,3 +121,17 @@ CREATE TABLE IF NOT EXISTS pine_heartbeats (
 );
 CREATE INDEX IF NOT EXISTS idx_pine_heartbeats_received
   ON pine_heartbeats(received_at DESC);
+
+-- 升级兼容：旧版本只在 system_state 保存最新一条真实 Pine 心跳。
+-- 新历史表首次创建且为空时回填该记录；后续启动不会重复插入。
+INSERT INTO pine_heartbeats(received_at, bar_ts, strategy, payload_json)
+SELECT
+  COALESCE(CAST(json_extract(value, '$.received_at') AS INTEGER),
+           CAST(strftime('%s', 'now') AS INTEGER) * 1000),
+  CAST(json_extract(value, '$.bar_ts') AS INTEGER),
+  json_extract(value, '$.strategy'),
+  json_remove(value, '$.passphrase')
+FROM system_state
+WHERE key = 'pine_status'
+  AND json_valid(value)
+  AND NOT EXISTS (SELECT 1 FROM pine_heartbeats);
