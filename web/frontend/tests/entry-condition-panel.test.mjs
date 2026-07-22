@@ -67,3 +67,51 @@ test("unknown final shape remains indeterminate after all gates pass", () => {
   assert.equal(result.title, "\u6682\u65f6\u65e0\u6cd5\u5224\u5b9a");
   assert.equal(result.cls, "broken");
 });
+
+function loadStageHelpers() {
+  const start = html.indexOf("function buildTradingViewStage(");
+  const end = html.indexOf("function renderConditions(", start);
+  assert.ok(start >= 0 && end > start, "two-stage helpers should exist before renderConditions");
+  const context = {};
+  vm.runInNewContext(`${html.slice(start, end)};this.buildTradingViewStage=buildTradingViewStage;this.buildBackendStage=buildBackendStage`, context);
+  return context;
+}
+
+test("delegated Pine DVOL does not block TradingView signal generation", () => {
+  const {buildTradingViewStage} = loadStageHelpers();
+  const waiting = buildTradingViewStage({pine:{
+    dvol_tier:-1,tier_ok:true,cfg_ok:true,hv_ok:true,cci_ok:true,
+    put_shape:false,call_shape:false,dvol_samples:89,
+  }});
+  assert.equal(waiting.title, "\u5c1a\u672a\u53d1\u9001\u5f00\u4ed3\u4fe1\u53f7\u2014\u2014\u7b49\u5f85 PUT/CALL \u5e03\u6797\u5f62\u6001");
+  assert.equal(waiting.delegated, 1);
+  assert.equal(waiting.blocked, 0);
+  assert.equal(waiting.waiting, 1);
+
+  const ready = buildTradingViewStage({pine:{
+    dvol_tier:-1,tier_ok:true,cfg_ok:true,hv_ok:true,cci_ok:true,
+    put_shape:true,call_shape:false,dvol_samples:89,
+  }});
+  assert.equal(ready.state, "ready_to_send");
+  assert.equal(ready.blocked, 0);
+});
+
+test("backend stage distinguishes preflight from a real signal result", () => {
+  const {buildBackendStage} = loadStageHelpers();
+  const conditions = {
+    pine:{bar_ts:1784707200000},
+    backend:{checks:{dvol_tier:{ok:false,percentile:0.073,tier:0,samples:1460,window_bars:1460},config:{levels:[0.4,0.6,0.85]}}},
+  };
+  const preflight = buildBackendStage(conditions,{items:[]});
+  assert.equal(preflight.state,"waiting");
+  assert.equal(preflight.preflight,"reject");
+  assert.equal(preflight.actual,false);
+
+  const rejected = buildBackendStage(conditions,{items:[{
+    kind:"OPEN_SIGNAL",status:"REJECTED",reject_reason:"REJECT_DVOL_BELOW_ENTRY",
+    spread_type:"PUT_CREDIT",received_at:1784714582979,payload:{bar_ts:1784707200000},
+  }]});
+  assert.equal(rejected.state,"rejected");
+  assert.equal(rejected.actual,true);
+  assert.equal(rejected.reason,"REJECT_DVOL_BELOW_ENTRY");
+});

@@ -372,6 +372,42 @@ function conditionSummary(gateStates,blockedNames,shapeOk,authority,pineFresh){
   if(shapeOk===false)return {cls:"blocked",icon:"⏳",title:"门槛已全部通过，等待触发形态",copy:`还需 2h K 线出现破轨 + 反向收线 · 依据${authority}`};
   return {cls:"ready",icon:"✓",title:"最近一根 2h K 线满足全部条件",copy:`信号应已发出，请核对下方实时信号流 · 依据${authority}`};
 }
+function buildTradingViewStage(data){
+  const p=data&&data.pine;
+  if(!p)return {state:"unknown",title:"TradingView 暂时无法完成判断",blockers:[],passed:0,delegated:0,waiting:0,blocked:0};
+  const delegated=p.dvol_tier==null||p.dvol_tier<0;
+  const checks=[
+    {name:"档位配置",value:p.cfg_ok},
+    ...(!delegated?[{name:"DVOL 档位",value:p.tier_ok}]:[]),
+    {name:"HV 分位",value:p.hv_ok},
+    {name:"CCI",value:p.cci_ok},
+  ];
+  const blockers=checks.filter(x=>x.value===false).map(x=>x.name);
+  const pending=checks.filter(x=>x.value==null).map(x=>x.name);
+  const shape=p.put_shape===true||p.call_shape===true;
+  const base={blockers,pending,passed:checks.filter(x=>x.value===true).length,delegated:delegated?1:0,waiting:shape?0:1,blocked:blockers.length,shape};
+  if(blockers.length)return {...base,state:"blocked",title:"TradingView 当前不会发送开仓信号"};
+  if(pending.length)return {...base,state:"unknown",title:"TradingView 暂时无法完成判断"};
+  if(!shape)return {...base,state:"waiting",title:"尚未发送开仓信号——等待 PUT/CALL 布林形态"};
+  return {...base,state:"ready_to_send",title:"TradingView 已具备发送开仓信号的条件"};
+}
+function buildBackendStage(data,signals){
+  const barTs=data&&data.pine&&Number(data.pine.bar_ts),items=signals&&Array.isArray(signals.items)?signals.items:[];
+  const barClose=barTs?barTs+2*60*60*1000:null;
+  const matched=items.find(item=>{
+    if(item.kind!=="OPEN_SIGNAL")return false;
+    const payloadBar=Number(item.payload&&item.payload.bar_ts),signalId=String(item.signal_id||"");
+    if(barTs&&(payloadBar===barTs||signalId.includes(String(barTs))))return true;
+    const received=Number(item.received_at);
+    return barClose!=null&&received>=barClose-5*60*1000&&received<=barClose+60*60*1000;
+  });
+  if(matched){
+    const status=String(matched.status||"").toUpperCase(),state=status==="ACCEPTED"?"accepted":status==="REJECTED"?"rejected":"processing";
+    return {state,actual:true,status,reason:matched.reject_reason||null,signal:matched};
+  }
+  const check=data&&data.backend&&data.backend.checks&&data.backend.checks.dvol_tier;
+  return {state:"waiting",actual:false,preflight:!check||check.ok==null?"unknown":check.ok?"allow":"reject",dvol:check||null};
+}
 function renderConditions(data){const b=data.backend,p=data.pine,now=data.server_ts||Date.now();
   // 实时价格条：每次刷新都取一次真实价格，随行情跳动；「距轨道」越接近 0 越可能触发形态
   const lv=data.live,lvEl=$("condLive");
