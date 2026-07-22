@@ -7,7 +7,6 @@ handler 只做校验/去重/入队，立即返回（TV 超时约 3 秒，禁止�
 from __future__ import annotations
 
 import hmac
-import json
 import logging
 import time
 from typing import Optional
@@ -106,8 +105,7 @@ async def _handle_status(ctx: Ctx, body: dict, expected: str) -> dict:
         return {"status": "rejected", "reason": "auth"}
     payload = status.model_dump(exclude={"passphrase"})
     payload["received_at"] = int(time.time() * 1000)
-    await ctx.repo.set_state(PINE_STATUS_KEY,
-                             json.dumps(payload, ensure_ascii=False))
+    await ctx.repo.record_pine_heartbeat(payload)
     return {"status": "ok", "bar_ts": status.bar_ts}
 
 

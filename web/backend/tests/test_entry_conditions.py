@@ -120,10 +120,18 @@ def test_hv_gate_needs_full_percentile_window():
 
 class _FakeRepo:
     def __init__(self):
-        self.state = {}
+        self.heartbeat = None
 
-    async def set_state(self, key, value):
-        self.state[key] = value
+    async def record_pine_heartbeat(self, payload):
+        self.heartbeat = payload
+
+
+class _FakeQueue:
+    def __init__(self):
+        self.commands = []
+
+    def put(self, command):
+        self.commands.append(command)
 
 
 def _status_body(**overrides):
@@ -137,21 +145,25 @@ def _status_body(**overrides):
 
 def test_heartbeat_stored_without_passphrase():
     repo = _FakeRepo()
-    ctx = SimpleNamespace(repo=repo)
+    queue = _FakeQueue()
+    ctx = SimpleNamespace(repo=repo, queue=queue)
     result = asyncio.run(_handle_status(ctx, _status_body(), "secret"))
-    assert result["status"] == "ok"
-    saved = json.loads(repo.state["pine_status"])
+    assert result == {"status": "ok", "bar_ts": 1753000000000}
+    saved = repo.heartbeat
     assert "passphrase" not in saved
     assert saved["cci"] == 141.1 and saved["cci_ok"] is False
     assert saved["received_at"] > 0
+    assert queue.commands == []
 
 
 def test_heartbeat_rejects_wrong_passphrase_and_stores_nothing():
     repo = _FakeRepo()
-    ctx = SimpleNamespace(repo=repo)
+    queue = _FakeQueue()
+    ctx = SimpleNamespace(repo=repo, queue=queue)
     result = asyncio.run(_handle_status(ctx, _status_body(), "other"))
     assert result == {"status": "rejected", "reason": "auth"}
-    assert repo.state == {}
+    assert repo.heartbeat is None
+    assert queue.commands == []
 
 
 def test_heartbeat_accepts_json_null_from_pine():
