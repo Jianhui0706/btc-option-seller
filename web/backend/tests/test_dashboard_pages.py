@@ -37,11 +37,13 @@ def test_signals_page_has_entry_condition_panel():
         encoding="utf-8"
     )
 
-    assert "开仓条件实时看板" in source
-    assert 'id="condBlockers"' in source
+    # 新手友好的四步开仓流程取代了旧的两段式看板
+    assert "开仓流程 · 现在走到哪一步" in source
+    assert 'id="journeySummary"' in source
+    assert 'id="journeyStep1"' in source
+    assert 'id="journeyStep4"' in source
+    # 第 1 步内仍复用条件卡片：已通过折叠与原始数据折叠
     assert 'id="condPassed"' in source
-    assert 'id="condShape"' in source
-    # 心跳状态只在表头交代一次，不逐行重复
     assert 'id="condEvidence"' in source
     assert source.count("尚未收到心跳") <= 1
 
@@ -55,7 +57,7 @@ def test_frontend_contains_four_teacher_dashboard_views():
     assert 'id="page-active-signals"' in source
     assert 'id="page-signal-log"' in source
     assert 'id="page-position-log"' in source
-    assert "TradingView 信号" in source
+    assert "TradingView 发送开仓申请" in source
     assert "TradingView 实时监听" in source
     assert "测试工具" not in source
     assert "testSignal(" not in source
