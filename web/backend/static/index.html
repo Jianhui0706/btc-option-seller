@@ -405,21 +405,195 @@ function buildTradingViewStage(data){
   if(!shape)return {...base,state:"waiting",title:"尚未发送开仓信号——等待 PUT/CALL 布林形态"};
   return {...base,state:"ready_to_send",title:"TradingView 已具备发送开仓信号的条件"};
 }
+// 只有「同一根 2h K 线、方向一致」的真实开仓申请才算数：payload.bar_ts 优先，
+// 否则用 signal_id 结尾那串 10~13 位时间戳精确匹配，绝不做近似或子串匹配。
+function matchOpenSignal(conditions,signals){
+  const barTs=Number(conditions?.pine?.bar_ts);
+  if(!Number.isFinite(barTs))return null;
+  const expectedStrategy=String(conditions?.pine?.strategy||"");
+  const expectedSide=conditions?.pine?.put_shape===true
+    ?"PUT_CREDIT"
+    :conditions?.pine?.call_shape===true
+      ?"CALL_CREDIT"
+      :"";
+  return (signals?.items||[])
+    .filter(item=>item?.kind==="OPEN_SIGNAL"&&(item?.event==null||item?.event==="OPEN_REQUEST"))
+    .filter(item=>{
+      const payloadBar=Number(item?.payload?.bar_ts);
+      const suffix=String(item?.signal_id||"").match(/_(\d{10,13})$/);
+      const signalBar=Number.isFinite(payloadBar)&&payloadBar>0
+        ?payloadBar
+        :Number(suffix?.[1]);
+      const strategyOk=!expectedStrategy||!item?.strategy||item.strategy===expectedStrategy;
+      const sideOk=!expectedSide||item?.spread_type===expectedSide;
+      return signalBar===barTs&&strategyOk&&sideOk;
+    })
+    .sort((a,b)=>Number(b.received_at||0)-Number(a.received_at||0))[0]||null;
+}
+function matchSignalTrade(signal,trades){
+  if(!signal?.signal_id)return null;
+  return (trades||[])
+    .filter(trade=>String(trade?.signal_id||"")===String(signal.signal_id))
+    .sort((a,b)=>Number(b.id||0)-Number(a.id||0))[0]||null;
+}
 function buildBackendStage(data,signals){
-  const barTs=data&&data.pine&&Number(data.pine.bar_ts),items=signals&&Array.isArray(signals.items)?signals.items:[];
-  const matched=items.find(item=>{
-    if(item.kind!=="OPEN_SIGNAL")return false;
-    const payloadBar=Number(item.payload&&item.payload.bar_ts),signalId=String(item.signal_id||"");
-    if(!barTs)return false;
-    if(Number.isFinite(payloadBar)&&payloadBar>0)return payloadBar===barTs;
-    return signalId.includes(String(barTs));
-  });
+  const matched=matchOpenSignal(data,signals);
   if(matched){
-    const status=String(matched.status||"").toUpperCase(),state=status==="ACCEPTED"?"accepted":status==="REJECTED"?"rejected":"processing";
-    return {state,actual:true,status,reason:matched.reject_reason||null,signal:matched};
+    const status=String(matched.status||"").toUpperCase();
+    const state=status==="ACCEPTED"
+      ?"accepted"
+      :status==="REJECTED"
+        ?"rejected"
+        :"processing";
+    return {
+      state,actual:true,status,
+      reason:matched.reject_reason||null,
+      signal:matched,
+      dvol:data?.backend?.checks?.dvol_tier||null,
+    };
   }
-  const check=data&&data.backend&&data.backend.checks&&data.backend.checks.dvol_tier;
-  return {state:"waiting",actual:false,preflight:!check||check.ok==null?"unknown":check.ok?"allow":"reject",dvol:check||null};
+  const check=data?.backend?.checks?.dvol_tier;
+  return {
+    state:"waiting",actual:false,
+    preflight:!check||check.ok==null?"unknown":check.ok?"allow":"reject",
+    dvol:check||null,
+  };
+}
+// 第 4 步执行映射：只有后端「真实接受」后才进入执行，父交易状态翻译成新手文案。
+function buildExecutionStage(signalStage,trades){
+  if(!signalStage.actual||signalStage.state!=="accepted")
+    return {state:"not_started",trade:null,title:"尚未开始",reason:"等待前序步骤通过"};
+  const trade=matchSignalTrade(signalStage.signal,trades);
+  if(!trade)return {state:"starting",trade:null,title:"准备执行开仓",reason:"信号已接受，等待建立交易记录"};
+  const states={
+    SIGNAL_RECEIVED:["starting","准备执行开仓"],
+    POSITION_CHECKING:["checking","检查现有仓位"],
+    SELECTING_LEGS:["selecting","选择期权合约"],
+    OPENING:["opening","订单正在执行"],
+    OPEN:["open","开仓成功"],
+    OPEN_FAILED:["failed","执行失败"],
+  };
+  const [state,title]=states[trade.state]||["starting","正在执行开仓"];
+  return {state,trade,title,reason:trade.close_reason||null};
+}
+// 第 1 步主要原因：把 Pine 各门槛翻译成一句人话，等待形态用中性语气，不当作错误。
+function tradingViewPrimaryReason(data,tv){
+  const p=data?.pine;
+  if(!p)return "尚未收到 TradingView 状态";
+  if(tv.state==="unknown"){
+    const age=Number(data?.server_ts||Date.now())-Number(p.received_at||0);
+    return age>150*60*1000
+      ?"TradingView 状态已过期，暂时无法判断"
+      :"TradingView 数据不足，暂时无法判断";
+  }
+  if(p.cfg_ok===false)return "档位配置不符合 L1 < L2 < L3";
+  if(p.dvol_tier>=0&&p.tier_ok===false)return "TradingView DVOL 档位低于开仓要求";
+  if(p.hv_ok===false){
+    const value=p.hv_percentile==null?"—":`${(Number(p.hv_percentile)*100).toFixed(1)}%`;
+    const threshold=Number(p?.params?.hv_pctl_min??data?.backend?.checks?.hv?.threshold??30);
+    return `HV 分位 ${value}，低于 ${threshold.toFixed(0)}% 要求`;
+  }
+  if(p.cci_ok===false){
+    const value=p.cci==null?"—":Number(p.cci).toFixed(1);
+    const threshold=Number(p?.params?.cci_max??data?.backend?.checks?.cci?.threshold??101);
+    return `CCI ${value}，未满足 |CCI| < ${threshold.toFixed(0)}`;
+  }
+  if(tv.state==="waiting")return "PUT/CALL 布林形态尚未触发";
+  return "TradingView 条件已满足，等待开仓申请到达";
+}
+// 权威旅程状态机：任一时刻只有一个 currentStep；真实结果始终覆盖预检。
+function buildSignalJourney(data,signals,trades){
+  const tv=buildTradingViewStage(data);
+  const backend=buildBackendStage(data,signals);
+  const execution=buildExecutionStage(backend,trades);
+  const wd=data?.watchdog||{};
+  const sameWatchdogBar=Number(wd.bar_ts)===Number(data?.pine?.bar_ts);
+  const timedOut=!backend.actual&&sameWatchdogBar&&wd.armed===true&&wd.alarm===true;
+  const delivery=backend.actual
+    ?{
+      state:"received",tone:"pass",signal:backend.signal,
+      title:"已收到开仓申请",
+      reason:`${backend.signal.spread_type==="PUT_CREDIT"?"PUT":"CALL"} 开仓申请已到达`,
+    }
+    :timedOut
+      ?{
+        state:"timeout",tone:"timeout",signal:null,
+        title:"开仓申请到达超时",
+        reason:"TradingView 应已发出申请，但系统尚未收到",
+      }
+      :tv.state==="ready_to_send"
+        ?{
+          state:"waiting",tone:"wait",signal:null,
+          title:"等待开仓申请",
+          reason:"TradingView 已具备发信条件，等待 Webhook 到达",
+        }
+        :{
+          state:"not_expected",tone:"idle",signal:null,
+          title:"尚不应发信",
+          reason:"市场条件还没有全部满足",
+        };
+  const safety=backend.actual
+    ?{
+      ...backend,mode:"actual",
+      tone:backend.state==="accepted"
+        ?"pass"
+        :backend.state==="rejected"
+          ?"block"
+          :"processing",
+    }
+    :{
+      ...backend,state:"preflight",mode:"preflight",tone:"info",
+      title:"提前预警，不是实际拒绝",
+    };
+
+  let currentStep,state,headline,reason;
+  if(backend.actual&&backend.state==="accepted"){
+    currentStep=4;
+    if(execution.state==="open"){
+      state="opened";
+      headline="已经开仓";
+      reason="期权价差已经开仓";
+    }else if(execution.state==="failed"){
+      state="blocked";
+      headline="现在不能开仓";
+      reason=execution.reason||"开仓执行失败";
+    }else{
+      state="executing";
+      headline="正在执行开仓";
+      reason=execution.title;
+    }
+  }else if(backend.actual){
+    currentStep=3;
+    if(backend.state==="rejected"){
+      state="blocked";
+      headline="现在不能开仓";
+      reason=backend.reason||"系统拒绝本次开仓申请";
+    }else{
+      state="checking";
+      headline="系统正在检查";
+      reason="系统正在进行最终安全检查";
+    }
+  }else if(tv.state==="ready_to_send"){
+    currentStep=2;
+    state="waiting_signal";
+    headline="等待开仓申请";
+    reason=delivery.reason;
+  }else{
+    currentStep=1;
+    state="blocked";
+    headline="现在不能开仓";
+    reason=tradingViewPrimaryReason(data,tv);
+  }
+
+  return {
+    instanceKey:backend.signal?.signal_id
+      ?`signal:${backend.signal.signal_id}`
+      :data?.pine?.bar_ts
+        ?`pine:${data.pine.bar_ts}`
+        :"pine:missing",
+    currentStep,state,headline,reason,
+    tv,delivery,safety,execution,
+  };
 }
 function legacyRenderConditions(data){const b=data.backend,p=data.pine,now=data.server_ts||Date.now();
   // 实时价格条：每次刷新都取一次真实价格，随行情跳动；「距轨道」越接近 0 越可能触发形态
