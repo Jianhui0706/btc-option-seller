@@ -104,6 +104,61 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .condition-toggle{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;background:#0d151e;color:var(--text);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;text-align:left;cursor:pointer}.condition-toggle:hover{border-color:var(--line2);background:#111a25}.condition-toggle-copy{display:flex;align-items:center;gap:9px;min-width:0}.condition-toggle-icon{width:25px;height:25px;flex:none;border-radius:8px;display:grid;place-items:center;background:rgba(84,214,154,.1);color:var(--green);font-weight:850}.condition-toggle-title{font-size:12px;font-weight:760}.condition-toggle-note{font-size:9px;color:var(--faint);margin-top:1px}.condition-chevron{color:var(--muted);transition:transform .18s}.condition-toggle[aria-expanded="true"] .condition-chevron{transform:rotate(180deg)}.condition-collapsible{margin-top:9px}.condition-evidence .condition-toggle-icon{background:rgba(102,166,255,.1);color:var(--blue)}
 .activity-stream{max-height:520px;overflow-y:auto;padding:10px;display:grid;gap:6px;scrollbar-color:var(--line2) transparent}.activity-item{border:1px solid var(--line);border-left:3px solid var(--faint);background:#0b121a;border-radius:10px;overflow:hidden}.activity-item.activity-heartbeat{border-left-color:var(--blue)}.activity-item.activity-open{border-left-color:var(--green)}.activity-item.activity-exit{border-left-color:var(--cyan)}.activity-item.activity-rejected{border-left-color:var(--red)}.activity-item.activity-pending{border-left-color:var(--amber)}.activity-summary{width:100%;min-height:52px;border:0;background:transparent;color:inherit;display:grid;grid-template-columns:minmax(130px,1.2fr) minmax(150px,1fr) auto auto;align-items:center;gap:10px;padding:9px 12px;text-align:left;cursor:pointer}.activity-summary:hover{background:rgba(255,255,255,.025)}.activity-title{font-size:12px;font-weight:760;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.activity-subtitle{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.activity-time{font-size:10px;color:var(--muted);white-space:nowrap}.activity-badges{display:flex;align-items:center;justify-content:flex-end;gap:6px;white-space:nowrap}.activity-chevron{color:var(--muted);transition:transform .18s}.activity-summary[aria-expanded="true"] .activity-chevron{transform:rotate(180deg)}.activity-detail{border-top:1px solid var(--line);padding:12px 14px;background:#080e15}.activity-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:9px}.activity-detail-label{font-size:9px;color:var(--faint)}.activity-detail-value{font-size:11px;margin-top:2px;word-break:break-word}.activity-reason{border:1px solid rgba(255,101,119,.24);background:rgba(255,101,119,.07);border-radius:8px;padding:9px 10px;margin-bottom:9px;color:#ffb3bc;font-size:11px}.activity-detail pre{white-space:pre-wrap;word-break:break-word;color:#9fb0c3;background:#060a0f;border-radius:8px;padding:9px;max-height:190px;overflow:auto;margin:0;font-size:10px}.activity-heartbeat .source-pill{color:var(--blue);background:rgba(102,166,255,.1)}.activity-open .source-pill{color:var(--green);background:rgba(84,214,154,.1)}.activity-exit .source-pill{color:var(--cyan);background:rgba(70,215,195,.1)}.activity-rejected .source-pill{color:var(--red);background:rgba(255,101,119,.1)}.activity-pending .source-pill{color:var(--amber);background:rgba(246,184,74,.1)}
 .cond-foot{display:grid;gap:6px;color:var(--muted);font-size:10px;padding-top:13px}.cond-foot .warning{color:var(--amber)}
+/* ===== 新手四步开仓流程 ===== */
+.journey-summary{display:flex;gap:15px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:16px;background:linear-gradient(135deg,rgba(19,28,39,.92),rgba(11,17,25,.94));transition:border-color .25s,background .25s}
+.journey-summary-icon{width:46px;height:46px;flex:none;border-radius:14px;display:grid;place-items:center;font-size:22px;font-weight:850;background:rgba(255,255,255,.05);color:var(--muted)}
+.journey-summary-text{min-width:0}
+.journey-summary-kicker{font-size:10px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
+.journey-summary-headline{margin:3px 0 4px;font-size:22px;font-weight:820;letter-spacing:-.3px;line-height:1.15}
+.journey-summary-reason{margin:0;color:var(--muted);font-size:12.5px;line-height:1.5;overflow-wrap:anywhere}
+.journey-summary.tone-block{border-color:rgba(255,101,119,.36);background:linear-gradient(135deg,rgba(255,101,119,.12),rgba(11,17,25,.94))}
+.journey-summary.tone-block .journey-summary-icon{background:rgba(255,101,119,.16);color:var(--red)}
+.journey-summary.tone-block .journey-summary-headline{color:#ff8d9a}
+.journey-summary.tone-wait{border-color:rgba(246,184,74,.32);background:linear-gradient(135deg,rgba(246,184,74,.1),rgba(11,17,25,.94))}
+.journey-summary.tone-wait .journey-summary-icon{background:rgba(246,184,74,.16);color:var(--amber)}
+.journey-summary.tone-wait .journey-summary-headline{color:var(--amber)}
+.journey-summary.tone-processing{border-color:rgba(70,215,195,.32);background:linear-gradient(135deg,rgba(70,215,195,.1),rgba(11,17,25,.94))}
+.journey-summary.tone-processing .journey-summary-icon{background:rgba(70,215,195,.16);color:var(--cyan)}
+.journey-summary.tone-processing .journey-summary-headline{color:var(--cyan)}
+.journey-summary.tone-pass{border-color:rgba(84,214,154,.42);background:linear-gradient(135deg,rgba(84,214,154,.15),rgba(11,17,25,.94));animation:readyPulse 1.9s ease-in-out infinite}
+.journey-summary.tone-pass .journey-summary-icon{background:var(--green);color:#04140c;box-shadow:0 0 16px rgba(84,214,154,.6)}
+.journey-summary.tone-pass .journey-summary-headline{color:var(--green)}
+.journey-list{display:grid;gap:10px}
+.journey-step{position:relative;border:1px solid var(--line);border-radius:14px;background:#0b131c;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.journey-step.current{border-color:rgba(70,215,195,.42);box-shadow:0 0 0 1px rgba(70,215,195,.08),0 10px 30px rgba(0,0,0,.22)}
+.journey-step-toggle{width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) auto 18px;gap:12px;align-items:center;border:0;background:transparent;color:inherit;padding:14px 16px;text-align:left;cursor:pointer;min-height:56px}
+.journey-step-toggle:hover{background:rgba(255,255,255,.02)}
+.journey-step-number{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-weight:850;font-size:14px;background:rgba(255,255,255,.06);color:var(--muted)}
+.journey-step.current .journey-step-number{background:rgba(70,215,195,.16);color:var(--cyan)}
+.journey-step.done .journey-step-number{background:rgba(84,214,154,.14);color:var(--green)}
+.journey-step-label{min-width:0;display:flex;flex-direction:column;gap:2px}
+.journey-step-label strong{font-size:13.5px;font-weight:770}
+.journey-step-label small{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.journey-step-status{font-size:10px;font-weight:800;padding:4px 10px;border-radius:999px;white-space:nowrap;background:rgba(255,255,255,.05)}
+.journey-step-chevron{color:var(--muted);transition:transform .2s;font-size:14px;justify-self:center}
+.journey-step-toggle[aria-expanded="true"] .journey-step-chevron{transform:rotate(180deg)}
+.journey-step-body{border-top:1px solid var(--line);padding:16px;display:grid;gap:10px}
+.journey-step-body[hidden]{display:none}
+.journey-step-status.pass{color:var(--green);background:rgba(84,214,154,.1)}
+.journey-step-status.block,.journey-step-status.timeout,.journey-step-status.failed{color:#ff9aa5;background:rgba(255,101,119,.1)}
+.journey-step-status.wait,.journey-step-status.processing{color:var(--amber);background:rgba(246,184,74,.1)}
+.journey-step-status.info{color:#8ec5ff;background:rgba(102,166,255,.1)}
+.journey-step-status.idle{color:var(--faint);background:rgba(82,97,115,.14)}
+.journey-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.journey-metric{background:#0a1119;border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:10px 12px;min-width:0}
+.journey-metric-label{font-size:10px;color:var(--muted)}
+.journey-metric-value{font-size:15px;font-weight:750;margin-top:3px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.journey-preflight{border:1px solid rgba(102,166,255,.3);border-left:3px solid var(--blue);background:linear-gradient(145deg,rgba(102,166,255,.09),rgba(11,17,25,.9));border-radius:12px;padding:12px 14px}
+.journey-preflight strong{color:#8ec5ff;font-size:12px}
+.journey-preflight p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
+.journey-result{border:1px solid var(--line);border-left:3px solid var(--faint);border-radius:12px;padding:12px 14px}
+.journey-result.pass{border-left-color:var(--green);background:rgba(84,214,154,.05)}
+.journey-result.block,.journey-result.failed{border-left-color:var(--red);background:rgba(255,101,119,.05)}
+.journey-result.processing{border-left-color:var(--cyan);background:rgba(70,215,195,.05)}
+.journey-result-title{font-size:12.5px;font-weight:800}
+.journey-result-copy{margin-top:5px;color:var(--muted);font-size:11px;line-height:1.6;overflow-wrap:anywhere}
+.journey-checklist{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:11px;line-height:1.9}
+.journey-note{color:var(--muted);font-size:11px;line-height:1.6;overflow-wrap:anywhere}
 @media(max-width:900px){.condition-card-grid{grid-template-columns:1fr}.stage-summary-stack{grid-template-columns:1fr}.stage-head{align-items:flex-start}.stage-counts{max-width:45%}}
 @media(max-width:700px){.condition-toggle-note{display:none}}
 @media(max-width:700px){.cond-head{display:none}.cond-row{grid-template-columns:1fr auto;gap:4px 10px}.cond-row>div:first-child{grid-column:1;grid-row:1}.cond-pill{grid-column:2;grid-row:1;justify-self:end}.cond-cell{grid-column:1/-1;grid-row:2}.cond-std{grid-column:1/-1;grid-row:3}.mbar{max-width:none}.dircard{min-width:0}}
@@ -182,21 +237,21 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 
   <div id="page-active-signals" class="page-view">
     <section class="hero"><div><div class="eyebrow">Live entry conditions</div><h1>活跃信号</h1><p>聚焦当前开仓门槛、实时行情与 TradingView 是否具备发出开仓信号的条件。</p></div></section>
-    <section class="panel" style="margin-bottom:14px"><div class="panel-head"><div><div class="panel-title">开仓条件实时看板</div><div class="panel-kicker">TradingView 要发出开仓信号，下面每一道门槛都必须同时满足</div></div><span id="condVerdict" class="tag">检查中</span></div><div class="panel-body">
-      <div id="condSummary" class="cond-summary"><div class="cond-summary-icon">…</div><div><div class="cond-summary-title">正在读取行情</div><div class="cond-summary-copy">首次计算需要拉取 2h K 线与 DVOL 全历史</div></div></div>
-      <div class="stage-summary-stack"><div id="tvStageSummary" class="stage-summary"><i class="stage-dot"></i><div><strong>TradingView 判断阶段</strong><span>正在读取 Pine 数据</span></div></div><div id="backendStageSummary" class="stage-summary"><i class="stage-dot"></i><div><strong>后端执行阶段</strong><span>等待 TradingView 开仓信号</span></div></div></div>
-      <div id="condWatch" class="cond-watch" style="display:none"></div>
-      <div id="condLive" class="cond-live" style="display:none"></div>
-      <section id="tvSignalStage" class="signal-stage"><div class="stage-head"><span class="stage-number">①</span><div><div class="stage-title">① TradingView 是否发送开仓信号</div><div class="stage-copy">由 Pine 的配置、HV、CCI 与 PUT/CALL 布林形态决定；DVOL 样本不足时交给后端判断，不阻止发信。</div></div><div id="tvStageCounts" class="stage-counts">正在计算</div></div>
-        <section id="condBlockers" class="condition-section"></section>
-        <section id="condPending" class="condition-section"></section>
-        <section id="condDelegated" class="condition-section"></section>
-        <section id="condPassed" class="condition-section"></section>
-        <section id="condShape" class="condition-section"></section>
+    <section class="panel" style="margin-bottom:14px"><div class="panel-head"><div><div class="panel-title">开仓流程 · 现在走到哪一步</div><div class="panel-kicker">从「市场机会」到「实际开仓」共四步，下面用一句话告诉你能不能开仓、卡在哪、为什么</div></div><span id="condVerdict" class="tag">检查中</span></div><div class="panel-body">
+      <section id="journeySummary" class="journey-summary" aria-live="polite">
+        <div class="journey-summary-icon">…</div>
+        <div class="journey-summary-text">
+          <div class="journey-summary-kicker">正在读取当前开仓流程</div>
+          <h2 class="journey-summary-headline">正在判断能否开仓</h2>
+          <p class="journey-summary-reason">系统正在读取 TradingView 与交易端状态</p>
+        </div>
       </section>
-      <div id="signalTransit" class="signal-transit"><b>等待 TradingView 开仓信号</b></div>
-      <section id="backendExecutionStage" class="signal-stage"><div class="stage-head"><span class="stage-number">②</span><div><div class="stage-title">② 后端收到后是否执行</div><div class="stage-copy">收到开仓信号后，以 Deribit DVOL 全历史和账户风控作最终判断。</div></div></div><div id="backendStageBody" class="backend-stage-body"></div></section>
-      <section id="condEvidence" class="condition-evidence"></section>
+      <div class="journey-list" aria-label="开仓流程四步">
+        <section id="journeyStep1" class="journey-step"></section>
+        <section id="journeyStep2" class="journey-step"></section>
+        <section id="journeyStep3" class="journey-step"></section>
+        <section id="journeyStep4" class="journey-step"></section>
+      </div>
     </div></section>
     <section class="panel"><div class="panel-head"><div><div class="panel-title">待处理与最近信号</div><div class="panel-kicker">仅显示真实开仓或退出信号；连接回报请到“信号日志”查看</div></div><span class="tag">最近 6 条</span></div><div id="activeSignalList" class="activity-stream"></div></section>
   </div>
@@ -242,8 +297,28 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 <script>
 const $=id=>document.getElementById(id);let model=null,eventLevel="ALL",refreshing=false,expandedSignalKey=null;
 const conditionSections={passed:false,shape:false,evidence:false};
-const conditionSectionOverrides={shape:null};
-function toggleConditionSection(name){if(!(name in conditionSections))return;if(name==="shape"){const current=$("condShape")?.querySelector(".condition-toggle")?.getAttribute("aria-expanded")==="true";conditionSectionOverrides.shape=!current}else conditionSections[name]=!conditionSections[name];if(model?.conditions)renderConditions(model.conditions,model.signals)}
+function toggleConditionSection(name){if(!(name in conditionSections))return;conditionSections[name]=!conditionSections[name];if(model?.conditions)renderConditions(model.conditions,model.signals,model.trades)}
+// 四步流程手风琴：用户手动展开的选择在 5 秒轮询间保留，但换新信号/新 K 线实例时重置。
+const journeyStepOverrides={};
+let journeyInstanceKey=null;
+let journeyAutoStep=null;
+function syncJourneyExpansion(journey){
+  if(journey.instanceKey!==journeyInstanceKey){
+    for(const key of Object.keys(journeyStepOverrides))delete journeyStepOverrides[key];
+    journeyInstanceKey=journey.instanceKey;
+    journeyAutoStep=null;
+  }
+  if(journey.currentStep!==journeyAutoStep){
+    journeyStepOverrides[journey.currentStep]=true;
+    journeyAutoStep=journey.currentStep;
+  }
+}
+function toggleJourneyStep(step){
+  const el=$(`journeyStep${step}`);
+  const open=el?.querySelector(".journey-step-toggle")?.getAttribute("aria-expanded")==="true";
+  journeyStepOverrides[step]=!open;
+  if(model?.conditions)renderConditions(model.conditions,model.signals,model.trades);
+}
 async function api(path,opts={}){const r=await fetch(path,opts);if(!r.ok)throw Error(`${path} · HTTP ${r.status} · ${await r.text()}`);return r.json()}
 const num=(x,d=4)=>x==null||Number.isNaN(Number(x))?"—":Number(x).toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d});
 const money=x=>x==null?"—":"$"+Number(x).toLocaleString("en-US",{maximumFractionDigits:1});
@@ -375,13 +450,6 @@ function renderConditionCard(row,resolved){
   if(resolved.ok==="waiting")return `<article class="condition-card waiting">${body}</article>`;
   if(resolved.ok==null)return `<article class="condition-card pending">${body}</article>`;
   return `<article class="condition-card passed">${body}</article>`;
-}
-function conditionSummary(gateStates,blockedNames,shapeOk,authority,pineFresh){
-  if(blockedNames.length)return {cls:"blocked",icon:"✕",title:"当前不会发出开仓信号",copy:`被「${blockedNames.join(" / ")}」拦住 · 依据${authority}`};
-  if(gateStates.some(value=>value==null))return {cls:"broken",icon:"!",title:"暂时无法判定",copy:pineFresh?"连接回报数据不完整":"后端行情不可用，且尚未收到 Pine 连接回报"};
-  if(shapeOk==null)return {cls:"broken",icon:"!",title:"暂时无法判定",copy:`前置门槛已通过，但布林触发形态数据不完整 · 依据${authority}`};
-  if(shapeOk===false)return {cls:"blocked",icon:"⏳",title:"门槛已全部通过，等待触发形态",copy:`还需 2h K 线出现破轨 + 反向收线 · 依据${authority}`};
-  return {cls:"ready",icon:"✓",title:"最近一根 2h K 线满足全部条件",copy:`信号应已发出，请核对下方实时信号流 · 依据${authority}`};
 }
 function buildTradingViewStage(data){
   const p=data&&data.pine;
@@ -595,72 +663,6 @@ function buildSignalJourney(data,signals,trades){
     tv,delivery,safety,execution,
   };
 }
-function legacyRenderConditions(data){const b=data.backend,p=data.pine,now=data.server_ts||Date.now();
-  // 实时价格条：每次刷新都取一次真实价格，随行情跳动；「距轨道」越接近 0 越可能触发形态
-  const lv=data.live,lvEl=$("condLive");
-  if(lv&&lv.price!=null){const near=x=>x==null?"—":x<=0?`已越轨 ${num(Math.abs(x),2)}%`:`${num(x,2)}%`;
-    const hot=x=>x!=null&&x<=0.5?"hot":"";
-    lvEl.style.display="flex";
-    lvEl.innerHTML=`<span class="lv-dot"></span><span class="lv-tag">实时价格 · Deribit 永续</span>`+
-      `<span class="lv-price">$${num(lv.price,0)}</span>`+
-      `<span class="lv-dist ${hot(lv.to_upper_pct)}">距上轨(Call触发) <b>${near(lv.to_upper_pct)}</b></span>`+
-      `<span class="lv-dist ${hot(lv.to_lower_pct)}">距下轨(Put触发) <b>${near(lv.to_lower_pct)}</b></span>`+
-      `<span class="lv-upd">更新于 ${time(lv.ts)}</span>`;
-  }else if(lv&&lv.error){lvEl.style.display="flex";lvEl.innerHTML=`<span class="lv-tag" style="color:var(--amber)">实时价格获取失败：${esc(lv.error)}</span>`;}
-  else{lvEl.style.display="none";}
-  // 推送看门狗：Pine 自报满足全部条件时，核对 TradingView 到底有没有把开仓信号推给我们
-  const wd=data.watchdog,wdEl=$("condWatch");
-  if(wd&&wd.armed){const side=wd.side==="PUT_CREDIT"?"PUT 信用价差":"CALL 信用价差";
-    if(wd.alarm){wdEl.className="cond-watch alarm";wdEl.innerHTML=`<div class="cw-ico">!</div><div><b>条件满足，但没收到 TradingView 推送</b> —— ${side} · 2h K线 ${time(wd.bar_close)}。请检查 TradingView Alert 是否在运行、Webhook 地址与口令是否正确。</div>`;}
-    else if(wd.signal_received){wdEl.className="cond-watch ok";wdEl.innerHTML=`<div class="cw-ico">✓</div><div>上一根满足条件的 2h K线（${time(wd.bar_close)} · ${side}）<b>已收到 TradingView 推送</b>${wd.signal_status?` · 状态 ${esc(wd.signal_status)}`:""}。</div>`;}
-    else{wdEl.className="cond-watch idle";wdEl.innerHTML=`<div class="cw-ico">…</div><div>${side} 条件刚满足，等待 TradingView 推送到达（收盘后 2 分钟宽限）…</div>`;}
-    wdEl.style.display="flex";}
-  else{wdEl.style.display="none";}
-  const pineAge=p&&p.received_at?now-p.received_at:null,pineFresh=pineAge!=null&&pineAge<=HEARTBEAT_STALE_MS;
-  // 心跳是整列一次性到达的状态，只在表头交代一次；逐行重复毫无信息量
-  const pineStateText=!p?"· 尚未收到":pineFresh?`· ${time(p.received_at)}`:`· 已停 ${Math.floor(pineAge/60000)} 分钟`;
-  const pineStateClass=`cond-src-state ${!p?"":pineFresh?"live":"stale"}`;
-  const rows=COND_ROWS.map(r=>({...r,b:condBackend(r.key,b),p:condPine(r.key,p)}));
-  // 心跳新鲜时以 Pine 为准：那才是真正决定信号发不发的那套数。
-  // 唯独 DVOL 档位例外——Pine 主动交给后端判定(tier=-1)，此时必须看后端权威结论，
-  // 否则面板会说"只差 CCI"，而实际后端还会以 DVOL 过低把开仓请求拒掉。
-  const deferred=pineFresh&&(!p||p.dvol_tier==null||p.dvol_tier<0);
-  const pick=r=>((r.key==="dvol_tier"&&deferred)||!pineFresh)?r.b.ok:r.p.ok;
-  const authority=!pineFresh?"后端自算":deferred?"Pine 连接回报 + 后端 DVOL 判定":"Pine 连接回报";
-  const renderedRows=COND_ROWS.map(row=>({row,resolved:condRow(row,data,pineFresh,deferred)}));
-  const gateCards=renderedRows.slice(0,4);
-  const shapeCard=renderedRows[4];
-  const blockedCards=gateCards.filter(x=>x.resolved.ok===false);
-  const pendingCards=gateCards.filter(x=>x.resolved.ok==null);
-  const passedCards=gateCards.filter(x=>x.resolved.ok===true);
-  const renderSection=(id,title,cards,subtitle)=>{const el=$(id);if(!cards.length){el.className="condition-section";el.innerHTML="";return}el.className="condition-section visible";el.innerHTML=`<div class="condition-section-title"><h3>${esc(title)}</h3><span>${esc(subtitle||"")}</span></div><div class="condition-card-grid">${cards.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`};
-  renderSection("condBlockers","需要先解决",blockedCards,`${blockedCards.length} 项正在阻止开仓信号`);
-  renderSection("condPending","暂时无法判定",pendingCards,"等待完整数据后自动更新");
-  const passedEl=$("condPassed");
-  if(passedCards.length){
-    passedEl.className="condition-section visible";
-    passedEl.innerHTML=`<button type="button" class="condition-toggle" aria-expanded="${conditionSections.passed}" onclick="toggleConditionSection('passed')"><span class="condition-toggle-icon">✓</span><span class="condition-toggle-copy"><span class="condition-toggle-title">已通过 ${passedCards.length} 项</span><span class="condition-toggle-note">默认收起，需要时可展开核对</span></span><span class="condition-chevron">⌄</span></button>${conditionSections.passed?`<div class="condition-collapsible condition-card-grid">${passedCards.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`:""}`;
-  }else{passedEl.className="condition-section";passedEl.innerHTML=""}
-  const gatesReady=!blockedCards.length&&!pendingCards.length;
-  const shapeExpanded=conditionSectionOverrides.shape??gatesReady;
-  const shapeTitle=!gatesReady?"等待前置门槛":shapeCard.resolved.ok===true?"布林形态已成立":shapeCard.resolved.ok===false?"等待破轨 + 反向收线":"暂时无法判定";
-  const shapeEl=$("condShape");
-  shapeEl.className="condition-section visible";
-  shapeEl.innerHTML=`<button type="button" class="condition-toggle" aria-expanded="${shapeExpanded}" onclick="toggleConditionSection('shape')"><span class="condition-toggle-icon">◎</span><span class="condition-toggle-copy"><span class="condition-toggle-title">${esc(shapeTitle)}</span><span class="condition-toggle-note">PUT/CALL 触发详情 · 最终开仓触发条件</span></span><span class="condition-chevron">⌄</span></button>${shapeExpanded?`<div class="condition-collapsible condition-card-grid">${renderConditionCard(shapeCard.row,shapeCard.resolved)}</div>`:""}`;
-  const gates=rows.slice(0,4),blocked=blockedCards.map(x=>x.row.name),shapeOk=pick(rows[4]);
-  const {cls,icon,title,copy}=conditionSummary(gates.map(r=>pick(r)),blocked,shapeOk,authority,pineFresh);
-  $("condSummary").className=`cond-summary ${cls}`;
-  $("condSummary").innerHTML=`<div class="cond-summary-icon">${icon}</div><div><div class="cond-summary-title">${esc(title)}</div><div class="cond-summary-copy">${esc(copy)}</div></div>`;
-  $("condVerdict").textContent=blocked.length?`${blocked.length} 项未满足`:cls==="ready"?"条件满足":cls==="broken"?"数据缺失":"等待形态";
-  $("condVerdict").className=`tag ${cls==="ready"?"live":cls==="broken"?"bad":"busy"}`;
-  const foot=[];
-  if(b)foot.push(`后端自算 · ${esc(b.instrument)} · 2h K 线 ${time(b.bar_ts)} · 计算于 ${time(b.computed_at)}`);
-  if(data.backend_error)foot.push(`<span class="warning">后端行情计算失败：${esc(data.backend_error)}${b?"（上方为上一次成功的结果）":""}</span>`);
-  if(!p)foot.push(`<span class="warning">尚未收到 Pine 连接回报 —— 需在 TradingView 更新脚本并重建 Alert；口令不匹配时连接回报同样不会到达。连接回报每根 2h K 线收盘发一次。</span>`);
-  else if(!pineFresh)foot.push(`<span class="warning">Pine 连接回报已停 ${Math.floor(pineAge/60000)} 分钟（正常每 2 小时一次）—— 请检查 TradingView Alert 是否仍在运行。</span>`);
-  else foot.push(`Pine 连接回报 · 对应 2h K 线 ${time(p.bar_ts)}`);
-  foot.push("两列数据源不同：Pine 用 TradingView 的 BTCUSDT，后端用 Deribit 永续，数值有小幅偏差属正常。信号由 Pine 决定是否发出；DVOL 档位由后端权威判定，档位为 0 时后端会拒绝已经发出的开仓信号。");
-  $("condEvidence").innerHTML=`<button type="button" class="condition-toggle" aria-expanded="${conditionSections.evidence}" onclick="toggleConditionSection('evidence')"><span class="condition-toggle-icon">i</span><span class="condition-toggle-copy"><span class="condition-toggle-title">数据与判断依据</span><span class="condition-toggle-note">Pine 连接状态、行情来源与计算说明</span></span><span class="condition-chevron">⌄</span></button>${conditionSections.evidence?`<div class="condition-collapsible"><div class="${pineStateClass}">${esc(pineStateText)}</div><div class="cond-foot">${foot.map(x=>`<div>${x}</div>`).join("")}</div></div>`:""}`}
 function renderPerformance(data){const s=data.summary;for(const [id,v] of [["pNet",s.tracked_net_pnl_btc],["pRealized",s.realized_pnl_btc],["pUnrealized",s.unrealized_pnl_btc],["pToday",s.today_realized_btc]]){const el=$(id);el.textContent=`${signed(v,6)} BTC`;el.className=`metric-value ${tone(v)}`}$("pPeriods").textContent=`${signed(s.last_7d_realized_btc,5)} / ${signed(s.last_30d_realized_btc,5)} BTC`;$("pPeriods").className=`metric-value small ${tone(s.last_30d_realized_btc)}`;$("pWinRate").textContent=`${num(s.win_rate*100,1)}%`;$("pWinNote").textContent=`${s.wins} 胜 · ${s.losses} 负 · ${s.closed_trades} 笔结束`;$("pFeeBadge").textContent=`对冲手续费 ${num(s.hedge_fees_btc,6)} BTC`;$("pTradeBadge").textContent=`${data.trades.length} 笔`;renderPnlChart(data.daily);$("pnlTradesTable").innerHTML=`<thead><tr><th>交易</th><th>信号</th><th>类型</th><th>状态</th><th>开仓</th><th>平仓</th><th>已实现</th><th>未实现</th><th>合计</th></tr></thead><tbody>${data.trades.length?data.trades.map(t=>{const total=Number(t.realized_pnl_btc)+Number(t.unrealized_pnl_btc);return `<tr><td class="number">#${t.id}</td><td class="mono">${esc(t.signal_id||"—")}</td><td>${t.spread_type==="CALL_CREDIT"?"CALL":"PUT"}</td><td>${stateTag(t.state)}</td><td class="number">${time(t.opened_at)}</td><td class="number">${time(t.closed_at)}</td><td class="number ${tone(t.realized_pnl_btc)}">${signed(t.realized_pnl_btc,6)}</td><td class="number ${tone(t.unrealized_pnl_btc)}">${signed(t.unrealized_pnl_btc,6)}</td><td class="number ${tone(total)}">${signed(total,6)} BTC</td></tr>`}).join(""):`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">暂无策略交易收益记录</td></tr>`}</tbody>`}
 function renderPnlChart(rows){const chart=$("pnlChart");if(!rows.length){chart.innerHTML=`<div class="empty" style="width:100%;min-height:180px"><div><strong>近 30 日暂无已实现收益</strong><span>交易平仓后会在这里形成收益柱状图</span></div></div>`;return}const byDay=Object.fromEntries(rows.map(r=>[r.day,Number(r.realized_pnl_btc)])),pad=n=>String(n).padStart(2,"0"),recent=Array.from({length:30},(_,i)=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(29-i));const day=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;return {day,realized_pnl_btc:byDay[day]||0}}),max=Math.max(...recent.map(r=>Math.abs(Number(r.realized_pnl_btc))),1e-9);chart.innerHTML=recent.map((r,i)=>{const v=Number(r.realized_pnl_btc),h=v===0?0:Math.max(2,Math.abs(v)/max*45),style=v>=0?`bottom:50%;height:${h}%`:`top:50%;height:${h}%`;return `<div class="chart-col" title="${esc(r.day)} · ${signed(v,6)} BTC"><div class="chart-track"><i class="chart-bar ${v===0?"zero":v<0?"neg":""}" style="${style}"></i></div><div class="chart-label">${i%5===0||i===recent.length-1?esc(r.day.slice(5)):""}</div></div>`}).join("")}
 async function copyWebhook(){try{await navigator.clipboard.writeText($("webhookUrl").textContent);toast("Webhook 地址已复制")}catch{toast("复制失败，请手动选择地址","bad")}}
@@ -668,7 +670,7 @@ function currentPage(){return location.pathname==="/signals"?"active-signals":lo
 function renderRoute(){const page=currentPage();document.querySelectorAll(".page-view").forEach(x=>x.classList.toggle("active",x.id===`page-${page}`));document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));const titles={positions:"仓位","active-signals":"活跃信号","signal-log":"信号日志","position-log":"仓位日志"};document.title=`BTC 期权卖方系统 · ${titles[page]}`}
 function navigateTo(path){if(location.pathname!==path)history.pushState({},"",path);renderRoute();window.scrollTo({top:0,behavior:"smooth"})}
 function enhanceMobileTables(){document.querySelectorAll(".data-table").forEach(table=>{const labels=[...table.querySelectorAll("thead th")].map(th=>th.textContent.trim());table.querySelectorAll("tbody tr").forEach(row=>[...row.cells].forEach((cell,index)=>{cell.dataset.label=labels[index]||""}))})}
-async function refresh(manual=false){if(refreshing)return;refreshing=true;try{const [status,acc,events,trades,hedges,signals,performance,conditions]=await Promise.all([api("/status"),api("/account"),api("/events?limit=100"),api("/trades?limit=50"),api("/hedge_stats?days=14"),api("/api/signals?limit=100"),api("/api/performance"),api(`/api/entry_conditions${manual?"?refresh=true":""}`)]);model={status,acc,events,trades,hedges,signals,performance,conditions};renderStatus(status,acc);renderMetrics(status,acc);renderGlobalMetrics(status,acc,trades,signals,performance);renderPositions(acc);renderEvents(events);renderTrades(trades);renderHedges(hedges);renderSignals(signals);renderPerformance(performance);renderConditions(conditions,signals);enhanceMobileTables();$("errorBanner").style.display="none";if(manual)toast("数据已刷新")}catch(e){$("errorBanner").textContent=`后端连接异常：${e.message}`;$("errorBanner").style.display="block";$("connectionText").textContent="策略引擎不可达";if(manual)toast(e.message,"bad")}finally{refreshing=false}}
+async function refresh(manual=false){if(refreshing)return;refreshing=true;try{const [status,acc,events,trades,hedges,signals,performance,conditions]=await Promise.all([api("/status"),api("/account"),api("/events?limit=100"),api("/trades?limit=50"),api("/hedge_stats?days=14"),api("/api/signals?limit=100"),api("/api/performance"),api(`/api/entry_conditions${manual?"?refresh=true":""}`)]);model={status,acc,events,trades,hedges,signals,performance,conditions};renderStatus(status,acc);renderMetrics(status,acc);renderGlobalMetrics(status,acc,trades,signals,performance);renderPositions(acc);renderEvents(events);renderTrades(trades);renderHedges(hedges);renderSignals(signals);renderPerformance(performance);renderConditions(conditions,signals,trades);enhanceMobileTables();$("errorBanner").style.display="none";if(manual)toast("数据已刷新")}catch(e){$("errorBanner").textContent=`后端连接异常：${e.message}`;$("errorBanner").style.display="block";$("connectionText").textContent="策略引擎不可达";if(manual)toast(e.message,"bad")}finally{refreshing=false}}
 function showTab(name){document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===name));document.querySelectorAll(".tab-view").forEach(x=>x.classList.toggle("active",x.id===`tab-${name}`))}
 function setEventFilter(level){eventLevel=level;document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.level===level));if(model)renderEvents(model.events)}
 async function toggleTrading(){const current=model?.status?.trading_enabled;if(current&&!confirm("暂停接收新的开仓信号？现有仓位仍会继续管理。"))return;try{await api(`/control/trading?enabled=${!current}`,{method:"POST"});toast(current?"新开仓已暂停":"新开仓已启用");await refresh()}catch(e){toast(e.message,"bad")}}
@@ -677,20 +679,158 @@ function openForceDialog(){$("forceModal").classList.add("open")}function closeF
 async function confirmForceClose(){try{await api("/control/force_close?reason=ui_manual",{method:"POST"});closeForceDialog();toast("全账户强平已进入最高优先级队列");setTimeout(refresh,1000)}catch(e){toast(e.message,"bad")}}
 async function clearForceClose(){if(!confirm("仅在已经核对 Deribit 账户清仓后解除。确认继续？"))return;try{await api("/control/clear_force_close",{method:"POST"});toast("强平锁定已解除");await refresh()}catch(e){toast(e.message,"bad")}}
 function toggleMobileMenu(){$("mobileMenu").classList.toggle("open")}
-function renderConditions(data,signals){
-  const b=data.backend,p=data.pine,now=data.server_ts||Date.now(),tvStage=buildTradingViewStage(data),backendStage=buildBackendStage(data,signals);
-  const pineAge=p&&p.received_at?now-p.received_at:null,pineFresh=pineAge!=null&&pineAge<=HEARTBEAT_STALE_MS,deferred=Boolean(pineFresh&&p&&(p.dvol_tier==null||p.dvol_tier<0));
-  const lv=data.live,lvEl=$("condLive");if(lv&&lv.price!=null){const near=x=>x==null?"—":x<=0?`已越轨 ${num(Math.abs(x),2)}%`:`${num(x,2)}%`;lvEl.style.display="flex";lvEl.innerHTML=`<span class="lv-dot"></span><span class="lv-tag">实时价格 · Deribit 永续</span><span class="lv-price">$${num(lv.price,0)}</span><span class="lv-dist">距上轨(Call触发) <b>${near(lv.to_upper_pct)}</b></span><span class="lv-dist">距下轨(Put触发) <b>${near(lv.to_lower_pct)}</b></span><span class="lv-upd">更新于 ${time(lv.ts)}</span>`}else lvEl.style.display="none";
-  const wd=data.watchdog,wdEl=$("condWatch");if(wd&&wd.armed){const side=wd.side==="PUT_CREDIT"?"PUT 信用价差":"CALL 信用价差";wdEl.style.display="flex";if(wd.alarm){wdEl.className="cond-watch alarm";wdEl.innerHTML=`<div class="cw-ico">!</div><div><b>TradingView 条件满足，但没有收到开仓信号</b> —— ${side} · 2h K线 ${time(wd.bar_close)}。请检查 Alert、Webhook 地址和口令。</div>`}else if(wd.signal_received){wdEl.className="cond-watch ok";wdEl.innerHTML=`<div class="cw-ico">✓</div><div>${time(wd.bar_close)} 的 ${side} <b>已收到 TradingView 开仓信号</b> · 后端状态 ${esc(wd.signal_status||"处理中")}</div>`}else{wdEl.className="cond-watch idle";wdEl.innerHTML=`<div class="cw-ico">…</div><div>${side} 条件刚满足，等待 TradingView 开仓信号到达。</div>`}}else wdEl.style.display="none";
-  const cards=COND_ROWS.map(row=>({row,resolved:condRow(row,data,pineFresh,false)}));if(!pineFresh)cards.forEach(x=>x.resolved={...x.resolved,ok:null,value:"—",gap:"等待 TradingView 连接回报",srcTag:"TradingView"});if(deferred)cards[1].resolved={...cards[1].resolved,ok:"delegated",value:`Pine 样本 ${p.dvol_samples??"—"} 根`,gap:'<span class="std-gap delegated">样本不足不阻止 TradingView 发信 · 交后端判断</span>',standard:"Pine 不做 DVOL 档位结论；后端收到开仓信号后用全历史复核",srcTag:"TradingView → 后端",extra:""};
-  const shapeCard=cards[4];if(shapeCard.resolved.ok===false)shapeCard.resolved={...shapeCard.resolved,ok:"waiting",gap:shapeCard.resolved.gap||'<span class="std-gap">等待 PUT/CALL 破轨 + 反向收线</span>'};const gates=cards.slice(0,4),blockedCards=gates.filter(x=>x.resolved.ok===false),pendingCards=gates.filter(x=>x.resolved.ok==null),delegatedCards=gates.filter(x=>x.resolved.ok==="delegated"),passedCards=gates.filter(x=>x.resolved.ok===true);
-  const section=(id,title,list,subtitle)=>{const el=$(id);el.className=list.length?"condition-section visible":"condition-section";el.innerHTML=list.length?`<div class="condition-section-title"><h3>${esc(title)}</h3><span>${esc(subtitle)}</span></div><div class="condition-card-grid">${list.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`:""};section("condBlockers","TradingView 阻断条件",blockedCards,`${blockedCards.length} 项会阻止 Pine 发出开仓信号`);section("condPending","TradingView 数据待确认",pendingCards,"数据完整前不会误标为通过");section("condDelegated","交后端判断",delegatedCards,"不阻止 TradingView 发信；后端收到后复核");
-  const passedEl=$("condPassed");passedEl.className=passedCards.length?"condition-section visible":"condition-section";passedEl.innerHTML=passedCards.length?`<button type="button" class="condition-toggle" aria-expanded="${conditionSections.passed}" onclick="toggleConditionSection('passed')"><span class="condition-toggle-icon">✓</span><span class="condition-toggle-copy"><span class="condition-toggle-title">已通过 ${passedCards.length} 项</span><span class="condition-toggle-note">默认收起，需要时可展开核对</span></span><span class="condition-chevron">⌄</span></button>${conditionSections.passed?`<div class="condition-collapsible condition-card-grid">${passedCards.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`:""}`:"";
-  const shapeExpanded=conditionSectionOverrides.shape??true,shapeEl=$("condShape"),shapeTitle=shapeCard.resolved.ok===true?"PUT/CALL 布林形态已成立":shapeCard.resolved.ok==null?"布林形态数据待确认":"等待 PUT/CALL 布林形态";shapeEl.className="condition-section visible";shapeEl.innerHTML=`<button type="button" class="condition-toggle" aria-expanded="${shapeExpanded}" onclick="toggleConditionSection('shape')"><span class="condition-toggle-icon">◎</span><span class="condition-toggle-copy"><span class="condition-toggle-title">${shapeTitle}</span><span class="condition-toggle-note">TradingView 发出开仓信号前的最终触发条件</span></span><span class="condition-chevron">⌄</span></button>${shapeExpanded?`<div class="condition-collapsible condition-card-grid">${renderConditionCard(shapeCard.row,shapeCard.resolved)}</div>`:""}`;$("tvStageCounts").textContent=`已通过 ${passedCards.length} 项 · 交后端 ${delegatedCards.length} 项 · 等待触发 ${shapeCard.resolved.ok==="waiting"?1:0} 项 · 阻断 ${blockedCards.length} 项`;
-  const tvTone=tvStage.state==="ready_to_send"?"ready":tvStage.state==="blocked"?"blocked":tvStage.state==="unknown"?"blocked":"waiting";$("tvStageSummary").className=`stage-summary ${tvTone}`;$("tvStageSummary").innerHTML=`<i class="stage-dot"></i><div><strong>${esc(tvStage.title)}</strong><span>${shapeCard.resolved.ok==="waiting"?"目前没有 OPEN_REQUEST；正在等待 PUT/CALL 布林形态。":"按当前 Pine 数据显示"}</span></div>`;
-  const check=backendStage.dvol||{},levels=b?.checks?.config?.levels||[],threshold=levels[0]!=null?levels[0]*100:null,pct=check.percentile!=null?check.percentile*100:null;let backendTitle,backendCopy,backendTone,backendHtml;if(backendStage.actual){const s=backendStage.signal,reason=REJECT_REASON[backendStage.reason]||backendStage.reason||"系统未提供原因";backendTone=backendStage.state;backendTitle=backendStage.state==="accepted"?"后端已接受开仓信号":backendStage.state==="rejected"?"后端已拒绝开仓信号":"后端正在处理开仓信号";backendCopy=`真实结果 · ${time(s.received_at)}`;backendHtml=`<article class="backend-result ${backendTone}"><div class="backend-result-title">${esc(backendTitle)}</div><div class="backend-result-copy">${backendStage.state==="rejected"?`拒绝原因：${esc(reason)}`:"该状态来自真实收到的 TradingView 开仓信号，不是预估。"}</div><details><summary>展开查看信号详情</summary><pre>${esc(JSON.stringify(s.payload||{},null,2))}</pre></details></article>`;$("signalTransit").innerHTML=`<b>已收到 TradingView 开仓信号</b><span>${time(s.received_at)}</span>`}else{const reject=backendStage.preflight==="reject";backendTitle=backendStage.preflight==="allow"?"预检：若现在收到，DVOL 门槛允许继续":reject?"预检：若现在收到开仓信号，后端将拒绝执行":"预检：后端 DVOL 数据暂不可用";backendCopy="这只是当前预检，不代表 TradingView 已经发出开仓信号。";backendTone=reject?"rejected":backendStage.preflight==="allow"?"ready":"waiting";backendHtml=`<article class="backend-result ${reject?"reject":backendStage.preflight==="allow"?"allow":""}"><div class="backend-result-title">若现在收到开仓信号：${reject?"DVOL 门槛将拒绝":"DVOL 门槛允许继续"}</div><div class="backend-result-copy">后端 · Deribit DVOL 全历史。${reject?"即使 TradingView 的其他条件成立，后端仍不会开仓。":"仍需通过交易开关、账户仓位、风险预算和选腿检查。"}</div><div class="backend-result-data"><span>当前分位<b>${pct==null?"—":num(pct,1)+"%"}</b></span><span>开仓下限<b>${threshold==null?"—":num(threshold,0)+"%"}</b></span><span>后端档位<b>${check.tier==null||check.tier<0?"待定":"L"+check.tier}</b></span><span>样本数<b>${check.samples??"—"} / ${check.window_bars??"—"}</b></span></div></article>`;$("signalTransit").innerHTML="<b>等待 TradingView 开仓信号</b><span>后端尚未执行；预检仅供说明</span>"}$("backendStageSummary").className=`stage-summary ${backendTone}`;$("backendStageSummary").innerHTML=`<i class="stage-dot"></i><div><strong>${esc(backendTitle)}</strong><span>${esc(backendCopy)}</span></div>`;$("backendStageBody").innerHTML=backendHtml;
-  const overallIcon=tvStage.state==="ready_to_send"?"✓":tvStage.state==="blocked"?"✕":tvStage.state==="unknown"?"!":"⏳",overallClass=tvStage.state==="ready_to_send"?"ready":tvStage.state==="blocked"||tvStage.state==="unknown"?"broken":"blocked";$("condSummary").className=`cond-summary ${overallClass}`;$("condSummary").innerHTML=`<div class="cond-summary-icon">${overallIcon}</div><div><div class="cond-summary-title">${esc(tvStage.title)}</div><div class="cond-summary-copy">${esc(backendStage.actual?backendTitle:`${backendTitle}（尚未收到开仓信号）`)}</div></div>`;$("condVerdict").textContent=tvStage.state==="ready_to_send"?"等待信号到达":tvStage.state==="blocked"?`${blockedCards.length} 项阻断`:tvStage.state==="unknown"?"数据待确认":"等待形态";$("condVerdict").className=`tag ${tvStage.state==="ready_to_send"?"live":tvStage.state==="unknown"?"bad":"busy"}`;
-  const foot=[];if(b)foot.push(`后端自算 · ${esc(b.instrument)} · 2h K 线 ${time(b.bar_ts)} · 计算于 ${time(b.computed_at)}`);if(!p)foot.push('<span class="warning">尚未收到 Pine 连接回报，无法判断 TradingView 当前是否会发信。</span>');else if(!pineFresh)foot.push(`<span class="warning">Pine 连接回报已停 ${Math.floor(pineAge/60000)} 分钟，请检查 TradingView Alert。</span>`);else foot.push(`Pine 连接回报 · 对应 2h K 线 ${time(p.bar_ts)}`);foot.push("第一阶段只回答 TradingView 是否发送 OPEN_REQUEST；第二阶段只在收到后给出真实接受/拒绝结果。未收到时的后端结果均明确标记为预检。");$("condEvidence").innerHTML=`<button type="button" class="condition-toggle" aria-expanded="${conditionSections.evidence}" onclick="toggleConditionSection('evidence')"><span class="condition-toggle-icon">i</span><span class="condition-toggle-copy"><span class="condition-toggle-title">数据与判断依据</span><span class="condition-toggle-note">Pine 连接状态、行情来源与两阶段规则</span></span><span class="condition-chevron">⌄</span></button>${conditionSections.evidence?`<div class="condition-collapsible"><div class="cond-foot">${foot.map(x=>`<div>${x}</div>`).join("")}</div></div>`:""}`;
+const JOURNEY_STEP_TITLES=["","等待市场出现开仓机会","TradingView 发送开仓申请","系统进行最终安全检查","允许并执行开仓"];
+const JOURNEY_STATUS_LABEL={pass:"已通过",block:"受阻",timeout:"超时未到",failed:"执行失败",wait:"等待中",processing:"处理中",info:"提前预警",idle:"未开始"};
+const EXECUTION_COPY={starting:"准备建立交易记录",checking:"正在检查现有仓位",selecting:"正在选择期权合约",opening:"订单已提交，等待成交",open:"期权价差已经开仓",failed:"开仓执行失败",not_started:"前序步骤通过后才会开始"};
+function journeyStatusLabel(tone){return JOURNEY_STATUS_LABEL[tone]||"—"}
+// 四步共用外壳：整行标题是一个可点击按钮，body 通过 hidden 控制展开。
+function journeyStepShell(step,title,summary,tone,open,body){
+  return `<button type="button" class="journey-step-toggle"
+      aria-expanded="${open}" aria-controls="journeyStepBody${step}"
+      onclick="toggleJourneyStep(${step})">
+    <span class="journey-step-number">${step}</span>
+    <span class="journey-step-label"><strong>${esc(title)}</strong><small>${esc(summary)}</small></span>
+    <span class="journey-step-status ${esc(tone)}">${esc(journeyStatusLabel(tone))}</span>
+    <span class="journey-step-chevron">⌄</span>
+  </button>
+  <div id="journeyStepBody${step}" class="journey-step-body" ${open?"":"hidden"}>${body}</div>`;
+}
+function renderConditions(data,signals,trades){
+  const journey=buildSignalJourney(data,signals,trades);
+  syncJourneyExpansion(journey);
+  renderJourneySummary(journey);
+  for(const step of [1,2,3,4]){
+    const el=$(`journeyStep${step}`);
+    el.className=`journey-step${step===journey.currentStep?" current":step<journey.currentStep?" done":""}`;
+    el.innerHTML=renderJourneyStep(step,journey,data);
+  }
+  $("condVerdict").textContent=`第 ${journey.currentStep} 步 / 共 4 步`;
+  $("condVerdict").className=`tag ${journey.state==="opened"?"live":journey.state==="blocked"?"bad":"busy"}`;
+}
+function renderJourneySummary(journey){
+  const el=$("journeySummary");
+  const map={
+    "现在不能开仓":["tone-block","✕"],
+    "等待开仓申请":["tone-wait","⏳"],
+    "系统正在检查":["tone-processing","◌"],
+    "正在执行开仓":["tone-processing","▶"],
+    "已经开仓":["tone-pass","✓"],
+  };
+  const [tone,icon]=map[journey.headline]||["tone-processing","…"];
+  el.className=`journey-summary ${tone}`;
+  el.innerHTML=`<div class="journey-summary-icon">${icon}</div><div class="journey-summary-text"><div class="journey-summary-kicker">第 ${journey.currentStep} 步 / 共 4 步 · ${esc(JOURNEY_STEP_TITLES[journey.currentStep])}</div><h2 class="journey-summary-headline">${esc(journey.headline)}</h2><p class="journey-summary-reason">主要原因：${esc(journey.reason)}</p></div>`;
+}
+function renderJourneyStep(step,journey,data){
+  const open=journeyStepOverrides[step]??(step===journey.currentStep);
+  const title=JOURNEY_STEP_TITLES[step];
+  const view=step===1?renderStep1(journey,data)
+    :step===2?renderStep2(journey)
+      :step===3?renderStep3(journey,data)
+        :renderStep4(journey);
+  return journeyStepShell(step,title,view.summary,view.tone,open,view.body);
+}
+function step1LiveStrip(lv){
+  if(lv&&lv.price!=null){
+    const near=x=>x==null?"—":x<=0?`已越轨 ${num(Math.abs(x),2)}%`:`${num(x,2)}%`;
+    const hot=x=>x!=null&&x<=0.5?" hot":"";
+    return `<div class="cond-live" style="display:flex"><span class="lv-dot"></span><span class="lv-tag">实时价格 · Deribit 永续</span><span class="lv-price">$${num(lv.price,0)}</span><span class="lv-dist${hot(lv.to_upper_pct)}">距上轨(Call触发) <b>${near(lv.to_upper_pct)}</b></span><span class="lv-dist${hot(lv.to_lower_pct)}">距下轨(Put触发) <b>${near(lv.to_lower_pct)}</b></span><span class="lv-upd">更新于 ${time(lv.ts)}</span></div>`;
+  }
+  if(lv&&lv.error)return `<div class="cond-live" style="display:flex"><span class="lv-tag" style="color:var(--amber)">实时价格获取失败：${esc(lv.error)}</span></div>`;
+  return "";
+}
+function step1RawData(data,p,pineFresh,pineAge){
+  const b=data.backend,foot=[];
+  if(b)foot.push(`后端自算 · ${esc(b.instrument)} · 2h K 线 ${time(b.bar_ts)} · 计算于 ${time(b.computed_at)}`);
+  if(data.backend_error)foot.push(`<span class="warning">后端行情计算失败：${esc(data.backend_error)}${b?"（上方为上一次成功结果）":""}</span>`);
+  if(!p)foot.push('<span class="warning">尚未收到 Pine 连接回报 —— 请在 TradingView 更新脚本并重建 Alert；口令不匹配时连接回报也不会到达。</span>');
+  else if(!pineFresh)foot.push(`<span class="warning">Pine 连接回报已停 ${Math.floor(pineAge/60000)} 分钟（正常每 2 小时一次）—— 请检查 TradingView Alert 是否仍在运行。</span>`);
+  else foot.push(`Pine 连接回报 · 对应 2h K 线 ${time(p.bar_ts)}`);
+  foot.push("两列数据源不同：Pine 用 TradingView 的 BTCUSDT，后端用 Deribit 永续，数值有小幅偏差属正常。开仓信号由 Pine 决定是否发出；DVOL 档位由后端权威判定。");
+  return `<section id="condEvidence" class="condition-evidence"><button type="button" class="condition-toggle" aria-expanded="${conditionSections.evidence}" onclick="toggleConditionSection('evidence')"><span class="condition-toggle-icon">i</span><span class="condition-toggle-copy"><span class="condition-toggle-title">查看原始计算数据</span><span class="condition-toggle-note">K 线时间、指标数值、布林轨道与数据来源</span></span><span class="condition-chevron">⌄</span></button>${conditionSections.evidence?`<div class="condition-collapsible"><div class="cond-foot">${foot.map(x=>`<div>${x}</div>`).join("")}</div></div>`:""}</section>`;
+}
+function renderStep1(journey,data){
+  const p=data.pine,now=data.server_ts||Date.now();
+  const pineAge=p&&p.received_at?now-p.received_at:null;
+  const pineFresh=pineAge!=null&&pineAge<=HEARTBEAT_STALE_MS;
+  const deferred=Boolean(pineFresh&&p&&(p.dvol_tier==null||p.dvol_tier<0));
+  const cards=COND_ROWS.map(row=>({row,resolved:condRow(row,data,pineFresh,false)}));
+  if(!pineFresh)cards.forEach(x=>x.resolved={...x.resolved,ok:null,value:"—",gap:"等待 TradingView 连接回报",srcTag:"TradingView"});
+  if(deferred)cards[1].resolved={...cards[1].resolved,ok:"delegated",value:`Pine 样本 ${p.dvol_samples??"—"} 根`,gap:'<span class="std-gap delegated">样本不足不阻止 TradingView 发信 · 交后端判断</span>',standard:"Pine 不做 DVOL 档位结论；后端收到开仓信号后用全历史复核",srcTag:"TradingView → 后端",extra:""};
+  const shapeCard=cards[4];
+  if(shapeCard.resolved.ok===false)shapeCard.resolved={...shapeCard.resolved,ok:"waiting",gap:shapeCard.resolved.gap||'<span class="std-gap">等待 PUT/CALL 破轨 + 反向收线</span>'};
+  const gates=cards.slice(0,4);
+  const blocked=gates.filter(x=>x.resolved.ok===false);
+  const pending=gates.filter(x=>x.resolved.ok==null);
+  const delegatedCards=gates.filter(x=>x.resolved.ok==="delegated");
+  const passed=gates.filter(x=>x.resolved.ok===true);
+  const waitingShape=shapeCard.resolved.ok==="waiting";
+  const grid=list=>`<div class="condition-card-grid">${list.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`;
+  const sect=(id,cls,title,sub,list)=>`<section id="${id}" class="condition-section visible"><div class="condition-section-title"><h3>${esc(title)}</h3><span>${esc(sub)}</span></div>${grid(list)}</section>`;
+  let body=step1LiveStrip(data.live);
+  if(blocked.length)body+=sect("condBlockers","blocker","正在阻止发信",`${blocked.length} 项未达标，TradingView 现在不会发出开仓申请`,blocked);
+  if(waitingShape)body+=sect("condShape","waiting","等待市场触发形态","配置与指标已满足，只差 PUT/CALL 破轨 + 反向收线",[shapeCard]);
+  else if(shapeCard.resolved.ok===true)body+=sect("condShape","passed","触发形态已成立","PUT/CALL 布林形态已满足",[shapeCard]);
+  else body+=sect("condShape","pending","触发形态","等待有效数据",[shapeCard]);
+  if(delegatedCards.length)body+=sect("condDelegated","delegated","交后端判断","不阻止 TradingView 发信；后端收到后用全历史复核",delegatedCards);
+  if(pending.length)body+=sect("condPending","pending","暂时无法判定","数据完整前不会误标为通过",pending);
+  if(passed.length)body+=`<section id="condPassed" class="condition-section visible"><button type="button" class="condition-toggle" aria-expanded="${conditionSections.passed}" onclick="toggleConditionSection('passed')"><span class="condition-toggle-icon">✓</span><span class="condition-toggle-copy"><span class="condition-toggle-title">已通过 ${passed.length} 项</span><span class="condition-toggle-note">默认收起，需要时可展开核对</span></span><span class="condition-chevron">⌄</span></button>${conditionSections.passed?`<div class="condition-collapsible condition-card-grid">${passed.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`:""}</section>`;
+  body+=step1RawData(data,p,pineFresh,pineAge);
+  let tone,summary;
+  if(journey.currentStep>1){tone="pass";summary="市场条件已满足，可以进入下一步";}
+  else if(blocked.length){tone="block";summary=journey.reason;}
+  else if(waitingShape){tone="wait";summary="配置与指标已满足，等待 PUT/CALL 形态触发";}
+  else{tone="info";summary=journey.reason;}
+  return {tone,summary,body};
+}
+function signalMetaGrid(s){
+  const side=s.spread_type==="PUT_CREDIT"?"PUT 信用价差":s.spread_type==="CALL_CREDIT"?"CALL 信用价差":(s.spread_type||"—");
+  return `<div class="journey-detail-grid"><div class="journey-metric"><div class="journey-metric-label">方向</div><div class="journey-metric-value">${esc(side)}</div></div><div class="journey-metric"><div class="journey-metric-label">接收时间</div><div class="journey-metric-value">${time(s.received_at)}</div></div><div class="journey-metric"><div class="journey-metric-label">信号 ID</div><div class="journey-metric-value" style="font-size:12px;word-break:break-all">${esc(s.signal_id||"—")}</div></div><div class="journey-metric"><div class="journey-metric-label">对应 2h K 线</div><div class="journey-metric-value">${time(s.payload?.bar_ts)}</div></div></div>`;
+}
+function renderStep2(journey){
+  const d=journey.delivery;
+  const tone={received:"pass",timeout:"timeout",waiting:"wait",not_expected:"idle"}[d.state]||"idle";
+  let body;
+  if(d.state==="received")body=`<div class="journey-result pass"><div class="journey-result-title">已收到开仓申请</div><div class="journey-result-copy">${esc(d.reason)}</div>${signalMetaGrid(d.signal)}</div>`;
+  else if(d.state==="timeout")body=`<div class="journey-result failed"><div class="journey-result-title">开仓申请到达超时</div><div class="journey-result-copy">${esc(d.reason)}。请按下面清单排查 TradingView 与 Webhook。</div><ul class="journey-checklist"><li>确认 TradingView Alert 仍为启用状态</li><li>确认条件选择“任何 alert() 函数调用”</li><li>确认 Webhook 地址与当前系统一致</li><li>查看 TradingView 日志是否显示 Webhook 成功发送</li></ul></div>`;
+  else if(d.state==="waiting")body=`<div class="journey-result processing"><div class="journey-result-title">等待开仓申请到达</div><div class="journey-result-copy">${esc(d.reason)}。收盘后约有 2 分钟宽限，请稍候。</div></div>`;
+  else body=`<div class="journey-note">${esc(d.reason)}。只有市场条件全部满足后，TradingView 才会发出开仓申请；连接回报和 STATUS 记录不算开仓申请。</div>`;
+  return {tone,summary:d.title,body};
+}
+function renderStep3(journey,data){
+  const safety=journey.safety;
+  const dvol=safety.dvol||data?.backend?.checks?.dvol_tier||{};
+  const levels=data?.backend?.checks?.config?.levels||[];
+  const threshold=levels[0]!=null?levels[0]*100:null;
+  const pct=dvol.percentile!=null?dvol.percentile*100:null;
+  const dvolGrid=`<div class="journey-detail-grid"><div class="journey-metric"><div class="journey-metric-label">当前分位</div><div class="journey-metric-value">${pct==null?"—":num(pct,1)+"%"}</div></div><div class="journey-metric"><div class="journey-metric-label">开仓下限 (L1)</div><div class="journey-metric-value">${threshold==null?"—":num(threshold,0)+"%"}</div></div><div class="journey-metric"><div class="journey-metric-label">当前档位</div><div class="journey-metric-value">${dvol.tier==null||dvol.tier<0?"待定":"L"+dvol.tier}</div></div><div class="journey-metric"><div class="journey-metric-label">样本 / 窗口</div><div class="journey-metric-value">${dvol.samples??"—"} / ${dvol.window_bars??"—"}</div></div></div><div class="journey-note">判断来源：后端 · Deribit DVOL 全历史</div>`;
+  if(!safety.actual){
+    const willReject=safety.preflight==="reject";
+    const body=`<div class="journey-preflight"><strong>提前预警，不是实际拒绝</strong><p>${willReject?"如果现在收到开仓申请，系统预计会因 DVOL 档位不足而拒绝。":safety.preflight==="allow"?"如果现在收到开仓申请，DVOL 门槛预计允许继续（仍需通过交易开关、账户仓位、风险预算与选腿检查）。":"后端 DVOL 数据暂不可用，收到申请后会重新判定。"}</p></div>${dvolGrid}`;
+    return {tone:"info",summary:"提前预警：收到申请后才会真正检查",body};
+  }
+  if(safety.state==="rejected"){
+    const reason=REJECT_REASON[safety.reason]||safety.reason||"系统未提供具体原因";
+    const body=`<div class="journey-result failed"><div class="journey-result-title">系统已拒绝本次开仓申请</div><div class="journey-result-copy">拒绝原因：${esc(reason)}</div>${safety.reason?`<div class="journey-note">原始代码：<span class="mono">${esc(safety.reason)}</span></div>`:""}</div>${dvolGrid}`;
+    return {tone:"block",summary:`已拒绝：${reason}`,body};
+  }
+  if(safety.state==="accepted")return {tone:"pass",summary:"已通过安全检查，进入执行",body:`<div class="journey-result pass"><div class="journey-result-title">已通过最终安全检查</div><div class="journey-result-copy">开仓申请已被后端接受，进入执行阶段。</div></div>${dvolGrid}`};
+  return {tone:"processing",summary:"系统正在进行最终安全检查",body:`<div class="journey-result processing"><div class="journey-result-title">系统正在检查</div><div class="journey-result-copy">后端已收到开仓申请，正在做最终判断。</div></div>${dvolGrid}`};
+}
+function renderStep4(journey){
+  const ex=journey.execution;
+  const tone={open:"pass",failed:"failed",not_started:"idle"}[ex.state]||"processing";
+  const copy=EXECUTION_COPY[ex.state]||"正在执行开仓";
+  let body;
+  if(ex.state==="not_started"){
+    body=`<div class="journey-note">${esc(copy)}。只有后端接受开仓申请后，交易系统才会真正下单。</div>`;
+  }else{
+    const resultTone=ex.state==="open"?"pass":ex.state==="failed"?"failed":"processing";
+    const t=ex.trade;
+    const gridHtml=t?`<div class="journey-detail-grid"><div class="journey-metric"><div class="journey-metric-label">交易编号</div><div class="journey-metric-value">#${esc(t.id)}</div></div><div class="journey-metric"><div class="journey-metric-label">方向</div><div class="journey-metric-value">${t.spread_type==="CALL_CREDIT"?"CALL 信用价差":t.spread_type==="PUT_CREDIT"?"PUT 信用价差":esc(t.spread_type||"—")}</div></div><div class="journey-metric"><div class="journey-metric-label">当前状态</div><div class="journey-metric-value">${esc(STATE[t.state]||t.state||"—")}</div></div><div class="journey-metric"><div class="journey-metric-label">开仓时间</div><div class="journey-metric-value">${t.opened_at?time(t.opened_at):"—"}</div></div></div>`:"";
+    const failReason=ex.state==="failed"&&ex.reason?`<div class="journey-note">失败原因：${esc(REJECT_REASON[ex.reason]||ex.reason)}</div>`:"";
+    body=`<div class="journey-result ${resultTone}"><div class="journey-result-title">${esc(copy)}</div><div class="journey-result-copy">${ex.state==="open"?"期权信用价差已经建立，可在「仓位」页查看详情。":ex.state==="failed"?"订单执行未成功，系统已停止本次开仓。":"交易系统正在按步骤执行开仓。"}</div>${failReason}</div>${gridHtml}`;
+  }
+  return {tone,summary:copy,body};
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeForceDialog();$("mobileMenu").classList.remove("open")}});window.addEventListener("popstate",renderRoute);renderRoute();refresh();setInterval(refresh,5000);
 </script>

@@ -111,3 +111,33 @@ test("accepted signals advance through execution to an opened position",()=>{
   assert.equal(failed.execution.state,"failed");
   assert.match(failed.reason,/选腿|REJECT_NO_VALID_LEGS/);
 });
+
+test("active signals renders a four-step beginner journey",()=>{
+  for(const id of ["journeySummary","journeyStep1","journeyStep2","journeyStep3","journeyStep4"])
+    assert.match(html,new RegExp(`id="${id}"`));
+  for(const label of [
+    "等待市场出现开仓机会",
+    "TradingView 发送开仓申请",
+    "系统进行最终安全检查",
+    "允许并执行开仓",
+  ])assert.match(html,new RegExp(label));
+  assert.doesNotMatch(html,/id="tvSignalStage"/);
+  assert.doesNotMatch(html,/id="backendExecutionStage"/);
+});
+
+test("journey steps are buttons with accessible expansion state",()=>{
+  assert.match(html,/class="journey-step-toggle"/);
+  assert.match(html,/aria-expanded="\$\{open\}"/);
+  assert.match(html,/aria-controls="journeyStepBody\$\{step\}"/);
+  assert.match(html,/function toggleJourneyStep\(step\)/);
+  assert.match(html,/function syncJourneyExpansion\(journey\)/);
+});
+
+test("journey expansion store survives polling but resets per instance",()=>{
+  assert.match(html,/const journeyStepOverrides=\{\}/);
+  assert.match(html,/let journeyInstanceKey=null/);
+  assert.match(html,/let journeyAutoStep=null/);
+  // 新实例时清空用户展开选择
+  assert.match(html,/journey\.instanceKey!==journeyInstanceKey/);
+  assert.match(html,/for\(const key of Object\.keys\(journeyStepOverrides\)\)delete journeyStepOverrides\[key\]/);
+});
