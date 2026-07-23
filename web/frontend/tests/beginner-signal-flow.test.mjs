@@ -141,3 +141,30 @@ test("journey expansion store survives polling but resets per instance",()=>{
   assert.match(html,/journey\.instanceKey!==journeyInstanceKey/);
   assert.match(html,/for\(const key of Object\.keys\(journeyStepOverrides\)\)delete journeyStepOverrides\[key\]/);
 });
+
+test("stale Pine, backend rejection, and execution failure stop at their own step",()=>{
+  const {buildSignalJourney}=loadJourneyHelpers();
+  const stale=conditions();
+  stale.pine.received_at=stale.server_ts-151*60*1000;
+  assert.equal(buildSignalJourney(stale,{items:[]},[]).currentStep,1);
+
+  const source=html.slice(html.indexOf("function renderConditions("));
+  assert.match(source,/TradingView 状态已过期/);
+  assert.match(source,/提前预警，不是实际拒绝/);
+  assert.match(source,/开仓执行失败/);
+  assert.match(source,/系统检查数据暂不可用/);
+});
+
+test("expanded diagnostics never render authentication fields",()=>{
+  assert.doesNotMatch(html,/JSON\.stringify\(.*passphrase/s);
+  assert.doesNotMatch(html,/authorization.*journey-step-body/is);
+  assert.match(html,/function safeSignalDetails\(/);
+  assert.match(html,/signalMetaGrid\(d\.signal\)/);
+});
+
+test("journey is one vertical column without mobile overflow",()=>{
+  assert.match(html,/\.journey-list\{display:grid;gap:10px\}/);
+  assert.match(html,/@media\(max-width:700px\)[^{]*\{[\s\S]*?\.journey-step-toggle\{grid-template-columns:30px minmax\(0,1fr\) 18px/);
+  assert.match(html,/@media\(max-width:700px\)[^{]*\{[\s\S]*?\.journey-step-status\{grid-column:2/);
+  assert.doesNotMatch(html,/\.journey-list\{[^}]*grid-template-columns:repeat\(/);
+});

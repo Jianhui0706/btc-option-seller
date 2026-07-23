@@ -159,6 +159,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .journey-result-copy{margin-top:5px;color:var(--muted);font-size:11px;line-height:1.6;overflow-wrap:anywhere}
 .journey-checklist{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:11px;line-height:1.9}
 .journey-note{color:var(--muted);font-size:11px;line-height:1.6;overflow-wrap:anywhere}
+@media(max-width:700px){.journey-step-toggle{grid-template-columns:30px minmax(0,1fr) 18px;padding:12px}.journey-step-status{grid-column:2;grid-row:2;justify-self:start;margin-top:2px}.journey-step-chevron{grid-column:3;grid-row:1}.journey-step-body{padding:12px}.journey-detail-grid,.condition-card-grid{grid-template-columns:1fr}.journey-summary{align-items:flex-start}.journey-summary-headline{font-size:19px}}
 @media(max-width:900px){.condition-card-grid{grid-template-columns:1fr}.stage-summary-stack{grid-template-columns:1fr}.stage-head{align-items:flex-start}.stage-counts{max-width:45%}}
 @media(max-width:700px){.condition-toggle-note{display:none}}
 @media(max-width:700px){.cond-head{display:none}.cond-row{grid-template-columns:1fr auto;gap:4px 10px}.cond-row>div:first-child{grid-column:1;grid-row:1}.cond-pill{grid-column:2;grid-row:1;justify-self:end}.cond-cell{grid-column:1/-1;grid-row:2}.cond-std{grid-column:1/-1;grid-row:3}.mbar{max-width:none}.dircard{min-width:0}}
@@ -345,8 +346,6 @@ function renderTrades(trades){$("tradesTable").innerHTML=`<thead><tr><th>交易<
 function renderHedges(rows){$("hedgesTable").innerHTML=`<thead><tr><th>日期</th><th>执行次数</th><th>手续费</th><th>平均单量</th><th>最小量跳过</th><th>阈值跳过</th></tr></thead><tbody>${rows.length?rows.map(h=>`<tr><td>${h.day}</td><td class="number">${h.hedge_trades||0}</td><td class="number">${num(h.total_fee,8)} BTC</td><td class="number">${h.avg_order_usd==null?"—":num(h.avg_order_usd,0)+" USD"}</td><td class="number">${h.skipped_min_amount||0}</td><td class="number">${h.skipped_below_trigger||0}</td></tr>`).join(""):`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:28px">暂无对冲记录</td></tr>`}</tbody>`}
 const SIGNAL_EVENT={OPEN_REQUEST:"开仓请求",EXIT_DVOL:"DVOL 退出",EXIT_DVOL_ROLLING_30:"DVOL 退出"};
 const SIGNAL_STATUS={ACCEPTED:"已接受",REJECTED:"已拒绝",RECEIVED:"处理中"};
-function signalCard(s){const p=s.payload||{},statusClass=s.status==="ACCEPTED"?"status-accepted":s.status==="REJECTED"?"status-rejected":"status-pending";return `<article class="signal-card"><div class="signal-top"><span class="source-pill">TRADINGVIEW</span><div><div class="signal-name">${esc(SIGNAL_EVENT[s.event]||s.event)}${s.spread_type?` · ${esc(s.spread_type==="PUT_CREDIT"?"PUT 信用价差":"CALL 信用价差")}`:""}</div><div class="signal-id mono">${esc(s.signal_id)}</div></div><div class="spacer"></div><span class="tag ${s.status==="ACCEPTED"?"live":s.status==="REJECTED"?"bad":"busy"}">${esc(SIGNAL_STATUS[s.status]||s.status)}</span></div><div class="signal-meta"><div class="datum"><div class="datum-label">接收时间</div><div class="datum-value number">${time(s.received_at)}</div></div><div class="datum"><div class="datum-label">BTC 价格</div><div class="datum-value number">${p.btc_price==null?"—":money(p.btc_price)}</div></div><div class="datum"><div class="datum-label">DVOL 档位 / 分位</div><div class="datum-value number">${p.dvol_tier==null?"—":`L${p.dvol_tier}`} / ${p.dvol_percentile==null?"—":num(p.dvol_percentile*100,1)+"%"}</div></div></div>${s.reject_reason?`<div class="panel-kicker ${statusClass}" style="margin-top:9px">原因：${esc(s.reject_reason)}</div>`:""}<details><summary>查看完整信号参数</summary><pre>${esc(JSON.stringify(p,null,2))}</pre></details></article>`}
-function renderSignals(data){const signals=data.items,sum=data.summary;$("sConfigured").textContent=data.configured?"接收器已就绪":"未配置口令";$("sConfigured").className=`metric-value small ${data.configured?"positive":"negative"}`;$("sLastTime").textContent=data.last_received_at?time(data.last_received_at):"尚未收到";$("sTvCount").textContent=sum.total;$("sAccepted").textContent=sum.accepted;$("sRejected").textContent=sum.rejected;$("sRejected").className=`metric-value ${sum.rejected?"negative":""}`;$("sPending").textContent=sum.pending;$("sPending").className=`metric-value ${sum.pending?"warning":""}`;const last=data.last_received_at?time(data.last_received_at):null,url=location.origin+(data.webhook_path||"/webhook/tradingview");$("overviewSignalDot").className=`monitor-dot ${data.configured?"live":"bad"}`;$("overviewSignalState").textContent=data.configured?"Webhook 已就绪，持续等待真实信号":"Webhook 未配置，暂时无法接收";$("overviewLastSignal").textContent=last?`最近 ${last}`:"等待首个信号";$("webhookUrl").textContent=url;$("webhookBadge").textContent=data.configured?"已配置":"缺少口令";$("webhookBadge").className=`tag ${data.configured?"live":"bad"}`;$("signalHealthRing").style.setProperty("--value",data.configured?100:35);$("signalHealthRing").style.setProperty("--ring",data.configured?"var(--cyan)":"var(--red)");$("signalHealthTitle").textContent=last?"实时接收正常":data.configured?"Webhook 正在监听":"Webhook 未配置";$("signalHealthCopy").textContent=last?`最近接收于 ${last}`:data.configured?"等待首个 TradingView 信号":"请配置 WEBHOOK_PASSPHRASE";$("tvSignalBadge").textContent=`${signals.length} 条`;$("tvSignals").innerHTML=signals.length?signals.map(signalCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>正在实时监听 TradingView</strong><span>收到并通过鉴权的 Webhook 信号会立即出现在这里</span></div></div>`}
 const REJECT_REASON={REJECT_TRADING_DISABLED:"交易开关已关闭或强平锁定",REJECT_EXISTING_OPTION_SHORT:"账户已有期权卖方仓位",REJECT_DVOL_BELOW_ENTRY:"DVOL 低于开仓门槛",REJECT_NO_VALID_LEGS:"没有符合要求的期权腿",REJECT_INSUFFICIENT_RISK_BUDGET:"账户风险预算不足",REJECT_BAD_PAYLOAD:"信号参数不合法",REJECT_DUPLICATE_SIGNAL:"重复信号",bad_strategy:"策略名称不匹配",bad_spread_type:"价差类型不合法",bad_tier_or_pct:"DVOL 档位或百分比参数不合法",unknown_event:"未知事件",trading_disabled:"交易开关已关闭"};
 function toggleSignalActivity(key){expandedSignalKey=expandedSignalKey===key?null:key;if(model)renderSignals(model.signals)}
 function signalActivityCard(item){
@@ -767,6 +766,8 @@ function renderStep1(journey,data){
   const grid=list=>`<div class="condition-card-grid">${list.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`;
   const sect=(id,cls,title,sub,list)=>`<section id="${id}" class="condition-section visible"><div class="condition-section-title"><h3>${esc(title)}</h3><span>${esc(sub)}</span></div>${grid(list)}</section>`;
   let body=step1LiveStrip(data.live);
+  // Pine 缺失或过期：显式告警，绝不沿用旧的通过状态
+  if(!p||!pineFresh)body+=`<div class="journey-result failed"><div class="journey-result-title">${!p?"尚未收到 TradingView 状态，暂时无法判断":"TradingView 状态已过期，暂时无法判断"}</div><div class="journey-result-copy">${!p?"请在 TradingView 更新脚本并重建 Alert；口令不匹配时连接回报也不会到达。":`Pine 连接回报已停 ${Math.floor((pineAge||0)/60000)} 分钟（正常每 2 小时一次），请检查 Alert 是否仍在运行。旧的通过状态不再有效。`}</div></div>`;
   if(blocked.length)body+=sect("condBlockers","blocker","正在阻止发信",`${blocked.length} 项未达标，TradingView 现在不会发出开仓申请`,blocked);
   if(waitingShape)body+=sect("condShape","waiting","等待市场触发形态","配置与指标已满足，只差 PUT/CALL 破轨 + 反向收线",[shapeCard]);
   else if(shapeCard.resolved.ok===true)body+=sect("condShape","passed","触发形态已成立","PUT/CALL 布林形态已满足",[shapeCard]);
@@ -782,9 +783,21 @@ function renderStep1(journey,data){
   else{tone="info";summary=journey.reason;}
   return {tone,summary,body};
 }
+// 安全展示白名单：只暴露非敏感字段，绝不透出 Webhook 口令、API 密钥或认证头等秘密
+function safeSignalDetails(signal){
+  return {
+    signal_id:signal?.signal_id||null,
+    spread_type:signal?.spread_type||null,
+    received_at:signal?.received_at||null,
+    status:signal?.status||null,
+    reject_reason:signal?.reject_reason||null,
+    bar_ts:signal?.payload?.bar_ts||null,
+  };
+}
 function signalMetaGrid(s){
-  const side=s.spread_type==="PUT_CREDIT"?"PUT 信用价差":s.spread_type==="CALL_CREDIT"?"CALL 信用价差":(s.spread_type||"—");
-  return `<div class="journey-detail-grid"><div class="journey-metric"><div class="journey-metric-label">方向</div><div class="journey-metric-value">${esc(side)}</div></div><div class="journey-metric"><div class="journey-metric-label">接收时间</div><div class="journey-metric-value">${time(s.received_at)}</div></div><div class="journey-metric"><div class="journey-metric-label">信号 ID</div><div class="journey-metric-value" style="font-size:12px;word-break:break-all">${esc(s.signal_id||"—")}</div></div><div class="journey-metric"><div class="journey-metric-label">对应 2h K 线</div><div class="journey-metric-value">${time(s.payload?.bar_ts)}</div></div></div>`;
+  const info=safeSignalDetails(s);
+  const side=info.spread_type==="PUT_CREDIT"?"PUT 信用价差":info.spread_type==="CALL_CREDIT"?"CALL 信用价差":(info.spread_type||"—");
+  return `<div class="journey-detail-grid"><div class="journey-metric"><div class="journey-metric-label">方向</div><div class="journey-metric-value">${esc(side)}</div></div><div class="journey-metric"><div class="journey-metric-label">接收时间</div><div class="journey-metric-value">${time(info.received_at)}</div></div><div class="journey-metric"><div class="journey-metric-label">信号 ID</div><div class="journey-metric-value" style="font-size:12px;word-break:break-all">${esc(info.signal_id||"—")}</div></div><div class="journey-metric"><div class="journey-metric-label">对应 2h K 线</div><div class="journey-metric-value">${time(info.bar_ts)}</div></div></div>`;
 }
 function renderStep2(journey){
   const d=journey.delivery;
@@ -804,6 +817,7 @@ function renderStep3(journey,data){
   const pct=dvol.percentile!=null?dvol.percentile*100:null;
   const dvolGrid=`<div class="journey-detail-grid"><div class="journey-metric"><div class="journey-metric-label">当前分位</div><div class="journey-metric-value">${pct==null?"—":num(pct,1)+"%"}</div></div><div class="journey-metric"><div class="journey-metric-label">开仓下限 (L1)</div><div class="journey-metric-value">${threshold==null?"—":num(threshold,0)+"%"}</div></div><div class="journey-metric"><div class="journey-metric-label">当前档位</div><div class="journey-metric-value">${dvol.tier==null||dvol.tier<0?"待定":"L"+dvol.tier}</div></div><div class="journey-metric"><div class="journey-metric-label">样本 / 窗口</div><div class="journey-metric-value">${dvol.samples??"—"} / ${dvol.window_bars??"—"}</div></div></div><div class="journey-note">判断来源：后端 · Deribit DVOL 全历史</div>`;
   if(!safety.actual){
+    if(data?.backend_error)return {tone:"info",summary:"系统检查数据暂不可用",body:`<div class="journey-preflight"><strong>系统检查数据暂不可用</strong><p>后端安全检查数据暂时无法获取：${esc(data.backend_error)}。收到真实开仓申请后会重新判定，不会据此推导乐观结论。</p></div>`};
     const willReject=safety.preflight==="reject";
     const body=`<div class="journey-preflight"><strong>提前预警，不是实际拒绝</strong><p>${willReject?"如果现在收到开仓申请，系统预计会因 DVOL 档位不足而拒绝。":safety.preflight==="allow"?"如果现在收到开仓申请，DVOL 门槛预计允许继续（仍需通过交易开关、账户仓位、风险预算与选腿检查）。":"后端 DVOL 数据暂不可用，收到申请后会重新判定。"}</p></div>${dvolGrid}`;
     return {tone:"info",summary:"提前预警：收到申请后才会真正检查",body};
@@ -828,7 +842,7 @@ function renderStep4(journey){
     const t=ex.trade;
     const gridHtml=t?`<div class="journey-detail-grid"><div class="journey-metric"><div class="journey-metric-label">交易编号</div><div class="journey-metric-value">#${esc(t.id)}</div></div><div class="journey-metric"><div class="journey-metric-label">方向</div><div class="journey-metric-value">${t.spread_type==="CALL_CREDIT"?"CALL 信用价差":t.spread_type==="PUT_CREDIT"?"PUT 信用价差":esc(t.spread_type||"—")}</div></div><div class="journey-metric"><div class="journey-metric-label">当前状态</div><div class="journey-metric-value">${esc(STATE[t.state]||t.state||"—")}</div></div><div class="journey-metric"><div class="journey-metric-label">开仓时间</div><div class="journey-metric-value">${t.opened_at?time(t.opened_at):"—"}</div></div></div>`:"";
     const failReason=ex.state==="failed"&&ex.reason?`<div class="journey-note">失败原因：${esc(REJECT_REASON[ex.reason]||ex.reason)}</div>`:"";
-    body=`<div class="journey-result ${resultTone}"><div class="journey-result-title">${esc(copy)}</div><div class="journey-result-copy">${ex.state==="open"?"期权信用价差已经建立，可在「仓位」页查看详情。":ex.state==="failed"?"订单执行未成功，系统已停止本次开仓。":"交易系统正在按步骤执行开仓。"}</div>${failReason}</div>${gridHtml}`;
+    body=`<div class="journey-result ${resultTone}"><div class="journey-result-title">${esc(copy)}</div><div class="journey-result-copy">${ex.state==="open"?"期权信用价差已经建立，可在「仓位」页查看详情。":ex.state==="failed"?"开仓执行失败：订单执行未成功，系统已停止本次开仓。":"交易系统正在按步骤执行开仓。"}</div>${failReason}</div>${gridHtml}`;
   }
   return {tone,summary:copy,body};
 }

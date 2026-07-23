@@ -42,9 +42,9 @@ test("each teacher tab owns the correct operational content", () => {
 
   assert.match(positions, /id="activeTrades"/);
   assert.match(positions, /id="positionsTable"/);
-  assert.match(activeSignals, /id="condBlockers"/);
-  assert.match(activeSignals, /id="condPassed"/);
-  assert.match(activeSignals, /id="condShape"/);
+  assert.match(activeSignals, /id="journeySummary"/);
+  assert.match(activeSignals, /id="journeyStep1"/);
+  assert.match(activeSignals, /id="journeyStep4"/);
   assert.match(activeSignals, /id="activeSignalList"/);
   assert.doesNotMatch(activeSignals, /id="tvSignals"/);
   assert.match(signalLog, /id="tvSignals"/);
