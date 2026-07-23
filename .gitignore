@@ -16,3 +16,4 @@ backups/
 .runtime/
 .cloud-package/
 dist/
+.worktrees/
