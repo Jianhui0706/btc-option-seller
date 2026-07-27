@@ -106,11 +106,13 @@ class Repo:
     # ------------------------------------------------------------ parent trades
 
     async def create_parent(self, signal_id: str, spread_type: str,
-                            dvol_tier: Optional[int]) -> int:
+                            dvol_tier: Optional[int],
+                            trade_id: Optional[str] = None) -> int:
         cur = await self.conn.execute(
-            "INSERT INTO parent_trades(signal_id, spread_type, state, dvol_tier, "
-            "created_at) VALUES(?,?,?,?,?)",
-            (signal_id, spread_type, "SIGNAL_RECEIVED", dvol_tier, now_ms()))
+            "INSERT INTO parent_trades(signal_id, trade_id, spread_type, state, "
+            "dvol_tier, created_at) VALUES(?,?,?,?,?,?)",
+            (signal_id, trade_id, spread_type, "SIGNAL_RECEIVED", dvol_tier,
+             now_ms()))
         await self.conn.commit()
         return cur.lastrowid
 
@@ -132,6 +134,25 @@ class Repo:
             "SELECT * FROM parent_trades WHERE state IN ('OPEN','PARTIALLY_CLOSED') "
             "ORDER BY id")
         return [dict(r) for r in await cur.fetchall()]
+
+    async def active_parent_by_trade_id(
+            self, trade_id: str, strategy: str = "") -> Optional[dict]:
+        """按 TradingView 交易实例和策略归属定位仍在管理中的父交易。"""
+        q = ",".join("?" * len(ACTIVE_TRADE_STATES))
+        if strategy:
+            cur = await self.conn.execute(
+                f"SELECT p.* FROM parent_trades p "
+                "JOIN signals s ON s.signal_id=p.signal_id "
+                f"WHERE p.trade_id=? AND s.strategy=? AND p.state IN ({q}) "
+                "ORDER BY p.id DESC LIMIT 1",
+                (trade_id, strategy, *ACTIVE_TRADE_STATES))
+        else:
+            cur = await self.conn.execute(
+                f"SELECT * FROM parent_trades WHERE trade_id=? AND state IN ({q}) "
+                "ORDER BY id DESC LIMIT 1",
+                (trade_id, *ACTIVE_TRADE_STATES))
+        row = await cur.fetchone()
+        return dict(row) if row else None
 
     async def transition_parent(self, parent_id: int, to_state: str,
                                 event_code: str = ev.STATE_TRANSITION,

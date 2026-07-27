@@ -1,0 +1,266 @@
+//@version=6
+// BTC 期权卖方策略 V2 — 入场宽松策略 B
+//
+// 挂 3 分钟图运行（规范第二节）；通过 request.security 读取：
+//   BTC 2小时数据  → 开仓信号（布林带 + 阳/阴线 + CCI + HV 分位）
+//   DVOL 12小时数据 → 开仓档位（730天窗口分位）与滚动退出（60天窗口30分位）
+// 所有 security 调用取 [1] + lookahead_on（标准防重绘写法，只用已收盘 bar）。
+//
+// B 仅放宽入场门槛：DVOL 35/55/80、abs(CCI20)<120、HV分位>=25%。
+// 布林形态、周期、退出、DTE、Delta、分组和风险参数均与规范策略 A 相同。
+// 已与控制台生成的 Alert JSON V1 对齐。
+// Alert 条件请选择“订单成交和 alert() 函数调用”；订单成交消息使用管理页面生成的 JSON 模板。
+strategy("BTC期权卖方·宽松对照策略B", overlay = false, pyramiding = 0,
+     process_orders_on_close = true, calc_on_every_tick = false)
+
+// ---------------------------------------------------------------- 参数（规范第四节）
+grpEntry = "DVOL 开仓档位"
+dvol_entry_level_1 = input.float(35.0, "dvol_entry_level_1 (%) · 宽松", group = grpEntry, minval = 0, maxval = 100)
+dvol_entry_level_2 = input.float(55.0, "dvol_entry_level_2 (%) · 宽松", group = grpEntry, minval = 0, maxval = 100)
+dvol_entry_level_3 = input.float(80.0, "dvol_entry_level_3 (%) · 宽松", group = grpEntry, minval = 0, maxval = 100)
+dvol_entry_window_days = input.int(730, "dvol_entry_window_days", group = grpEntry, minval = 30)
+
+grpExit = "DVOL 平仓"
+dvol_exit_window_days = input.int(60, "dvol_exit_window_days", group = grpExit, minval = 10)
+dvol_exit_percentile = input.float(30.0, "dvol_exit_percentile (%)", group = grpExit, minval = 1, maxval = 99)
+
+grpSig = "开仓信号（2小时）"
+boll_len = input.int(20, "布林带周期 ⚠待核对", group = grpSig, minval = 2)
+boll_mult = input.float(2.0, "布林带标准差倍数 ⚠待核对", group = grpSig, minval = 0.1)
+// 宽松对照：abs(CCI20) < 120。未加限定词的 CCI 即标准指标，
+// 输入源为典型价 hlc3（Lambert 原始定义，也是 TV 内置 CCI 的默认）。
+// ⚠ 改成 close 会得到不同的值，阈值附近会一个放行一个拦截。
+cci_len = input.int(20, "CCI 周期（源=hlc3 典型价）", group = grpSig, minval = 2)
+cci_max = input.float(120.0, "abs(CCI) 上限 · 宽松", group = grpSig)
+hv_len = input.int(20, "HV 计算窗口(2h bar数) ⚠待核对", group = grpSig, minval = 5)
+hv_pctl_window = input.int(252, "HV 分位窗口(2h bar数) ⚠待核对", group = grpSig, minval = 20)
+hv_pctl_min = input.float(25.0, "HV 分位下限 (%) · 宽松", group = grpSig)
+
+grpMisc = "执行参数（TradingView 决定，后端只执行）"
+order_size = input.float(0.1, "每次开仓张数", group = grpMisc, minval = 0.1, step = 0.1)
+sell_delta_tier_1 = input.float(0.15, "L1 卖腿 |Delta|", group = grpMisc, minval = 0.05, maxval = 0.70)
+sell_delta_tier_2 = input.float(0.20, "L2 卖腿 |Delta|", group = grpMisc, minval = 0.05, maxval = 0.70)
+sell_delta_tier_3 = input.float(0.25, "L3 卖腿 |Delta|", group = grpMisc, minval = 0.05, maxval = 0.70)
+dte_min_tier_1 = input.int(30, "L1 最小 DTE", group = grpMisc, minval = 1)
+dte_max_tier_1 = input.int(45, "L1 最大 DTE", group = grpMisc, minval = 1)
+dte_min_tier_2 = input.int(20, "L2 最小 DTE", group = grpMisc, minval = 1)
+dte_max_tier_2 = input.int(35, "L2 最大 DTE", group = grpMisc, minval = 1)
+dte_min_tier_3 = input.int(14, "L3 最小 DTE", group = grpMisc, minval = 1)
+dte_max_tier_3 = input.int(28, "L3 最大 DTE", group = grpMisc, minval = 1)
+group_split_count = input.int(4, "group_split_count", group = grpMisc, minval = 1)
+delta_account_risk_pct = input.float(2.0, "delta_account_risk_pct (%)", group = grpMisc)
+delta_trigger_pct = input.float(10.0, "delta_trigger_pct (%)", group = grpMisc)
+call_hedge_release_pct = input.float(98.0, "call_hedge_release_pct (%)", group = grpMisc)
+put_hedge_release_pct = input.float(102.0, "put_hedge_release_pct (%)", group = grpMisc)
+
+grpWh = "Webhook"
+passphrase = input.string("eh9szblqgp46onjxd0w1y87r", "passphrase", group = grpWh,
+     tooltip = "必须与控制台 Alert JSON 的 passphrase 完全一致")
+strategy_name = input.string("BTC期权卖方_宽松对照策略B", "strategy（后端显示名称）", group = grpWh,
+     tooltip = "必须与控制台 Alert JSON 的 strategy 完全一致")
+heartbeat_on = input.bool(true, "每根2h bar上报心跳（信号中心看板 + 链路存活证明）",
+     group = grpWh)
+enable_order_signals = input.bool(false, "启用真实 OPEN/CLOSE 测试信号", group = grpWh,
+     tooltip = "默认关闭，只测试连接回报。开启后必须删除旧 Alert 并重新创建。")
+
+// ---------------------------------------------------------------- 参数有效性（规范第四.1节）
+cfgOk = dvol_entry_level_1 < dvol_entry_level_2 and dvol_entry_level_2 < dvol_entry_level_3
+// 配置错误：停止发送开仓信号 + 图面红色警示
+
+// ---------------------------------------------------------------- 2小时数据（防重绘：[1] + lookahead_on）
+f_hv() =>
+    // 年化历史波动率(%)：hv_len 根 2h 对数收益率标准差 × sqrt(365*12)
+    r = math.log(close / close[1])
+    ta.stdev(r, hv_len) * math.sqrt(365 * 12) * 100
+
+f_pctl(src, len) =>
+    // 中位秩分位 0~100（与后端 percentile_rank 对齐）
+    less = 0
+    lessEq = 0
+    for i = 0 to len - 1
+        v = src[i]
+        if v < src
+            less += 1
+        if v <= src
+            lessEq += 1
+    100.0 * (less + lessEq) / (2 * len)
+
+[c2, o2, h2, l2, bbU2, bbL2, cci2, hvPct2, t2] = request.security(syminfo.tickerid, "120",
+     [close[1], open[1], high[1], low[1],
+      (ta.sma(close, boll_len) + boll_mult * ta.stdev(close, boll_len))[1],
+      (ta.sma(close, boll_len) - boll_mult * ta.stdev(close, boll_len))[1],
+      ta.cci(hlc3, cci_len)[1],
+      f_pctl(f_hv(), hv_pctl_window)[1],
+      time[1]],
+     lookahead = barmerge.lookahead_on)
+
+// ---------------------------------------------------------------- 12小时 DVOL
+// 分位计算必须放在 12h security 内部。若在 3 分钟主图上逐根维护数组，
+// TradingView 通常只加载数万根 3m bar，无法覆盖 730 天，样本会永久不足。
+// security 内部会按 length 为 12h 序列预热所需历史。
+entryWinBars = dvol_entry_window_days * 2
+exitWinBars = dvol_exit_window_days * 2
+[dvol12, tDvol, dvolPct, dvolExitLevel, dvolSamples] = request.security(
+     "DERIBIT:DVOL", "720",
+     [close[1],
+      time[1],
+      ta.percentrank(close, entryWinBars)[1],
+      ta.percentile_linear_interpolation(close[2], exitWinBars, dvol_exit_percentile),
+      math.min(bar_index, entryWinBars)],
+     lookahead = barmerge.lookahead_on,
+     calc_bars_count = entryWinBars + 10)
+newDvolBar = not na(tDvol) and (na(tDvol[1]) or tDvol != tDvol[1])
+
+// 档位（规范第四.1节）：<L1 不开仓；L1~L2 → 1；L2~L3 → 2；>L3 → 3
+// TradingView 是唯一策略裁决者。样本不足时 tier=-1 并阻止开仓，
+// 后端不会再用另一套 DVOL 数据重新批准或否决这根 K 线。
+dvolReady = not na(dvolPct) and dvolSamples >= entryWinBars
+tier = (na(dvolPct) or not dvolReady) ? -1 :
+     dvolPct < dvol_entry_level_1 ? 0 :
+     dvolPct < dvol_entry_level_2 ? 1 : dvolPct < dvol_entry_level_3 ? 2 : 3
+
+// DVOL 滚动退出（规范第八节）：当前完成值 < 之前 exitWinBars 个值的 exit 分位
+dvolExitHit = newDvolBar and not na(dvolExitLevel) and dvol12 < dvolExitLevel
+
+// ---------------------------------------------------------------- 开仓条件（规范第五节，每根2h bar至多一枚）
+newBar2h = not na(t2) and (na(t2[1]) or t2 != t2[1])
+hvOk = not na(hvPct2) and hvPct2 >= hv_pctl_min
+cciOk = not na(cci2) and math.abs(cci2) < cci_max
+tierOk = tier > 0         // 0=低于门槛，-1=样本不足；两者都不发送开仓订单
+
+// 触发形态与前四道门槛拆开：心跳要能分别上报"哪一条没过"
+putShape = not na(bbL2) and l2 < bbL2 and c2 > o2    // 最低价跌破下轨 + 阳线
+callShape = not na(bbU2) and h2 > bbU2 and c2 < o2   // 最高价突破上轨 + 阴线
+putSignal = newBar2h and cfgOk and tierOk and hvOk and cciOk and putShape
+callSignal = newBar2h and cfgOk and tierOk and hvOk and cciOk and callShape
+
+var int lastSigT = na
+canFire = na(lastSigT) or t2 != lastSigT             // 每根 2h bar 至多一枚信号
+varip int lastStatusT = na
+statusCanFire = na(lastStatusT) or t2 != lastStatusT // 每根 2h bar 至多一条连接回报
+varip bool realtimeStatusSent = false                // 新建 Alert 后首根实时 bar 立即证明链路
+var int activeTradeId = na
+var float activeSellDelta = na
+var int activeDteMin = na
+var int activeDteMax = na
+var int activeTier = na
+
+selectedSellDelta = tier == 1 ? sell_delta_tier_1 : tier == 2 ? sell_delta_tier_2 : tier == 3 ? sell_delta_tier_3 : na
+selectedDteMin = tier == 1 ? dte_min_tier_1 : tier == 2 ? dte_min_tier_2 : tier == 3 ? dte_min_tier_3 : na
+selectedDteMax = tier == 1 ? dte_max_tier_1 : tier == 2 ? dte_max_tier_2 : tier == 3 ? dte_max_tier_3 : na
+
+// ---------------------------------------------------------------- Webhook JSON（规范第五节）
+// na 必须写成 JSON null —— str.tostring(na) 会输出 "NaN"，那不是合法 JSON，
+// 后端解析会整条丢弃，心跳反而变成新的盲区。
+f_num(v, fmt) =>
+    na(v) ? "null" : str.tostring(v, fmt)
+
+// 每根 2h bar 无条件上报：面板据此显示 Pine 眼里的真值，
+// 同时心跳本身就是链路+口令的存活证明（断了立刻可见，
+// 不必靠"几天才出现一次的开仓信号"来发现配置错误）。
+f_status_json() =>
+    "{" +
+     "\"passphrase\":\"" + passphrase + "\"," +
+     "\"event\":\"STATUS\"," +
+     "\"strategy\":\"" + strategy_name + "\"," +
+     // 时间戳单独处理：f_num 的形参已由 float 实参定型，传 int 会编译报错
+     "\"bar_ts\":" + (na(t2) ? "null" : str.tostring(t2, "#")) + "," +
+     "\"btc_price\":" + f_num(c2, "#.#") + "," +
+     "\"bar_open\":" + f_num(o2, "#.#") + "," +
+     "\"bar_high\":" + f_num(h2, "#.#") + "," +
+     "\"bar_low\":" + f_num(l2, "#.#") + "," +
+     "\"cci\":" + f_num(cci2, "#.##") + "," +
+     "\"hv_percentile\":" + f_num(hvPct2 / 100.0, "#.####") + "," +
+     "\"boll_upper\":" + f_num(bbU2, "#.#") + "," +
+     "\"boll_lower\":" + f_num(bbL2, "#.#") + "," +
+     "\"dvol_percentile\":" + (na(dvolPct) ? "-1" : str.tostring(dvolPct / 100.0, "#.####")) + "," +
+     "\"dvol_tier\":" + str.tostring(tier) + "," +
+     "\"dvol_samples\":" + str.tostring(dvolSamples) + "," +
+     "\"cfg_ok\":" + str.tostring(cfgOk) + "," +
+     "\"tier_ok\":" + str.tostring(tierOk) + "," +
+     "\"hv_ok\":" + str.tostring(hvOk) + "," +
+     "\"cci_ok\":" + str.tostring(cciOk) + "," +
+     "\"put_shape\":" + str.tostring(putShape) + "," +
+     "\"call_shape\":" + str.tostring(callShape) +
+     "}"
+
+// strategy 订单是唯一开平仓信号。alert_message 明确告诉后端 OPEN/CLOSE，
+// comment 分别携带信用价差类型与退出原因。
+if barstate.isconfirmed and enable_order_signals and putSignal and canFire and strategy.position_size == 0
+    activeTradeId := t2
+    activeSellDelta := selectedSellDelta
+    activeDteMin := selectedDteMin
+    activeDteMax := selectedDteMax
+    activeTier := tier
+    strategy.entry("PUT_CREDIT", strategy.long, qty = order_size,
+         comment = "PUT_CREDIT", alert_message = "OPEN")
+    lastSigT := t2
+if barstate.isconfirmed and enable_order_signals and callSignal and canFire and strategy.position_size == 0
+    activeTradeId := t2
+    activeSellDelta := selectedSellDelta
+    activeDteMin := selectedDteMin
+    activeDteMax := selectedDteMax
+    activeTier := tier
+    strategy.entry("CALL_CREDIT", strategy.short, qty = order_size,
+         comment = "CALL_CREDIT", alert_message = "OPEN")
+    lastSigT := t2
+if barstate.isconfirmed and enable_order_signals and dvolExitHit and strategy.position_size != 0
+    strategy.close_all(comment = "TV_DVOL_EXIT", alert_message = "CLOSE")
+// 心跳与信号相互独立：配置错误、门槛不通过时心跳照发，否则最该看到状态的时候反而没有。
+statusDue = (barstate.isrealtime and not realtimeStatusSent) or
+     (newBar2h and statusCanFire)
+if barstate.isconfirmed and heartbeat_on and statusDue
+    alert(f_status_json(), alert.freq_all)
+    lastStatusT := t2
+    if barstate.isrealtime
+        realtimeStatusSent := true
+if strategy.position_size == 0 and strategy.position_size[1] != 0
+    activeTradeId := na
+    activeSellDelta := na
+    activeDteMin := na
+    activeDteMax := na
+    activeTier := na
+
+// 隐藏 plot 专门供 TradingView Alert 模板的 {{plot_N}} 占位符读取。
+// 顺序是接口契约，请勿随意调整：模板使用 plot_2 至 plot_10。
+// 放在订单逻辑之后，确保开仓 bar 复制到的是刚写入的 activeTradeId。
+plot(activeTradeId, "trade_id", display = display.none)
+plot(order_size, "size", display = display.none)
+plot(activeSellDelta, "sell_delta", display = display.none)
+plot(activeDteMin, "dte_min", display = display.none)
+plot(activeDteMax, "dte_max", display = display.none)
+plot(activeTier, "dvol_tier", display = display.none)
+plot(group_split_count, "group_split_count", display = display.none)
+plot(delta_account_risk_pct / 100.0, "delta_account_risk_pct", display = display.none)
+plot(delta_trigger_pct / 100.0, "delta_trigger_pct", display = display.none)
+plot(call_hedge_release_pct / 100.0, "call_hedge_release_pct", display = display.none)
+plot(put_hedge_release_pct / 100.0, "put_hedge_release_pct", display = display.none)
+
+// ---------------------------------------------------------------- 图面展示
+plot(dvolPct, "DVOL分位%", color = color.orange)
+plot(hvPct2, "HV分位%", color = color.teal)
+hline(hv_pctl_min, "HV下限", color = color.gray, linestyle = hline.style_dotted)
+bgcolor(cfgOk ? na : color.new(color.red, 70))
+
+var table tb = table.new(position.top_right, 2, 7, border_width = 1)
+if barstate.islast
+    table.cell(tb, 0, 0, "配置", text_size = size.small)
+    table.cell(tb, 1, 0, cfgOk ? "OK" : "档位配置错误 L1<L2<L3！",
+         text_color = cfgOk ? color.green : color.red, text_size = size.small)
+    table.cell(tb, 0, 1, "DVOL分位", text_size = size.small)
+    table.cell(tb, 1, 1, na(dvolPct) ? "样本不足"
+         : str.tostring(dvolPct, "#.#") + "%" + (dvolReady ? "" : "(窗口不足·仅参考)"),
+         text_size = size.small)
+    table.cell(tb, 0, 2, "档位", text_size = size.small)
+    table.cell(tb, 1, 2, tier == -1 ? "样本不足·不开仓" : str.tostring(tier), text_size = size.small)
+    table.cell(tb, 0, 3, "HV分位(2h)", text_size = size.small)
+    table.cell(tb, 1, 3, na(hvPct2) ? "…" : str.tostring(hvPct2, "#.#") + "%",
+         text_size = size.small)
+    table.cell(tb, 0, 4, "CCI(2h)", text_size = size.small)
+    table.cell(tb, 1, 4, na(cci2) ? "…" : str.tostring(cci2, "#.#"), text_size = size.small)
+    table.cell(tb, 0, 5, "DVOL样本", text_size = size.small)
+    table.cell(tb, 1, 5, str.tostring(dvolSamples) + "/" +
+         str.tostring(entryWinBars), text_size = size.small)
+    table.cell(tb, 0, 6, "退出阈值", text_size = size.small)
+    table.cell(tb, 1, 6, na(dvolExitLevel) ? "样本不足" : str.tostring(dvolExitLevel, "#.##"),
+         text_size = size.small)

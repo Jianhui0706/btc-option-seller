@@ -36,8 +36,10 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .timeline{max-height:500px;overflow:auto}.event{display:grid;grid-template-columns:115px 9px 145px 1fr;gap:10px;align-items:start;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.045)}.event-time{font-size:10px;color:var(--faint)}.event-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);margin-top:5px;box-shadow:0 0 8px rgba(70,215,195,.35)}.event.WARN .event-dot{background:var(--amber)}.event.ERROR .event-dot{background:var(--red)}.event-code{font-size:10px;font-weight:750}.event-copy{font-size:11px;color:#aeb9c6}.event-filter{display:flex;gap:5px}.filter{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:5px 8px;font-size:9px;cursor:pointer}.filter.active{color:var(--text);background:#182331}
 .modal{position:fixed;inset:0;z-index:50;background:rgba(2,4,7,.75);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.dialog{width:min(470px,100%);border:1px solid #344255;border-radius:20px;background:#101720;box-shadow:0 32px 100px rgba(0,0,0,.58);padding:23px}.dialog-icon{width:44px;height:44px;border-radius:13px;background:rgba(255,101,119,.1);color:var(--red);display:grid;place-items:center;font-size:20px}.dialog h3{font-size:18px;margin:14px 0 7px}.dialog p{color:var(--muted);font-size:12px;margin:0 0 15px}.danger-list{border:1px solid rgba(255,101,119,.18);background:rgba(255,101,119,.05);border-radius:12px;padding:11px 13px;color:#d9a1a8;font-size:11px;line-height:1.8}.dialog-actions{display:flex;justify-content:flex-end;gap:8px}.toast-wrap{position:fixed;right:22px;bottom:22px;display:grid;gap:8px;z-index:80}.toast{min-width:260px;border:1px solid var(--line2);border-radius:12px;background:#151f2b;box-shadow:var(--shadow);padding:11px 13px;font-size:11px;animation:toastIn .2s ease}.toast.ok{border-color:rgba(70,215,195,.3)}.toast.bad{border-color:rgba(255,101,119,.35)}@keyframes toastIn{from{transform:translateY(8px);opacity:0}}
 .skeleton{display:inline-block;width:70%;height:15px;border-radius:5px;background:linear-gradient(90deg,#18222e,#22303e,#18222e);background-size:200%;animation:pulse 1.3s infinite}@keyframes pulse{to{background-position:-200%}}
-.main-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(720px,100%)}.nav-btn{min-width:0;height:48px;border:1px solid transparent;background:transparent;color:var(--muted);padding:7px 17px;border-radius:12px;font-size:14px;font-weight:760;cursor:pointer;text-align:center;display:grid;align-content:center;line-height:1.12;transition:.18s ease}.nav-btn small{display:block;margin-top:4px;color:var(--faint);font-size:9px;font-weight:700;letter-spacing:1.15px;text-transform:uppercase}.nav-btn:hover{color:var(--text);background:#0d151e;border-color:var(--line)}.nav-btn.active{color:var(--cyan);border-color:rgba(70,215,195,.3);background:linear-gradient(135deg,rgba(70,215,195,.12),rgba(70,215,195,.045));box-shadow:inset 0 0 0 1px rgba(70,215,195,.04),0 8px 28px rgba(0,0,0,.18)}.nav-btn.active small{color:#5e9f97}
+.main-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(920px,100%)}.nav-btn{min-width:0;height:48px;border:1px solid transparent;background:transparent;color:var(--muted);padding:7px 17px;border-radius:12px;font-size:14px;font-weight:760;cursor:pointer;text-align:center;display:grid;align-content:center;line-height:1.12;transition:.18s ease}.nav-btn small{display:block;margin-top:4px;color:var(--faint);font-size:9px;font-weight:700;letter-spacing:1.15px;text-transform:uppercase}.nav-btn:hover{color:var(--text);background:#0d151e;border-color:var(--line)}.nav-btn.active{color:var(--cyan);border-color:rgba(70,215,195,.3);background:linear-gradient(135deg,rgba(70,215,195,.12),rgba(70,215,195,.045));box-shadow:inset 0 0 0 1px rgba(70,215,195,.04),0 8px 28px rgba(0,0,0,.18)}.nav-btn.active small{color:#5e9f97}.nav-btn.tv-primary-nav:not(.active){color:#a4eae1;border-color:rgba(70,215,195,.18);background:rgba(70,215,195,.045)}.nav-btn.tv-primary-nav small{color:#4f968e}
 .page-view{display:none}.page-view.active{display:block}.webhook-card{display:flex;align-items:center;gap:18px}.webhook-icon{width:48px;height:48px;border-radius:14px;background:rgba(70,215,195,.1);color:var(--cyan);display:grid;place-items:center;font-size:22px;font-weight:850}.endpoint{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:#080e15;border-radius:10px;padding:10px 12px;margin-top:8px;min-width:0}.endpoint code{color:#b8c8d9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.signal-list{display:grid;gap:10px}.signal-card{border:1px solid var(--line);background:#0b121a;border-radius:13px;padding:13px}.signal-top{display:flex;align-items:center;gap:9px}.source-pill{font-size:9px;font-weight:850;letter-spacing:.7px;border-radius:6px;padding:4px 6px;color:var(--blue);background:rgba(102,166,255,.1)}.signal-name{font-weight:760}.signal-id{font-size:10px;color:var(--muted);margin-top:2px}.signal-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}.signal-meta .datum{padding:8px 9px}.signal-card details{margin-top:9px;color:var(--muted);font-size:10px}.signal-card summary{cursor:pointer}.signal-card pre{white-space:pre-wrap;word-break:break-word;color:#9fb0c3;background:#080d13;border-radius:8px;padding:9px;max-height:190px;overflow:auto}.pnl-chart{height:230px;display:flex;align-items:stretch;gap:7px;padding:18px 8px 0;border-bottom:1px solid var(--line);position:relative}.pnl-chart:after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line2)}.chart-col{flex:1;min-width:18px;display:grid;grid-template-rows:1fr 18px;gap:7px;position:relative;z-index:1}.chart-track{position:relative}.chart-bar{position:absolute;left:18%;right:18%;border-radius:5px 5px 2px 2px;min-height:2px;background:var(--green)}.chart-bar.neg{background:var(--red);border-radius:2px 2px 5px 5px}.chart-label{font-size:9px;color:var(--faint);text-align:center;white-space:nowrap}.pnl-note{color:var(--muted);font-size:11px;padding:12px 2px 0}.metric-value.small{font-size:18px}.status-rejected{color:var(--red)}.status-accepted{color:var(--green)}.status-pending{color:var(--amber)}
+.tv-dialog{width:min(820px,100%);max-height:min(90vh,920px);overflow:auto}.tv-dialog-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}.tv-dialog-head h3{margin:0 0 4px}.tv-close{margin-left:auto;border:0;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}.tv-setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.tv-field{display:grid;gap:6px}.tv-field label{font-size:10px;color:var(--muted);font-weight:750;letter-spacing:.45px}.tv-field input{width:100%;border:1px solid var(--line2);border-radius:10px;background:#080e15;color:var(--text);padding:10px 12px;outline:none}.tv-field input:focus{border-color:rgba(70,215,195,.55);box-shadow:0 0 0 3px rgba(70,215,195,.08)}.tv-setup-block{margin-top:13px;border:1px solid var(--line);border-radius:13px;background:#0b121a;padding:13px}.tv-setup-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:11px;font-weight:760}.tv-code{margin:0;white-space:pre-wrap;word-break:break-word;max-height:330px;overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:#070c12;color:#bcd0e3;padding:13px;font:11px/1.55 "SFMono-Regular",Consolas,monospace}.tv-steps{margin:0;padding-left:20px;color:#b8c5d2;font-size:11px;line-height:1.8}.tv-warning{margin-top:13px;border:1px solid rgba(246,184,74,.25);border-radius:11px;background:rgba(246,184,74,.07);color:#e8c98f;padding:11px 12px;font-size:11px}.tv-local-note{color:var(--muted);font-size:10px;margin-top:5px}
+.tv-hub-hero{position:relative;overflow:hidden;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:22px;margin:24px 0 14px;padding:28px;border:1px solid rgba(70,215,195,.25);border-radius:20px;background:radial-gradient(circle at 82% 10%,rgba(70,215,195,.15),transparent 34%),linear-gradient(135deg,#13202b,#0c131c 62%);box-shadow:var(--shadow)}.tv-hub-hero:after{content:"";position:absolute;right:-60px;bottom:-90px;width:240px;height:240px;border:1px solid rgba(70,215,195,.11);border-radius:50%}.tv-hub-mark{width:66px;height:66px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,var(--cyan),#38a99c);color:#06110f;font-size:22px;font-weight:900;box-shadow:0 0 32px rgba(70,215,195,.23)}.tv-hub-hero h1{margin:5px 0 6px;font-size:29px;letter-spacing:-.55px}.tv-hub-hero p{margin:0;color:var(--muted);max-width:720px}.tv-hub-status{position:relative;z-index:1;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px;min-width:236px;border:1px solid rgba(70,215,195,.22);border-radius:14px;padding:13px 14px;background:rgba(7,13,19,.62)}.tv-hub-status .monitor-dot{grid-row:1/3}.tv-hub-status strong{font-size:12px}.tv-hub-status small{color:var(--muted);font-size:10px}.tv-hub-layout{display:grid;grid-template-columns:minmax(230px,.58fr) minmax(0,1.42fr);gap:14px;margin-bottom:30px}.tv-hub-steps,.tv-hub-workspace{border:1px solid var(--line);border-radius:18px;background:linear-gradient(155deg,rgba(16,23,32,.98),rgba(11,17,25,.98));box-shadow:var(--shadow)}.tv-hub-steps{padding:20px}.tv-hub-steps h2,.tv-hub-workspace h2{font-size:16px;margin:0 0 4px}.tv-hub-copy{color:var(--muted);font-size:11px;line-height:1.6}.tv-step-list{display:grid;gap:10px;margin-top:18px}.tv-step-card{display:grid;grid-template-columns:32px minmax(0,1fr);gap:11px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:12px;background:#0a1118}.tv-step-number{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:rgba(70,215,195,.1);color:var(--cyan);font-weight:850}.tv-step-card strong{font-size:12px}.tv-step-card p{margin:3px 0 0;color:var(--muted);font-size:10px;line-height:1.5}.tv-hub-workspace{padding:22px}.tv-workspace-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.tv-setup-grid.prominent{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.tv-setup-grid.prominent .tv-field{border:1px solid var(--line);border-radius:13px;padding:13px;background:#0a1118}.tv-setup-grid.prominent .tv-field input{font-size:13px}.tv-setup-block.primary{border-color:rgba(70,215,195,.25);background:linear-gradient(135deg,rgba(70,215,195,.075),#0b121a 56%);padding:16px}.tv-setup-block.primary .endpoint{padding:13px}.tv-setup-block.primary code{font-size:12px}.tv-copy-main{padding:10px 16px;font-size:12px}.tv-copy-wide{width:100%;margin-top:11px;justify-content:center;font-size:13px;padding:12px}.tv-secret-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}.tv-source-note{margin-top:14px;border:1px solid rgba(102,166,255,.22);border-radius:12px;padding:12px;background:rgba(102,166,255,.055);color:#aebed0;font-size:11px;line-height:1.65}
 .chart-bar.zero{display:none}
 .cond-summary{display:flex;align-items:center;gap:11px;border:1px solid var(--line);background:#0b121a;border-radius:12px;padding:12px 14px;margin-bottom:14px}.cond-summary.blocked{border-color:rgba(246,184,74,.28);background:rgba(246,184,74,.06)}.cond-summary.ready{border-color:rgba(84,214,154,.3);background:rgba(84,214,154,.06)}.cond-summary.broken{border-color:rgba(255,101,119,.3);background:rgba(255,101,119,.06)}.cond-summary-icon{width:34px;height:34px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:16px;font-weight:850;background:rgba(255,255,255,.05)}.cond-summary-title{font-weight:760;font-size:13px}.cond-summary-copy{color:var(--muted);font-size:11px;margin-top:2px}
 /* 满足全部条件时更醒目：绿色高亮 + 呼吸光晕 */
@@ -73,7 +75,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .cond-std{font-size:11px;min-width:0}
 .cond-std .std-line{color:var(--faint)}.cond-std .std-line b{color:var(--muted);font-weight:700}
 .std-gap{display:inline-block;margin-top:3px;font-weight:750;font-size:11px}
-.std-gap.ok{color:var(--green)}.std-gap.no{color:var(--red)}.std-gap.na{color:var(--faint)}.std-gap.delegated{color:#8ec5ff}
+.std-gap.ok{color:var(--green)}.std-gap.no{color:var(--red)}.std-gap.na{color:var(--faint)}
 .mbar{position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.06);margin-top:8px;max-width:250px;overflow:visible}
 .mbar>.fail{position:absolute;top:0;bottom:0;background:rgba(255,101,119,.22);border-radius:4px}
 .mbar>.tick{position:absolute;top:1px;bottom:1px;width:1px;background:rgba(255,255,255,.28)}
@@ -100,9 +102,10 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .cond-pill{justify-self:end;border-radius:999px;padding:4px 9px;font-size:10px;font-weight:800;white-space:nowrap}.cond-pill.ok{color:var(--green);background:rgba(84,214,154,.12)}.cond-pill.no{color:#ff9aa5;background:rgba(255,101,119,.12)}.cond-pill.na{color:var(--faint);background:rgba(82,97,115,.14)}
 .condition-section{display:none;margin-top:16px}.condition-section.visible{display:block}.condition-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}.condition-section-title h3{margin:0;font-size:12px}.condition-section-title span{color:var(--muted);font-size:10px}.condition-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.condition-card{min-width:0;border:1px solid var(--line);border-left:3px solid var(--faint);border-radius:13px;background:linear-gradient(145deg,#111923,#0c131b);padding:14px 15px}.condition-card.blocker{border-color:rgba(255,101,119,.28);border-left-color:var(--red);background:linear-gradient(145deg,rgba(255,101,119,.075),rgba(12,19,27,.98))}.condition-card.pending{border-color:rgba(246,184,74,.25);border-left-color:var(--amber)}.condition-card.passed{border-left-color:var(--green)}.condition-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.condition-card-name{font-size:13px;font-weight:780}.condition-card-hint{font-size:10px;color:var(--faint);margin-top:2px}.condition-card-status{flex:none;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:800}.condition-card.blocker .condition-card-status{color:#ff9aa5;background:rgba(255,101,119,.12)}.condition-card.pending .condition-card-status{color:var(--amber);background:rgba(246,184,74,.1)}.condition-card.passed .condition-card-status{color:var(--green);background:rgba(84,214,154,.1)}.condition-card-value{font:800 23px/1.1 "SFMono-Regular",Consolas,monospace;margin:14px 0 3px}.condition-card.blocker .condition-card-value{color:var(--red)}.condition-card-gap{min-height:20px;font-size:11px;font-weight:720}.condition-card.blocker .condition-card-gap{color:#ff8d9a}.condition-card.pending .condition-card-gap{color:var(--amber)}.condition-card.passed .condition-card-gap{color:var(--green)}.condition-card-standard{color:var(--muted);font-size:10px;margin-top:3px}.condition-card-source{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid rgba(255,255,255,.06);margin-top:12px;padding-top:9px;color:var(--faint);font-size:9px}.condition-card-details{margin-top:8px}.condition-evidence{margin-top:14px}.condition-empty{display:none}
 .stage-summary-stack{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}.stage-summary{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);border-radius:11px;background:#0a1119;padding:10px 12px}.stage-summary strong{display:block;font-size:11px}.stage-summary span{display:block;color:var(--muted);font-size:10px;line-height:1.45;margin-top:2px}.stage-summary .stage-dot{width:8px;height:8px;border-radius:50%;background:var(--faint);margin-top:3px;flex:none}.stage-summary.waiting .stage-dot{background:var(--amber);box-shadow:0 0 9px rgba(246,184,74,.55)}.stage-summary.blocked .stage-dot,.stage-summary.rejected .stage-dot{background:var(--red);box-shadow:0 0 9px rgba(255,101,119,.55)}.stage-summary.ready .stage-dot,.stage-summary.accepted .stage-dot{background:var(--green);box-shadow:0 0 9px rgba(84,214,154,.55)}.stage-summary.processing .stage-dot{background:var(--cyan)}
-.signal-stage{border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,#0e1721,#0a1119);padding:15px}.stage-head{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)}.stage-number{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(52,210,199,.12);color:var(--cyan);font-weight:850}.stage-title{font-size:13px;font-weight:800}.stage-copy{font-size:10px;color:var(--muted);margin-top:2px}.stage-counts{margin-left:auto;color:var(--muted);font-size:10px;text-align:right}.signal-transit{display:flex;align-items:center;justify-content:center;gap:9px;min-height:50px;color:var(--muted);font-size:11px}.signal-transit:before,.signal-transit:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--line))}.signal-transit:after{background:linear-gradient(90deg,var(--line),transparent)}.signal-transit b{color:var(--text);font-weight:750}.backend-stage-body{margin-top:12px}.backend-result{border:1px solid var(--line);border-left:3px solid var(--faint);border-radius:12px;padding:13px 14px;background:#0b131c}.backend-result.reject{border-left-color:var(--red);background:rgba(255,101,119,.05)}.backend-result.allow,.backend-result.accepted{border-left-color:var(--green);background:rgba(84,214,154,.05)}.backend-result.processing{border-left-color:var(--cyan)}.backend-result-title{font-size:12px;font-weight:800}.backend-result-copy{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.55}.backend-result-data{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:10px}.backend-result-data b{display:block;color:var(--text);font-size:13px;margin-top:2px}.backend-result details{margin-top:10px}.backend-result summary{cursor:pointer;color:var(--cyan);font-size:10px}.condition-card.delegated{border-color:rgba(90,169,255,.3);border-left-color:#5aa9ff;background:linear-gradient(145deg,rgba(90,169,255,.08),rgba(12,19,27,.98))}.condition-card.waiting{border-color:rgba(246,184,74,.25);border-left-color:var(--amber)}.condition-card.delegated .condition-card-status{color:#8ec5ff;background:rgba(90,169,255,.12)}.condition-card.waiting .condition-card-status{color:var(--amber);background:rgba(246,184,74,.1)}.condition-card.delegated .condition-card-gap{color:#8ec5ff}.condition-card.waiting .condition-card-gap{color:var(--amber)}
+.signal-stage{border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,#0e1721,#0a1119);padding:15px}.stage-head{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)}.stage-number{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(52,210,199,.12);color:var(--cyan);font-weight:850}.stage-title{font-size:13px;font-weight:800}.stage-copy{font-size:10px;color:var(--muted);margin-top:2px}.stage-counts{margin-left:auto;color:var(--muted);font-size:10px;text-align:right}.signal-transit{display:flex;align-items:center;justify-content:center;gap:9px;min-height:50px;color:var(--muted);font-size:11px}.signal-transit:before,.signal-transit:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--line))}.signal-transit:after{background:linear-gradient(90deg,var(--line),transparent)}.signal-transit b{color:var(--text);font-weight:750}.backend-stage-body{margin-top:12px}.backend-result{border:1px solid var(--line);border-left:3px solid var(--faint);border-radius:12px;padding:13px 14px;background:#0b131c}.backend-result.reject{border-left-color:var(--red);background:rgba(255,101,119,.05)}.backend-result.allow,.backend-result.accepted{border-left-color:var(--green);background:rgba(84,214,154,.05)}.backend-result.processing{border-left-color:var(--cyan)}.backend-result-title{font-size:12px;font-weight:800}.backend-result-copy{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.55}.backend-result-data{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:10px}.backend-result-data b{display:block;color:var(--text);font-size:13px;margin-top:2px}.backend-result details{margin-top:10px}.backend-result summary{cursor:pointer;color:var(--cyan);font-size:10px}.condition-card.waiting{border-color:rgba(246,184,74,.25);border-left-color:var(--amber)}.condition-card.waiting .condition-card-status{color:var(--amber);background:rgba(246,184,74,.1)}.condition-card.waiting .condition-card-gap{color:var(--amber)}
 .condition-toggle{width:100%;min-height:48px;border:1px solid var(--line);border-radius:12px;background:#0d151e;color:var(--text);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;text-align:left;cursor:pointer}.condition-toggle:hover{border-color:var(--line2);background:#111a25}.condition-toggle-copy{display:flex;align-items:center;gap:9px;min-width:0}.condition-toggle-icon{width:25px;height:25px;flex:none;border-radius:8px;display:grid;place-items:center;background:rgba(84,214,154,.1);color:var(--green);font-weight:850}.condition-toggle-title{font-size:12px;font-weight:760}.condition-toggle-note{font-size:9px;color:var(--faint);margin-top:1px}.condition-chevron{color:var(--muted);transition:transform .18s}.condition-toggle[aria-expanded="true"] .condition-chevron{transform:rotate(180deg)}.condition-collapsible{margin-top:9px}.condition-evidence .condition-toggle-icon{background:rgba(102,166,255,.1);color:var(--blue)}
 .activity-stream{max-height:520px;overflow-y:auto;padding:10px;display:grid;gap:6px;scrollbar-color:var(--line2) transparent}.activity-item{border:1px solid var(--line);border-left:3px solid var(--faint);background:#0b121a;border-radius:10px;overflow:hidden}.activity-item.activity-heartbeat{border-left-color:var(--blue)}.activity-item.activity-open{border-left-color:var(--green)}.activity-item.activity-exit{border-left-color:var(--cyan)}.activity-item.activity-rejected{border-left-color:var(--red)}.activity-item.activity-pending{border-left-color:var(--amber)}.activity-summary{width:100%;min-height:52px;border:0;background:transparent;color:inherit;display:grid;grid-template-columns:minmax(130px,1.2fr) minmax(150px,1fr) auto auto;align-items:center;gap:10px;padding:9px 12px;text-align:left;cursor:pointer}.activity-summary:hover{background:rgba(255,255,255,.025)}.activity-title{font-size:12px;font-weight:760;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.activity-subtitle{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.activity-time{font-size:10px;color:var(--muted);white-space:nowrap}.activity-badges{display:flex;align-items:center;justify-content:flex-end;gap:6px;white-space:nowrap}.activity-chevron{color:var(--muted);transition:transform .18s}.activity-summary[aria-expanded="true"] .activity-chevron{transform:rotate(180deg)}.activity-detail{border-top:1px solid var(--line);padding:12px 14px;background:#080e15}.activity-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:9px}.activity-detail-label{font-size:9px;color:var(--faint)}.activity-detail-value{font-size:11px;margin-top:2px;word-break:break-word}.activity-reason{border:1px solid rgba(255,101,119,.24);background:rgba(255,101,119,.07);border-radius:8px;padding:9px 10px;margin-bottom:9px;color:#ffb3bc;font-size:11px}.activity-detail pre{white-space:pre-wrap;word-break:break-word;color:#9fb0c3;background:#060a0f;border-radius:8px;padding:9px;max-height:190px;overflow:auto;margin:0;font-size:10px}.activity-heartbeat .source-pill{color:var(--blue);background:rgba(102,166,255,.1)}.activity-open .source-pill{color:var(--green);background:rgba(84,214,154,.1)}.activity-exit .source-pill{color:var(--cyan);background:rgba(70,215,195,.1)}.activity-rejected .source-pill{color:var(--red);background:rgba(255,101,119,.1)}.activity-pending .source-pill{color:var(--amber);background:rgba(246,184,74,.1)}
+.strategy-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.strategy-principle{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;margin-bottom:14px;padding:15px 17px;border:1px solid rgba(70,215,195,.22);border-radius:14px;background:linear-gradient(90deg,rgba(70,215,195,.08),rgba(70,215,195,.025))}.strategy-principle-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:rgba(70,215,195,.13);color:var(--cyan);font-size:18px;font-weight:900}.strategy-principle strong{font-size:13px}.strategy-principle p{margin:3px 0 0;color:var(--muted);font-size:11px}.strategy-center-layout{display:grid;grid-template-columns:minmax(0,1.16fr) minmax(360px,.84fr);gap:14px;margin-bottom:30px;align-items:start}.strategy-roster{padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:620px;overflow:auto}.strategy-card{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:15px;background:linear-gradient(145deg,#0d1620,#0a1118);padding:15px}.strategy-card:after{content:"";position:absolute;right:-38px;top:-42px;width:100px;height:100px;border-radius:50%;background:rgba(70,215,195,.045)}.strategy-card-head{position:relative;z-index:1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:center}.strategy-avatar{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(70,215,195,.2),rgba(102,166,255,.11));border:1px solid rgba(70,215,195,.18);color:var(--cyan);font-weight:900;font-size:12px}.strategy-name{font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.strategy-account{margin-top:2px;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.strategy-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:14px}.strategy-stat{border:1px solid rgba(255,255,255,.055);border-radius:10px;background:#081018;padding:9px}.strategy-stat b{display:block;font-size:14px}.strategy-stat span{display:block;margin-top:2px;color:var(--faint);font-size:9px}.strategy-last{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}.strategy-last strong{color:#b8c6d4;font-weight:700}.strategy-empty{grid-column:1/-1;min-height:260px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:28px}.strategy-empty strong{display:block;color:var(--text);font-size:14px;margin-bottom:5px}.strategy-empty .btn{margin-top:14px}.strategy-live-dot{display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:var(--faint)}.strategy-live-dot.live{background:var(--green);box-shadow:0 0 9px rgba(84,214,154,.55)}.strategy-live-dot.busy{background:var(--amber)}.strategy-live-dot.bad{background:var(--red)}
 .cond-foot{display:grid;gap:6px;color:var(--muted);font-size:10px;padding-top:13px}.cond-foot .warning{color:var(--amber)}
 /* ===== 新手四步开仓流程 ===== */
 .journey-summary{display:flex;gap:15px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:16px;background:linear-gradient(135deg,rgba(19,28,39,.92),rgba(11,17,25,.94));transition:border-color .25s,background .25s}
@@ -134,6 +137,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .journey-step-label{min-width:0;display:flex;flex-direction:column;gap:2px}
 .journey-step-label strong{font-size:13.5px;font-weight:770}
 .journey-step-label small{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.journey-step-owner{font-size:9px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#7fa2bf}
 .journey-step-status{font-size:10px;font-weight:800;padding:4px 10px;border-radius:999px;white-space:nowrap;background:rgba(255,255,255,.05)}
 .journey-step-chevron{color:var(--muted);transition:transform .2s;font-size:14px;justify-self:center}
 .journey-step-toggle[aria-expanded="true"] .journey-step-chevron{transform:rotate(180deg)}
@@ -159,12 +163,25 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .journey-result-copy{margin-top:5px;color:var(--muted);font-size:11px;line-height:1.6;overflow-wrap:anywhere}
 .journey-checklist{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:11px;line-height:1.9}
 .journey-note{color:var(--muted);font-size:11px;line-height:1.6;overflow-wrap:anywhere}
-@media(max-width:700px){.journey-step-toggle{grid-template-columns:30px minmax(0,1fr) 18px;padding:12px}.journey-step-status{grid-column:2;grid-row:2;justify-self:start;margin-top:2px}.journey-step-chevron{grid-column:3;grid-row:1}.journey-step-body{padding:12px}.journey-detail-grid,.condition-card-grid{grid-template-columns:1fr}.journey-summary{align-items:flex-start}.journey-summary-headline{font-size:19px}}
+.journey-scope{display:grid;grid-template-columns:minmax(120px,.65fr) minmax(180px,1.25fr) minmax(180px,1fr);gap:1px;border:1px solid rgba(102,166,255,.2);border-radius:12px;overflow:hidden;background:rgba(102,166,255,.13)}
+.journey-scope-item{min-width:0;padding:10px 12px;background:#0c1621}
+.journey-scope-label{font-size:9px;font-weight:800;letter-spacing:.8px;color:#7fa2bf;text-transform:uppercase}
+.journey-scope-value{margin-top:4px;font-size:11px;line-height:1.5;color:#d9e8f4;overflow-wrap:anywhere}
+.condition-section-title h3 .section-index{display:inline-grid;place-items:center;width:20px;height:20px;margin-right:7px;border-radius:7px;background:rgba(255,255,255,.07);color:var(--muted);font-size:10px;vertical-align:middle}
+@media(max-width:700px){.journey-step-toggle{grid-template-columns:30px minmax(0,1fr) 18px;padding:12px}.journey-step-status{grid-column:2;grid-row:2;justify-self:start;margin-top:2px}.journey-step-chevron{grid-column:3;grid-row:1}.journey-step-body{padding:12px}.journey-detail-grid,.condition-card-grid,.journey-scope{grid-template-columns:1fr}.journey-summary{align-items:flex-start}.journey-summary-headline{font-size:19px}}
 @media(max-width:900px){.condition-card-grid{grid-template-columns:1fr}.stage-summary-stack{grid-template-columns:1fr}.stage-head{align-items:flex-start}.stage-counts{max-width:45%}}
 @media(max-width:700px){.condition-toggle-note{display:none}}
 @media(max-width:700px){.cond-head{display:none}.cond-row{grid-template-columns:1fr auto;gap:4px 10px}.cond-row>div:first-child{grid-column:1;grid-row:1}.cond-pill{grid-column:2;grid-row:1;justify-self:end}.cond-cell{grid-column:1/-1;grid-row:2}.cond-std{grid-column:1/-1;grid-row:3}.mbar{max-width:none}.dircard{min-width:0}}
 @media(max-width:1120px){.global-metrics{grid-template-columns:repeat(3,1fr)}.metrics{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}.trade-grid{grid-template-columns:repeat(2,1fr)}.actions .hide-tablet{display:none}.topbar-command .actions{display:none}.mobile-only{display:grid}}
-@media(max-width:700px){.shell{padding:0 14px 28px}.topbar-primary{height:58px;gap:9px}.topbar-command{height:58px}.page-switcher .topbar-command{display:grid;grid-template-columns:minmax(0,1fr) 40px;gap:8px}.brand-sub,.system-line{display:none}.brand-name{display:none}.mark{width:34px;height:34px}.main-nav{width:100%;gap:6px}.nav-btn{min-width:0;height:43px;padding:7px 4px;text-align:center;font-size:11px;white-space:nowrap;background:#0b1119;border-color:var(--line)}.nav-btn small{display:none}.topbar-command>.spacer,.topbar-command .actions{display:none}.mobile-only{display:grid}.dashboard-hero{margin:16px 0 10px;padding:18px}.dashboard-hero h1{font-size:21px}.dashboard-hero p{font-size:11px}.global-metrics{grid-template-columns:repeat(2,1fr);gap:8px}.global-metric{min-height:86px;padding:12px}.global-metric:last-child{grid-column:1/-1}.hero{padding:23px 0 17px;align-items:flex-start}.hero h1{font-size:23px}.hero p{font-size:12px}.health{display:none}.metrics{grid-template-columns:repeat(2,1fr);gap:8px}.metric{padding:13px;min-height:91px}.metric-value{font-size:17px}.panel-head,.panel-body{padding:15px}.panel-head{align-items:flex-start;flex-wrap:wrap}.trade-grid,.legs{grid-template-columns:1fr 1fr}.groups{grid-template-columns:repeat(2,1fr)}.event{grid-template-columns:78px 8px 1fr}.event-code{grid-column:3}.event-copy{grid-column:3}.full{grid-column:auto}.webhook-card{align-items:flex-start}.webhook-icon{display:none}.signal-meta{grid-template-columns:1fr 1fr}.monitor-time{display:none}.pnl-chart{height:190px;gap:3px}.chart-label{font-size:8px}.activity-stream{max-height:390px;padding:7px}.activity-summary{grid-template-columns:minmax(0,1fr) auto auto;min-height:58px;padding:8px 9px}.activity-summary .signal-id{display:none}.activity-time{display:none}.activity-detail-grid{grid-template-columns:1fr 1fr}.table-wrap{overflow:visible}.data-table{min-width:0;border-collapse:separate}.data-table thead{display:none}.data-table tbody{display:grid;gap:9px;padding:10px}.data-table tr{display:block;border:1px solid var(--line);border-radius:12px;background:#0b121a;padding:7px 10px}.data-table td{display:grid;grid-template-columns:minmax(88px,.8fr) minmax(0,1.2fr);gap:10px;padding:7px 0;border:0;text-align:right;word-break:break-word}.data-table td:before{content:attr(data-label);color:var(--muted);font-size:10px;text-align:left}.data-table td[colspan]{display:block;text-align:center}.data-table td[colspan]:before{display:none}}
+@media(max-width:700px){.shell{padding:0 14px 28px}.topbar-primary{height:58px;gap:9px}.topbar-command{height:58px}.page-switcher .topbar-command{display:grid;grid-template-columns:minmax(0,1fr) 40px;gap:8px}.brand-sub,.system-line{display:none}.brand-name{display:none}.mark{width:34px;height:34px}.main-nav{width:100%;gap:6px}.nav-btn{min-width:0;height:43px;padding:7px 4px;text-align:center;font-size:11px;white-space:nowrap;background:#0b1119;border-color:var(--line)}.nav-btn small{display:none}.topbar-command>.spacer,.topbar-command .actions{display:none}.mobile-only{display:grid}.dashboard-hero{margin:16px 0 10px;padding:18px}.dashboard-hero h1{font-size:21px}.dashboard-hero p{font-size:11px}.global-metrics{grid-template-columns:repeat(2,1fr);gap:8px}.global-metric{min-height:86px;padding:12px}.global-metric:last-child{grid-column:1/-1}.hero{padding:23px 0 17px;align-items:flex-start}.hero h1{font-size:23px}.hero p{font-size:12px}.health{display:none}.metrics{grid-template-columns:repeat(2,1fr);gap:8px}.metric{padding:13px;min-height:91px}.metric-value{font-size:17px}.panel-head,.panel-body{padding:15px}.panel-head{align-items:flex-start;flex-wrap:wrap}.trade-grid,.legs{grid-template-columns:1fr 1fr}.groups{grid-template-columns:repeat(2,1fr)}.event{grid-template-columns:78px 8px 1fr}.event-code{grid-column:3}.event-copy{grid-column:3}.full{grid-column:auto}.webhook-card{align-items:flex-start}.webhook-icon{display:none}.signal-meta{grid-template-columns:1fr 1fr}.monitor-time{display:none}.pnl-chart{height:190px;gap:3px}.chart-label{font-size:8px}.activity-stream{max-height:390px;padding:7px}.activity-summary{grid-template-columns:minmax(0,1fr) auto auto;min-height:58px;padding:8px 9px}.activity-summary .signal-id{display:none}.activity-time{display:none}.activity-detail-grid{grid-template-columns:1fr 1fr}.tv-setup-grid{grid-template-columns:1fr}.tv-dialog{padding:17px}.table-wrap{overflow:visible}.data-table{min-width:0;border-collapse:separate}.data-table thead{display:none}.data-table tbody{display:grid;gap:9px;padding:10px}.data-table tr{display:block;border:1px solid var(--line);border-radius:12px;background:#0b121a;padding:7px 10px}.data-table td{display:grid;grid-template-columns:minmax(88px,.8fr) minmax(0,1.2fr);gap:10px;padding:7px 0;border:0;text-align:right;word-break:break-word}.data-table td:before{content:attr(data-label);color:var(--muted);font-size:10px;text-align:left}.data-table td[colspan]{display:block;text-align:center}.data-table td[colspan]:before{display:none}}
+@media(max-width:1120px){.tv-hub-hero{grid-template-columns:auto minmax(0,1fr)}.tv-hub-status{grid-column:1/-1}.tv-hub-layout{grid-template-columns:1fr}.tv-step-list{grid-template-columns:repeat(2,1fr)}.strategy-center-layout{grid-template-columns:1fr}.strategy-roster{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.tv-hub-hero{grid-template-columns:1fr;gap:14px;margin-top:16px;padding:19px}.tv-hub-mark{width:50px;height:50px;border-radius:14px;font-size:18px}.tv-hub-hero h1{font-size:23px}.tv-hub-status{grid-column:auto;min-width:0}.tv-hub-layout{gap:10px}.tv-hub-steps,.tv-hub-workspace{padding:15px}.tv-step-list{grid-template-columns:1fr}.tv-workspace-head{display:grid}.tv-setup-grid.prominent{grid-template-columns:1fr}.tv-copy-main{width:100%}.tv-secret-actions{align-items:flex-start;flex-direction:column}.tv-setup-block.primary .endpoint{display:grid}.tv-setup-block.primary .endpoint .spacer{display:none}.tv-setup-block.primary .endpoint .btn{width:100%}.strategy-metrics{grid-template-columns:repeat(2,1fr)}.strategy-principle{grid-template-columns:auto minmax(0,1fr)}.strategy-principle .btn{grid-column:1/-1}.strategy-roster{grid-template-columns:1fr;padding:9px}.strategy-stats{grid-template-columns:repeat(3,1fr)}}
+.tv-setup-grid.prominent{grid-template-columns:repeat(2,minmax(0,1fr))}
+.strategy-card{padding:0;transition:border-color .2s ease,box-shadow .2s ease}.strategy-card.open{grid-column:1/-1;border-color:rgba(70,215,195,.36);box-shadow:0 16px 38px rgba(0,0,0,.24)}.strategy-card-toggle{position:relative;z-index:1;width:100%;display:block;border:0;background:transparent;color:inherit;padding:15px;text-align:left;cursor:pointer}.strategy-card-toggle:hover{background:rgba(70,215,195,.025)}.strategy-card-toggle:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px}.strategy-card-chevron{display:inline-flex;align-items:center;gap:6px;color:var(--cyan);font-weight:750}.strategy-card-chevron:after{content:"⌄";font-size:15px;line-height:1;transition:transform .2s ease}.strategy-card.open .strategy-card-chevron:after{transform:rotate(180deg)}.strategy-connection-details{position:relative;z-index:1;border-top:1px solid rgba(70,215,195,.16);padding:15px;background:rgba(5,12,18,.54)}.connection-health{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:11px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#09121a}.connection-health-icon{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:rgba(84,214,154,.11);color:var(--green);font-size:17px}.connection-health.busy .connection-health-icon{background:rgba(246,184,74,.11);color:var(--amber)}.connection-health.bad .connection-health-icon{background:rgba(255,101,119,.11);color:var(--red)}.connection-health-title{font-size:12px;font-weight:780}.connection-health-copy{margin-top:2px;color:var(--muted);font-size:10px}.connection-age{font-size:11px;font-weight:760}.connection-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}.connection-summary-item{padding:10px;border:1px solid rgba(255,255,255,.055);border-radius:10px;background:#081018}.connection-summary-item span{display:block;color:var(--faint);font-size:9px}.connection-summary-item strong{display:block;margin-top:4px;color:#c7d4df;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.connection-history-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 7px;font-size:10px;color:var(--muted)}.connection-history-head strong{color:#c7d4df;font-size:11px}.connection-history{display:grid;gap:6px}.connection-record{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:9px;padding:9px 10px;border:1px solid rgba(255,255,255,.05);border-radius:9px;background:#071018;font-size:10px}.connection-record-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(84,214,154,.45)}.connection-record-main strong{display:block;font-size:10px}.connection-record-main span,.connection-record-meta{color:var(--muted);font-size:9px}.connection-record-price{color:#c7d4df;font-family:"SFMono-Regular",Consolas,monospace}.connection-empty{padding:17px;text-align:center;border:1px dashed var(--line2);border-radius:10px;color:var(--muted);font-size:10px}.connection-note{margin-top:10px;color:var(--faint);font-size:9px}.connection-note b{color:var(--cyan)}
+@media(max-width:700px){.connection-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.connection-health{grid-template-columns:auto minmax(0,1fr)}.connection-age{grid-column:2}.connection-record{grid-template-columns:auto minmax(0,1fr) auto}.connection-record-meta{display:none}}
+.strategy-modal{z-index:70;padding:22px}.strategy-modal-dialog{width:min(1040px,100%);height:min(88vh,900px);display:grid;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;border:1px solid #34485b;border-radius:22px;background:linear-gradient(155deg,#111a24,#0a1118);box-shadow:0 38px 120px rgba(0,0,0,.7)}.strategy-modal-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:19px 21px;border-bottom:1px solid var(--line)}.strategy-modal-head h2{margin:0;font-size:19px}.strategy-modal-subtitle{margin-top:3px;color:var(--muted);font-size:10px}.strategy-modal-close{width:38px;height:38px;border:1px solid var(--line2);border-radius:10px;background:#0b131c;color:var(--muted);font-size:22px;cursor:pointer}.strategy-modal-close:hover{color:var(--text);border-color:#43586e}.strategy-modal-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:12px 21px;border-bottom:1px solid rgba(255,255,255,.055);background:rgba(5,10,15,.24)}.strategy-modal-metric{padding:9px 10px;border:1px solid rgba(255,255,255,.055);border-radius:10px;background:#081018}.strategy-modal-metric span{display:block;color:var(--faint);font-size:9px}.strategy-modal-metric strong{display:block;margin-top:3px;font-size:13px}.strategy-modal-main{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr)}.strategy-modal-toolbar{display:flex;align-items:center;gap:7px;padding:11px 21px}.strategy-modal-filter{border:1px solid var(--line2);border-radius:999px;background:transparent;color:var(--muted);padding:6px 11px;font-size:10px;cursor:pointer}.strategy-modal-filter.active{color:var(--cyan);border-color:rgba(70,215,195,.34);background:rgba(70,215,195,.08)}.strategy-modal-count{margin-left:auto;color:var(--muted);font-size:10px}.strategy-modal-feed{min-height:0;overflow-y:scroll;overscroll-behavior:contain;padding:0 21px 20px;scrollbar-width:auto;scrollbar-color:#355063 #09111a}.strategy-modal-feed::-webkit-scrollbar{width:12px}.strategy-modal-feed::-webkit-scrollbar-track{background:#09111a;border-radius:999px}.strategy-modal-feed::-webkit-scrollbar-thumb{background:#355063;border:3px solid #09111a;border-radius:999px}.strategy-feed-list{display:grid;gap:7px}.strategy-feed-entry{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#09121a}.strategy-feed-entry.open{border-color:rgba(102,166,255,.34);box-shadow:0 10px 30px rgba(0,0,0,.18)}.strategy-feed-row{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;min-height:67px;padding:10px 12px;border:0;border-left:3px solid transparent;background:transparent;color:inherit;text-align:left}.strategy-feed-toggle{cursor:pointer}.strategy-feed-toggle:hover{background:rgba(102,166,255,.035)}.strategy-feed-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}.strategy-feed-row.heartbeat{border-left-color:var(--blue)}.strategy-feed-row.open{border-left-color:var(--green)}.strategy-feed-row.exit{border-left-color:var(--amber)}.strategy-feed-entry.rejected{border-color:rgba(255,101,119,.24);background:rgba(255,101,119,.035)}.strategy-feed-row.rejected{border-left-color:var(--red)}.strategy-feed-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(102,166,255,.1);color:var(--blue);font-weight:850}.strategy-feed-row.open .strategy-feed-icon{color:var(--green);background:rgba(84,214,154,.1)}.strategy-feed-row.exit .strategy-feed-icon{color:var(--amber);background:rgba(246,184,74,.1)}.strategy-feed-row.rejected .strategy-feed-icon{color:var(--red);background:rgba(255,101,119,.1)}.strategy-feed-title{font-size:11px;font-weight:780}.strategy-feed-subtitle{margin-top:2px;color:var(--muted);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.strategy-feed-facts{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:5px;flex-wrap:wrap}.strategy-feed-fact{padding:3px 6px;border-radius:5px;background:rgba(255,255,255,.045);color:#9fb0c1;font-size:9px}.strategy-feed-time{text-align:right;color:#b9c7d4;font-size:10px;white-space:nowrap}.strategy-feed-time>span{display:block;margin-top:2px;color:var(--faint);font-size:9px}.strategy-feed-expand{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:6px;color:var(--blue);font-size:9px;font-weight:760}.strategy-feed-expand:after{content:"⌄";font-size:14px;line-height:8px;transition:transform .18s ease}.strategy-feed-entry.open .strategy-feed-expand:after{transform:rotate(180deg)}.strategy-feed-detail{padding:14px 15px 16px;border-top:1px solid rgba(102,166,255,.18);background:#071018}.strategy-feed-detail-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.strategy-feed-detail-head strong{display:block;font-size:11px}.strategy-feed-detail-head span{display:block;margin-top:3px;color:var(--muted);font-size:9px}.strategy-feed-validation{padding:5px 8px;border:1px solid rgba(84,214,154,.25);border-radius:999px;background:rgba(84,214,154,.08);color:var(--green)!important;font-weight:760;white-space:nowrap}.strategy-feed-system-grid,.strategy-feed-payload-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.strategy-feed-system-item,.strategy-feed-payload-item{min-width:0;padding:8px 9px;border:1px solid rgba(255,255,255,.055);border-radius:8px;background:#09131c}.strategy-feed-system-item span,.strategy-feed-payload-item span{display:block;color:var(--faint);font-size:8px;overflow-wrap:anywhere}.strategy-feed-system-item strong,.strategy-feed-payload-item strong{display:block;margin-top:4px;color:#c6d5e2;font-family:"SFMono-Regular",Consolas,monospace;font-size:9px;font-weight:650;line-height:1.45;overflow-wrap:anywhere}.strategy-feed-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 7px;color:#c7d4df;font-size:10px}.strategy-feed-section-title span{color:var(--faint);font-size:8px}.strategy-feed-json{max-height:260px;margin:0;padding:12px;border:1px solid rgba(102,166,255,.15);border-radius:9px;background:#050a0f;color:#a9c4da;font:9px/1.55 "SFMono-Regular",Consolas,monospace;white-space:pre-wrap;overflow:auto;overflow-wrap:anywhere}.strategy-modal-empty{height:100%;min-height:220px;display:grid;place-items:center;text-align:center;color:var(--muted);border:1px dashed var(--line2);border-radius:12px}.strategy-modal-empty strong{display:block;color:var(--text);margin-bottom:4px}.strategy-modal-note{padding:8px 0 2px;color:var(--faint);font-size:9px;text-align:center}
+@media(max-width:700px){.strategy-modal{padding:8px}.strategy-modal-dialog{height:94vh;border-radius:16px}.strategy-modal-head{padding:14px;gap:10px}.strategy-modal-head h2{font-size:16px}.strategy-modal-summary{grid-template-columns:repeat(2,minmax(0,1fr));padding:9px 14px;max-height:160px;overflow:auto}.strategy-modal-toolbar{padding:9px 14px;overflow-x:auto}.strategy-modal-filter{white-space:nowrap}.strategy-modal-feed{padding:0 12px 14px}.strategy-feed-row{grid-template-columns:auto minmax(0,1fr)}.strategy-feed-time{grid-column:2;text-align:left}.strategy-feed-facts{justify-content:flex-start}.strategy-feed-expand{justify-content:flex-start}.strategy-feed-system-grid,.strategy-feed-payload-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.strategy-feed-detail-head{display:grid}.strategy-feed-validation{justify-self:start}}
+.trade-identity{display:grid;gap:3px;min-width:190px}.trade-identity strong{color:var(--text);font-size:11px}.trade-identity span{display:block;color:var(--muted);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}.trade-identity b{color:var(--faint);font-weight:700;margin-right:5px}.trade-identity .mono{color:#adc0d2}
 </style>
 </head>
 <body>
@@ -192,7 +209,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
   </section>
   <div class="page-switcher">
     <div class="topbar-command">
-      <nav class="main-nav reference-tabs"><button class="nav-btn" data-page="positions" onclick="navigateTo('/')"><span>仓位</span><small>Positions</small></button><button class="nav-btn" data-page="active-signals" onclick="navigateTo('/signals')"><span>活跃信号</span><small>Active Signals</small></button><button class="nav-btn" data-page="signal-log" onclick="navigateTo('/signal-log')"><span>信号日志</span><small>Signal Log</small></button><button class="nav-btn" data-page="position-log" onclick="navigateTo('/returns')"><span>仓位日志</span><small>Position Log</small></button></nav>
+      <nav class="main-nav reference-tabs"><button class="nav-btn" data-page="positions" onclick="navigateTo('/')"><span>仓位</span><small>Positions</small></button><button class="nav-btn tv-primary-nav" data-page="tradingview" onclick="navigateTo('/tradingview')"><span>TV 接入</span><small>Primary Setup</small></button><button class="nav-btn" data-page="active-signals" onclick="navigateTo('/signals')"><span>策略信号</span><small>Strategies</small></button><button class="nav-btn" data-page="signal-log" onclick="navigateTo('/signal-log')"><span>信号日志</span><small>Signal Log</small></button><button class="nav-btn" data-page="position-log" onclick="navigateTo('/returns')"><span>仓位日志</span><small>Position Log</small></button></nav>
       <div class="spacer"></div>
       <div class="actions">
         <button class="btn btn-ghost hide-tablet" onclick="refresh(true)">刷新数据</button>
@@ -236,25 +253,56 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
   </main>
   </div>
 
-  <div id="page-active-signals" class="page-view">
-    <section class="hero"><div><div class="eyebrow">Live entry conditions</div><h1>活跃信号</h1><p>聚焦当前开仓门槛、实时行情与 TradingView 是否具备发出开仓信号的条件。</p></div></section>
-    <section class="panel" style="margin-bottom:14px"><div class="panel-head"><div><div class="panel-title">开仓流程 · 现在走到哪一步</div><div class="panel-kicker">从「市场机会」到「实际开仓」共四步，下面用一句话告诉你能不能开仓、卡在哪、为什么</div></div><span id="condVerdict" class="tag">检查中</span></div><div class="panel-body">
-      <section id="journeySummary" class="journey-summary" aria-live="polite">
-        <div class="journey-summary-icon">…</div>
-        <div class="journey-summary-text">
-          <div class="journey-summary-kicker">正在读取当前开仓流程</div>
-          <h2 class="journey-summary-headline">正在判断能否开仓</h2>
-          <p class="journey-summary-reason">系统正在读取 TradingView 与交易端状态</p>
+  <div id="page-tradingview" class="page-view">
+    <section class="tv-hub-hero">
+      <div class="tv-hub-mark">TV</div>
+      <div><div class="eyebrow">Primary integration</div><h1>TradingView 接入中心</h1><p>这是系统接收开仓和平仓信号的主要入口。一次完成 Pine 策略、Webhook 地址与 Alert 消息配置。</p></div>
+      <div class="tv-hub-status"><span id="tvHubDot" class="monitor-dot"></span><strong id="tvHubStatus">正在检查接收器</strong><small id="tvHubStatusCopy">等待后端状态</small></div>
+    </section>
+
+    <main class="tv-hub-layout">
+      <aside class="tv-hub-steps">
+        <div class="eyebrow">Setup flow</div>
+        <h2>四步完成接入</h2>
+        <div class="tv-hub-copy">按顺序做一遍，TradingView 产生信号后，后端只负责接收、校验并执行。</div>
+        <div class="tv-step-list">
+          <div class="tv-step-card"><span class="tv-step-number">1</span><div><strong>添加 Pine 策略</strong><p>把项目 Pine 脚本添加到 BTC 的 3 分钟图。</p></div></div>
+          <div class="tv-step-card"><span class="tv-step-number">2</span><div><strong>创建策略警报</strong><p>Condition 选择“订单成交和 alert() 函数调用”。</p></div></div>
+          <div class="tv-step-card"><span class="tv-step-number">3</span><div><strong>复制 Webhook URL</strong><p>把右侧地址粘贴到 TradingView 通知设置。</p></div></div>
+          <div class="tv-step-card"><span class="tv-step-number">4</span><div><strong>复制完整 JSON</strong><p>填写账户名和口令后，将完整消息粘贴到 Message。</p></div></div>
         </div>
+        <div class="tv-source-note"><strong>信号从哪里来？</strong><br>TradingView Pine 策略负责判断入场与退出；本系统的 <code>/webhook/signal</code> 接口收到信号后执行 Deribit 开仓或平仓。</div>
+      </aside>
+
+      <section class="tv-hub-workspace">
+        <div class="tv-workspace-head"><div><div class="eyebrow">Copy to TradingView</div><h2>复制 TradingView Alert 配置</h2><div class="tv-hub-copy">下面内容按当前网站地址自动生成，不需要手工拼 JSON。</div></div><span id="tvHubBadge" class="tag">检查中</span></div>
+        <div class="tv-setup-grid prominent">
+          <div class="tv-field"><label for="tvAccountName">DERIBIT 账户名称</label><input id="tvAccountName" autocomplete="off" placeholder="例如 account_1" oninput="updateTvTemplate()"></div>
+          <div class="tv-field"><label for="tvStrategyName">策略名称</label><input id="tvStrategyName" autocomplete="off" placeholder="例如 BTC_OPTION_SELLER_V2" oninput="updateTvTemplate()"><div class="tv-local-note">必须和 Pine 参数里的 strategy 完全一致；只有逻辑或参数真正不同的策略才使用新名称。</div></div>
+          <div class="tv-field"><div class="tv-secret-actions"><label for="tvAlertId">TV 警报 ID（tv_id）</label><button class="mini-btn" onclick="regenerateTvId()">为新警报生成 ID</button></div><input id="tvAlertId" inputmode="numeric" readonly aria-readonly="true"><div class="tv-local-note">同一条 Alert 的开仓和平仓保持此 ID；每创建一条新 Alert，再生成一个不同 ID。</div></div>
+          <div class="tv-field"><div class="tv-secret-actions"><label for="tvPassphrase">WEBHOOK 口令</label><button class="mini-btn" onclick="copyTvSecret()">复制口令</button></div><input id="tvPassphrase" type="text" readonly aria-readonly="true" autocomplete="off" placeholder="正在从服务器读取口令"><div class="tv-local-note">实验阶段由服务器自动读取并显示，也会自动写入下方 Alert JSON。</div></div>
+        </div>
+        <div class="tv-setup-block primary"><div class="tv-setup-label"><span>Webhook URL</span><span class="tag live">粘贴到通知设置</span></div><div class="endpoint" style="margin:0"><code id="tvSetupWebhook">正在生成地址…</code><div class="spacer"></div><button class="btn btn-primary tv-copy-main" onclick="copyTvWebhook()">复制 Webhook URL</button></div></div>
+        <div class="tv-setup-block"><div class="tv-setup-label"><span>Alert Condition</span><span id="tvSetupCondition" class="tag live">策略 → 订单成交和 alert() 函数调用</span></div><div class="tv-hub-copy">选择当前 Pine 策略，然后选择“订单成交和 alert() 函数调用”。不要选择单独的指标条件。</div></div>
+        <div class="tv-setup-block"><div class="tv-setup-label"><span>Alert Message JSON</span><span class="tag">自动包含开仓 / 平仓信息</span></div><pre id="tvAlertMessage" class="tv-code"></pre><button class="btn btn-primary tv-copy-wide" onclick="copyTvMessage()">复制完整 Alert JSON</button></div>
+        <div class="tv-warning">Pine 脚本或参数修改后，TradingView 已有 Alert 仍保存旧快照，必须删除并重新创建。复制 JSON 前请确认账户名和口令正确。</div>
       </section>
-      <div class="journey-list" aria-label="开仓流程四步">
-        <section id="journeyStep1" class="journey-step"></section>
-        <section id="journeyStep2" class="journey-step"></section>
-        <section id="journeyStep3" class="journey-step"></section>
-        <section id="journeyStep4" class="journey-step"></section>
-      </div>
-    </div></section>
-    <section class="panel"><div class="panel-head"><div><div class="panel-title">待处理与最近信号</div><div class="panel-kicker">仅显示真实开仓或退出信号；连接回报请到“信号日志”查看</div></div><span class="tag">最近 6 条</span></div><div id="activeSignalList" class="activity-stream"></div></section>
+    </main>
+  </div>
+
+  <div id="page-active-signals" class="page-view">
+    <section class="hero"><div><div class="eyebrow">Multi-strategy operations</div><h1>策略信号中心</h1><p>自动汇总所有通过 Webhook 接入的 TradingView 策略；这里只展示真实活动和执行结果，不重复计算任何策略指标。</p></div><div class="health"><span id="strategyHealthDot" class="monitor-dot"></span><div><div id="strategyHealthTitle" class="health-title">正在发现策略</div><div id="strategyHealthCopy" class="health-copy">按 Webhook 中的 strategy 自动分组</div></div></div></section>
+    <section class="metrics strategy-metrics">
+      <div class="metric"><div class="metric-label">已发现策略</div><div id="strategyObserved" class="metric-value">0</div><div class="metric-note">无需预先登记</div></div>
+      <div class="metric"><div class="metric-label">近期在线</div><div id="strategyOnline" class="metric-value positive">0</div><div class="metric-note">150 分钟内有连接回报</div></div>
+      <div class="metric"><div class="metric-label">开仓 / 退出信号</div><div id="strategyActions" class="metric-value">0 / 0</div><div class="metric-note">全部策略累计</div></div>
+      <div class="metric"><div class="metric-label">拒绝 / 处理中</div><div id="strategyAttention" class="metric-value">0 / 0</div><div class="metric-note">需要关注的执行结果</div></div>
+    </section>
+    <div class="strategy-principle"><span class="strategy-principle-icon">✓</span><div><strong>TradingView 负责策略判断，后端负责统一执行</strong><p>DVOL、HV、CCI、布林带等条件属于各自 Pine 策略，不再固定显示在后台。新策略只要使用不同的 strategy 名称，就会自动出现在这里。</p></div><button class="btn btn-primary" onclick="navigateTo('/tradingview')">配置新策略</button></div>
+    <main class="strategy-center-layout">
+      <section class="panel"><div class="panel-head"><div><div class="panel-title">TradingView 策略</div><div class="panel-kicker">按 strategy 名称自动发现 · 持仓与信号归属分开展示</div></div><span id="strategyCountBadge" class="tag">0 个</span></div><div id="strategyRoster" class="strategy-roster"></div></section>
+      <section class="panel"><div class="panel-head"><div><div class="panel-title">最近可执行信号</div><div class="panel-kicker">跨全部策略展示真实开仓和退出信号；连接回报请到“信号日志”查看</div></div><span id="strategySignalBadge" class="tag">0 条</span></div><div id="strategySignalList" class="activity-stream"></div></section>
+    </main>
   </div>
 
   <div id="page-signal-log" class="page-view">
@@ -267,7 +315,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
       <div class="metric"><div class="metric-label">已拒绝</div><div id="sRejected" class="metric-value">0</div><div class="metric-note">点击记录查看原因</div></div>
       <div class="metric"><div class="metric-label">处理中</div><div id="sPending" class="metric-value">0</div><div class="metric-note">等待策略引擎确认</div></div>
     </section>
-    <section class="panel" style="margin-bottom:14px"><div class="panel-body webhook-card"><div class="webhook-icon">↗</div><div style="min-width:0;flex:1"><div class="panel-title">TradingView Webhook 接收地址</div><div class="panel-kicker">把下面完整地址填入 TradingView Alert 的 Webhook URL</div><div class="endpoint"><code id="webhookUrl">正在生成地址…</code><div class="spacer"></div><button class="mini-btn" onclick="copyWebhook()">复制</button></div></div><span id="webhookBadge" class="tag">检查中</span></div></section>
+    <section class="panel" style="margin-bottom:14px"><div class="panel-body webhook-card"><div class="webhook-icon">↗</div><div style="min-width:0;flex:1"><div class="panel-title">TradingView Webhook 接收地址</div><div class="panel-kicker">这里负责查看链路；账户、口令和完整 Alert JSON 请到一级“TV 接入”页面配置</div><div class="endpoint"><code id="webhookUrl">正在生成地址…</code><div class="spacer"></div><button class="mini-btn" onclick="copyWebhook()">复制地址</button></div></div><button class="btn btn-primary" onclick="openTvSetup()">打开 TV 接入中心</button><span id="webhookBadge" class="tag">检查中</span></div></section>
     <section class="panel"><div class="panel-head"><div><div class="panel-title">TradingView 链路与信号活动</div><div class="panel-kicker">蓝色连接回报 · 绿色接受开仓 · 青色接受退出 · 红色系统拒绝 · 黄色等待处理</div></div><span id="tvSignalBadge" class="tag">0 条</span></div><div id="tvSignals" class="activity-stream"></div></section>
   </div>
 
@@ -291,12 +339,13 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
   </div>
 </div>
 
+<div id="strategyModal" class="modal strategy-modal" role="dialog" aria-modal="true" aria-labelledby="strategyModalTitle" onclick="if(event.target===this)closeStrategyModal()"><div id="strategyModalContent" class="strategy-modal-dialog"></div></div>
 <div id="forceModal" class="modal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-icon">!</div><h3>执行全账户强制平仓</h3><p>这是账户级灾难操作，不只是关闭当前策略。</p><div class="danger-list">撤销全部未成交订单<br>平掉账户内全部 BTC 期权多空腿<br>归零 BTC 永续仓位<br>锁定新开仓，直至人工解除</div><div class="dialog-actions" style="margin-top:14px"><button class="btn" onclick="closeForceDialog()">取消</button><button class="btn btn-danger" onclick="confirmForceClose()">确认强平</button></div></div></div>
 <div id="mobileMenu" class="modal"><div class="dialog"><h3 style="margin-top:0">策略操作</h3><div style="display:grid;gap:8px"><button class="btn btn-primary" onclick="toggleTrading();toggleMobileMenu()">切换开仓总开关</button><button class="btn" onclick="refresh(true);toggleMobileMenu()">刷新数据</button><button class="btn btn-danger" onclick="toggleMobileMenu();openForceDialog()">全账户强平</button></div><div class="dialog-actions" style="margin-top:14px"><button class="btn" onclick="toggleMobileMenu()">关闭</button></div></div></div>
 <div id="toasts" class="toast-wrap"></div>
 
 <script>
-const $=id=>document.getElementById(id);let model=null,eventLevel="ALL",refreshing=false,expandedSignalKey=null;
+const $=id=>document.getElementById(id);let model=null,eventLevel="ALL",refreshing=false,expandedSignalKey=null,selectedStrategyName=null,strategyModalFilter="ALL",expandedStrategyActivityKeys=new Set(),tvSetup=null,tvAlertTemplate="",tvAlertId=null;
 const conditionSections={passed:false,shape:false,evidence:false};
 function toggleConditionSection(name){if(!(name in conditionSections))return;conditionSections[name]=!conditionSections[name];if(model?.conditions)renderConditions(model.conditions,model.signals,model.trades)}
 // 四步流程手风琴：用户手动展开的选择在 5 秒轮询间保留，但换新信号/新 K 线实例时重置。
@@ -342,7 +391,8 @@ function renderGlobalMetrics(status,acc,trades,signals,performance){const summar
 function renderActive(items,acc){$("activeKicker").textContent=items.length?`${items.length} 笔父交易正在管理` :"当前没有卖方策略持仓";$("activeBadge").textContent=items.length?`${items.length} ACTIVE`:"FLAT";$("activeBadge").className=`tag ${items.length?"live":""}`;if(!items.length){$("activeTrades").innerHTML=`<div class="empty"><div><div class="empty-orbit"></div><strong>当前账户无活跃策略</strong><span>系统会继续监听 TradingView 开仓信号</span></div></div>`;return}$("activeTrades").innerHTML=items.map(t=>{const p=t.parent,h=t.hedge,per=estimate(p,acc),remaining=t.groups.reduce((s,g)=>s+Math.max(0,Number(g.qty)-Number(g.closed_qty||0)),0),pnl=per==null?null:per*remaining;return `<article class="trade-card"><div class="trade-top"><div class="trade-icon ${p.spread_type==="CALL_CREDIT"?"call":""}">${p.spread_type==="CALL_CREDIT"?"C":"P"}</div><div><div class="trade-name">${p.spread_type==="CALL_CREDIT"?"CALL":"PUT"} 信用价差</div><div class="trade-id mono">TRADE #${p.id} · ${esc(p.signal_id||"")}</div></div><div class="spacer"></div>${stateTag(p.state)} ${stateTag(h?.state)}</div><div class="trade-content"><div class="trade-grid"><div class="datum"><div class="datum-label">剩余数量</div><div class="datum-value number">${num(remaining,1)} 张</div></div><div class="datum"><div class="datum-label">净权利金</div><div class="datum-value number">${num(p.net_credit_btc)} BTC</div></div><div class="datum"><div class="datum-label">盈亏平衡点</div><div class="datum-value number">${money(p.bep_price)}</div></div><div class="datum"><div class="datum-label">估算未实现盈亏</div><div class="datum-value number ${tone(pnl)}">${pnl==null?"—":signed(pnl,5)+" BTC"}</div></div></div><div class="legs"><div class="leg sell"><span class="leg-side">SELL</span><span class="leg-name mono" title="${esc(p.sell_instrument)}">${esc(p.sell_instrument||"选腿中")}</span></div><div class="leg buy"><span class="leg-side">BUY</span><span class="leg-name mono" title="${esc(p.buy_instrument)}">${esc(p.buy_instrument||"选腿中")}</span></div></div><div class="section-label"><span>管理子组</span><span>${t.groups.filter(g=>g.state==="CLOSED").length}/${t.groups.length} 已关闭</span></div><div class="groups">${t.groups.map(g=>{const rem=Math.max(0,Number(g.qty)-Number(g.closed_qty||0)),gp=per==null?null:per*rem;return `<div class="group"><div class="group-top"><span class="group-name">G${String(g.group_index).padStart(2,"0")}</span>${g.state==="OPEN"?`<button class="mini-btn" onclick="closeGroup(${g.id},${g.group_index},${rem})">平掉</button>`:stateTag(g.state)}</div><div class="group-meta number">${num(rem,1)} / ${num(g.qty,1)} 张</div><div class="group-pnl ${tone(gp)}">${gp==null?"PnL —":`${signed(gp,5)} BTC`}</div></div>`}).join("")}</div></div></article>`}).join("")}
 function renderPositions(acc){const rows=[...acc.option_positions.map(p=>({kind:"期权",name:p.instrument,size:p.size,delta:p.delta,mark:p.mark_price,avg:p.avg_price,pnl:p.pnl,status:"持仓"})),...acc.open_orders.map(o=>({kind:"订单",name:o.instrument,size:(o.direction==="buy"?1:-1)*o.amount,delta:null,mark:o.price,avg:null,pnl:null,status:`${o.direction==="buy"?"买入":"卖出"}挂单`}))];$("positionCount").textContent=`${rows.length} 项`;$("positionsTable").innerHTML=`<thead><tr><th>类别</th><th>合约</th><th>状态</th><th>数量</th><th>Delta</th><th>标记/限价</th><th>开仓均价</th><th>浮动盈亏</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td>${r.kind}</td><td class="instrument">${esc(r.name)}</td><td>${r.status}</td><td class="number ${tone(r.size)}">${signed(r.size,1)}</td><td class="number ${tone(r.delta)}">${signed(r.delta)}</td><td class="number">${num(r.mark)}</td><td class="number">${num(r.avg)}</td><td class="number ${tone(r.pnl)}">${r.pnl==null?"—":signed(r.pnl,5)}</td></tr>`).join(""):`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px">无持仓、无挂单</td></tr>`}</tbody>`}
 function renderEvents(events){const filtered=eventLevel==="ALL"?events:events.filter(e=>e.level===eventLevel);$("eventTimeline").innerHTML=filtered.length?filtered.map(e=>`<div class="event ${e.level}" title="${esc(e.code)}"><div class="event-time number">${time(e.ts)}</div><div class="event-dot"></div><div class="event-code ${e.level==="ERROR"?"negative":e.level==="WARN"?"warning":""}">${esc(EVENT[e.code]||e.code)}</div><div class="event-copy">${esc(eventText(e))}</div></div>`).join(""):`<div class="empty" style="min-height:120px">没有匹配的事件</div>`}
-function renderTrades(trades){$("tradesTable").innerHTML=`<thead><tr><th>交易</th><th>类型</th><th>状态</th><th>数量</th><th>净权利金</th><th>BEP</th><th>已实现盈亏</th><th>平仓原因</th></tr></thead><tbody>${trades.map(p=>{const pnl=p.groups.reduce((s,g)=>s+Number(g.realized_pnl_btc||0),0);return `<tr><td class="number">#${p.id}</td><td>${p.spread_type==="CALL_CREDIT"?"CALL":"PUT"} Credit</td><td>${stateTag(p.state)}</td><td class="number">${num(p.qty_total,1)}</td><td class="number">${num(p.net_credit_btc)}</td><td class="number">${num(p.bep_price,1)}</td><td class="number ${tone(pnl)}">${signed(pnl,5)} BTC</td><td>${esc(p.close_reason||"—")}</td></tr>`}).join("")}</tbody>`}
+function tradeIdentity(value,includeTrade=true){return `<div class="trade-identity">${includeTrade?`<strong>后端仓位 #${esc(value.id??"—")}</strong>`:""}<span><b>strategy</b><span class="mono">${esc(value.strategy||"—")}</span></span><span><b>tv_id</b><span class="mono">${esc(value.tv_id??value.trade_id??"—")}</span></span><span title="${esc(value.signal_id||"")}"><b>signal_id</b><span class="mono">${esc(value.signal_id||"—")}</span></span></div>`}
+function renderTrades(trades){$("tradesTable").innerHTML=`<thead><tr><th>交易 / 关联身份</th><th>类型</th><th>状态</th><th>数量</th><th>净权利金</th><th>BEP</th><th>已实现盈亏</th><th>平仓原因</th></tr></thead><tbody>${trades.map(p=>{const pnl=p.groups.reduce((s,g)=>s+Number(g.realized_pnl_btc||0),0);return `<tr><td>${tradeIdentity(p)}</td><td>${p.spread_type==="CALL_CREDIT"?"CALL":"PUT"} Credit</td><td>${stateTag(p.state)}</td><td class="number">${num(p.qty_total,1)}</td><td class="number">${num(p.net_credit_btc)}</td><td class="number">${num(p.bep_price,1)}</td><td class="number ${tone(pnl)}">${signed(pnl,5)} BTC</td><td>${esc(p.close_reason||"—")}</td></tr>`}).join("")}</tbody>`}
 function renderHedges(rows){$("hedgesTable").innerHTML=`<thead><tr><th>日期</th><th>执行次数</th><th>手续费</th><th>平均单量</th><th>最小量跳过</th><th>阈值跳过</th></tr></thead><tbody>${rows.length?rows.map(h=>`<tr><td>${h.day}</td><td class="number">${h.hedge_trades||0}</td><td class="number">${num(h.total_fee,8)} BTC</td><td class="number">${h.avg_order_usd==null?"—":num(h.avg_order_usd,0)+" USD"}</td><td class="number">${h.skipped_min_amount||0}</td><td class="number">${h.skipped_below_trigger||0}</td></tr>`).join(""):`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:28px">暂无对冲记录</td></tr>`}</tbody>`}
 const SIGNAL_EVENT={OPEN_REQUEST:"开仓请求",EXIT_DVOL:"DVOL 退出",EXIT_DVOL_ROLLING_30:"DVOL 退出"};
 const SIGNAL_STATUS={ACCEPTED:"已接受",REJECTED:"已拒绝",RECEIVED:"处理中"};
@@ -355,17 +405,193 @@ function signalActivityCard(item){
   const activityClass=isHeartbeat?"activity-heartbeat":item.status==="REJECTED"?"activity-rejected":item.status==="RECEIVED"?"activity-pending":isOpen?"activity-open":isExit?"activity-exit":"";
   const eventLabel=isHeartbeat?"连接回报":isOpen?"开仓信号":"退出信号";
   const title=isHeartbeat?"TradingView 已连接 · 不触发开仓":isOpen?`${item.spread_type==="CALL_CREDIT"?"CALL":"PUT"} 开仓条件已成立`:"TradingView 发出退出信号";
-  const subtitle=isHeartbeat?(item.strategy||"TradingView STATUS"):(item.signal_id||item.event||"TradingView");
+  const subtitle=isHeartbeat?(item.strategy||"TradingView STATUS"):[item.strategy,item.signal_id||item.event].filter(Boolean).join(" · ")||"TradingView";
   const reasonCode=String(item.reject_reason||"");
   const reasonText=REJECT_REASON[reasonCode]||reasonCode||"系统未提供具体原因";
   const statusBadge=item.status==="REJECTED"?`<span class="tag bad">系统拒绝</span>`:item.status==="ACCEPTED"?`<span class="tag live">系统接受</span>`:(!isHeartbeat?`<span class="tag busy">处理中</span>`:"");
   const sourceClass=isHeartbeat?"":isOpen?"live":"busy";
   const reason=item.status==="REJECTED"?`<div class="activity-reason"><strong>系统拒绝原因：</strong>${esc(reasonText)}<br><span class="mono">原始代码：${esc(reasonCode)}</span></div>`:"";
-  const details=expanded?`<div class="activity-detail"><div class="activity-detail-grid"><div><div class="activity-detail-label">事件</div><div class="activity-detail-value">${esc(item.event||eventLabel)}</div></div><div><div class="activity-detail-label">系统状态</div><div class="activity-detail-value">${esc(item.status||"—")}</div></div><div><div class="activity-detail-label">接收时间</div><div class="activity-detail-value number">${time(item.received_at)}</div></div></div>${reason}<pre>${esc(JSON.stringify(safePayload,null,2))}</pre></div>`:"";
+  const tvId=safePayload.tv_id??safePayload.trade_id??"—";
+  const details=expanded?`<div class="activity-detail"><div class="activity-detail-grid"><div><div class="activity-detail-label">策略 strategy</div><div class="activity-detail-value mono">${esc(item.strategy||"—")}</div></div><div><div class="activity-detail-label">Alert tv_id</div><div class="activity-detail-value mono">${esc(tvId)}</div></div><div><div class="activity-detail-label">事件 signal_id</div><div class="activity-detail-value mono" style="word-break:break-all">${esc(item.signal_id||"—")}</div></div><div><div class="activity-detail-label">事件</div><div class="activity-detail-value">${esc(item.event||eventLabel)}</div></div><div><div class="activity-detail-label">系统状态</div><div class="activity-detail-value">${esc(item.status||"—")}</div></div><div><div class="activity-detail-label">接收时间</div><div class="activity-detail-value number">${time(item.received_at)}</div></div></div>${reason}<pre>${esc(JSON.stringify(safePayload,null,2))}</pre></div>`:"";
   return `<article class="activity-item ${activityClass}" data-key="${esc(key)}"><button type="button" class="activity-summary" aria-expanded="${expanded}" onclick="toggleSignalActivity(this.closest('article').dataset.key)"><div><div class="activity-title">${esc(title)}</div><div class="activity-subtitle signal-id mono">${esc(subtitle)}</div></div><div class="activity-time number">${time(item.received_at)}</div><div class="activity-badges"><span class="source-pill ${sourceClass}">${esc(eventLabel)}</span>${statusBadge}</div><span class="activity-chevron">⌄</span></button>${details}</article>`;
 }
-function renderActiveSignals(items){const real=(items||[]).filter(x=>x.kind==="OPEN_SIGNAL").sort((a,b)=>(a.status==="RECEIVED"?-1:0)-(b.status==="RECEIVED"?-1:0)).slice(0,6);$("activeSignalList").innerHTML=real.length?real.map(signalActivityCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>暂时没有真实开仓信号</strong><span>系统已连接并持续等待 TradingView 开仓信号</span></div></div>`}
-function renderSignals(data){const items=data.items||[],sum=data.summary||{};$("sConfigured").textContent=data.configured?"接收器已就绪":"未配置口令";$("sConfigured").className=`metric-value small ${data.configured?"positive":"negative"}`;$("sLastTime").textContent=data.last_received_at?time(data.last_received_at):"尚未收到";$("sTvCount").textContent=`${sum.open_signals||0} / ${sum.total||0}`;$("sAccepted").textContent=sum.accepted||0;$("sRejected").textContent=sum.rejected||0;$("sRejected").className=`metric-value ${sum.rejected?"negative":""}`;$("sPending").textContent=sum.pending||0;$("sPending").className=`metric-value ${sum.pending?"warning":""}`;const last=data.last_received_at?time(data.last_received_at):null,url=location.origin+(data.webhook_path||"/webhook/tradingview");$("overviewSignalDot").className=`monitor-dot ${data.configured?"live":"bad"}`;$("overviewSignalState").textContent=data.configured?"Webhook 已就绪，持续监听 TradingView":"Webhook 未配置，暂时无法接收";$("overviewLastSignal").textContent=last?`最近活动 ${last}`:"等待首个连接回报或信号";$("webhookUrl").textContent=url;$("webhookBadge").textContent=data.configured?"已配置":"缺少口令";$("webhookBadge").className=`tag ${data.configured?"live":"bad"}`;$("signalHealthRing").style.setProperty("--value",data.configured?100:35);$("signalHealthRing").style.setProperty("--ring",data.configured?"var(--cyan)":"var(--red)");$("signalHealthTitle").textContent=last?"TradingView 链路已有活动":data.configured?"Webhook 正在监听":"Webhook 未配置";$("signalHealthCopy").textContent=last?`最近接收于 ${last}`:data.configured?"等待首个 TradingView 连接回报或信号":"请配置 WEBHOOK_PASSPHRASE";$("tvSignalBadge").textContent=`${sum.heartbeats||0} 回报 · ${sum.signal_total||0} 信号`;$("tvSignals").innerHTML=items.length?items.map(signalActivityCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>正在实时监听 TradingView</strong><span>尚未收到 TradingView 连接回报或信号</span></div></div>`;renderActiveSignals(items)}
+function legacyStrategyCard(item,activities,serverTs){
+  const name=item.strategy||"未命名策略";
+  const initials=name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TV";
+  const heartbeatAge=item.last_heartbeat_at?Number(serverTs||Date.now())-Number(item.last_heartbeat_at):Infinity;
+  const online=heartbeatAge<=HEARTBEAT_STALE_MS;
+  const hasPosition=Number(item.active_trades||0)>0;
+  const needsAttention=Number(item.rejected||0)>0||Number(item.pending||0)>0;
+  const stateClass=hasPosition||online?"live":needsAttention?"bad":"";
+  const stateLabel=hasPosition?`${item.active_trades} 个活跃仓位`:online?"近期在线":needsAttention?"有异常记录":"等待新活动";
+  const latest=(activities||[]).find(activity=>(activity.strategy||"")===item.strategy);
+  const latestLabel=!latest?"尚无活动":latest.kind==="HEARTBEAT"?"连接回报":latest.kind==="OPEN_SIGNAL"?"开仓信号":"退出信号";
+  return `<article class="strategy-card"><div class="strategy-card-head"><div class="strategy-avatar">${esc(initials)}</div><div><div class="strategy-name">${esc(name)}</div><div class="strategy-account">${esc(item.account_name||"默认 Deribit 账户")} · TradingView</div></div><span class="tag ${stateClass}"><i class="strategy-live-dot ${stateClass}"></i>${esc(stateLabel)}</span></div><div class="strategy-stats"><div class="strategy-stat"><b>${item.heartbeats||0}</b><span>连接回报</span></div><div class="strategy-stat"><b>${item.open_signals||0}</b><span>开仓信号</span></div><div class="strategy-stat"><b>${item.exit_signals||0}</b><span>退出信号</span></div><div class="strategy-stat"><b class="positive">${item.accepted||0}</b><span>系统接受</span></div><div class="strategy-stat"><b class="${item.rejected?"negative":""}">${item.rejected||0}</b><span>系统拒绝</span></div><div class="strategy-stat"><b>${item.active_trades||0}</b><span>活跃仓位</span></div></div><div class="strategy-last"><span>最近活动 · <strong>${esc(latestLabel)}</strong></span><span class="number">${time(item.last_activity_at)}</span></div></article>`;
+}
+function connectionAgeLabel(timestamp,serverTs){
+  if(!timestamp)return"尚未收到";
+  const seconds=Math.max(0,Math.round((Number(serverTs||Date.now())-Number(timestamp))/1000));
+  if(seconds<60)return`${seconds} 秒前`;
+  const minutes=Math.round(seconds/60);
+  if(minutes<60)return`${minutes} 分钟前`;
+  const hours=Math.round(minutes/60);
+  if(hours<48)return`${hours} 小时前`;
+  return`${Math.round(hours/24)} 天前`;
+}
+function toggleStrategyCard(name){
+  expandedStrategyName=expandedStrategyName===name?null:name;
+  if(model?.signals)renderStrategyCenter(model.signals);
+}
+function strategyConnectionDetails(item,activities,serverTs,stateClass,stateLabel){
+  const reports=(activities||[]).filter(activity=>activity.kind==="HEARTBEAT"&&(activity.strategy||"")===item.strategy).slice(0,6);
+  const latest=reports[0]||null;
+  const snapshot=latest?.payload||{};
+  const age=connectionAgeLabel(item.last_heartbeat_at,serverTs);
+  const price=snapshot.btc_price==null?"未上报":money(snapshot.btc_price);
+  const barTime=snapshot.bar_ts?time(snapshot.bar_ts):"未上报";
+  const fields=Object.keys(snapshot).filter(key=>!["passphrase","received_at"].includes(key)).length;
+  const rows=reports.map(report=>{
+    const payload=report.payload||{};
+    return `<div class="connection-record"><i class="connection-record-dot"></i><div class="connection-record-main"><strong>连接回报已接收</strong><span>${time(report.received_at)} · ${connectionAgeLabel(report.received_at,serverTs)}</span></div><span class="connection-record-meta">数据时间 ${payload.bar_ts?time(payload.bar_ts):"未提供"}</span><span class="connection-record-price">${payload.btc_price==null?"—":money(payload.btc_price)}</span></div>`;
+  }).join("");
+  const healthCopy=latest?"Webhook 校验通过，TradingView 策略仍在按周期上报":"Webhook 接收器已就绪，但这套策略还没有发送 STATUS 连接回报";
+  return `<div class="strategy-connection-details"><div class="connection-health ${stateClass}"><div class="connection-health-icon">${latest?"↗":"!"}</div><div><div class="connection-health-title">${esc(stateLabel)}</div><div class="connection-health-copy">${esc(healthCopy)}</div></div><span class="connection-age ${stateClass==="bad"?"negative":stateClass==="busy"?"warning":"positive"}">${esc(age)}</span></div><div class="connection-summary-grid"><div class="connection-summary-item"><span>最后接收</span><strong>${time(item.last_heartbeat_at)}</strong></div><div class="connection-summary-item"><span>TradingView 数据时间</span><strong>${barTime}</strong></div><div class="connection-summary-item"><span>最新 BTC 价格</span><strong>${price}</strong></div><div class="connection-summary-item"><span>上报字段 / 累计回报</span><strong>${fields} / ${item.heartbeats||0}</strong></div></div><div class="connection-history-head"><strong>最近连接记录</strong><span>最多显示 6 条</span></div><div class="connection-history">${rows||`<div class="connection-empty">尚未收到这套策略的连接回报。请确认 Pine 中已开启 STATUS 上报，并重新创建 Alert。</div>`}</div><div class="connection-note"><b>说明：</b>连接回报只证明 TradingView → Webhook 链路正常，不会触发开仓或平仓。</div></div>`;
+}
+function strategyCard(item,activities,serverTs){
+  const name=item.strategy||"未命名策略";
+  const initials=name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TV";
+  const heartbeatAge=item.last_heartbeat_at?Number(serverTs||Date.now())-Number(item.last_heartbeat_at):Infinity;
+  const online=heartbeatAge<=HEARTBEAT_STALE_MS;
+  const delayed=!online&&heartbeatAge<=HEARTBEAT_STALE_MS*2;
+  const needsAttention=Number(item.rejected||0)>0||Number(item.pending||0)>0;
+  const stateClass=online?"live":delayed?"busy":item.last_heartbeat_at||needsAttention?"bad":"";
+  const stateLabel=online?"连接正常":delayed?"连接延迟":item.last_heartbeat_at?"连接已超时":needsAttention?"有异常记录":"等待连接";
+  const latest=(activities||[]).find(activity=>(activity.strategy||"")===item.strategy);
+  const latestLabel=!latest?"尚无活动":latest.kind==="HEARTBEAT"?"连接回报":latest.kind==="OPEN_SIGNAL"?"开仓信号":"退出信号";
+  const expanded=expandedStrategyName===name;
+  const details=expanded?strategyConnectionDetails(item,activities,serverTs,stateClass,stateLabel):"";
+  return `<article class="strategy-card ${expanded?"open":""}" data-strategy="${esc(name)}"><button type="button" class="strategy-card-toggle" aria-expanded="${expanded}" onclick="toggleStrategyCard(this.closest('article').dataset.strategy)"><div class="strategy-card-head"><div class="strategy-avatar">${esc(initials)}</div><div><div class="strategy-name">${esc(name)}</div><div class="strategy-account">${esc(item.account_name||"默认 Deribit 账户")} · TradingView</div></div><span class="tag ${stateClass}"><i class="strategy-live-dot ${stateClass}"></i>${esc(stateLabel)}</span></div><div class="strategy-stats"><div class="strategy-stat"><b>${item.heartbeats||0}</b><span>连接回报</span></div><div class="strategy-stat"><b>${item.open_signals||0}</b><span>开仓信号</span></div><div class="strategy-stat"><b>${item.exit_signals||0}</b><span>退出信号</span></div><div class="strategy-stat"><b class="positive">${item.accepted||0}</b><span>系统接受</span></div><div class="strategy-stat"><b class="${item.rejected?"negative":""}">${item.rejected||0}</b><span>系统拒绝</span></div><div class="strategy-stat"><b>${item.active_trades||0}</b><span>活跃仓位</span></div></div><div class="strategy-last"><span>最近活动 · <strong>${esc(latestLabel)}</strong></span><span class="strategy-card-chevron">${expanded?"收起连接详情":"查看连接详情"}</span></div></button>${details}</article>`;
+}
+function strategyConnectionState(item,serverTs){
+  const age=item.last_heartbeat_at?Number(serverTs||Date.now())-Number(item.last_heartbeat_at):Infinity;
+  if(age<=HEARTBEAT_STALE_MS)return{className:"live",label:"连接正常"};
+  if(age<=HEARTBEAT_STALE_MS*2)return{className:"busy",label:"连接延迟"};
+  if(item.last_heartbeat_at)return{className:"bad",label:"连接已超时"};
+  return{className:"",label:"等待连接"};
+}
+function modalStrategyCard(item,activities,serverTs){
+  const name=item.strategy||"未命名策略";
+  const initials=name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TV";
+  const state=strategyConnectionState(item,serverTs);
+  const latest=(activities||[]).find(activity=>(activity.strategy||"")===item.strategy);
+  const latestLabel=!latest?"尚无活动":latest.kind==="HEARTBEAT"?"连接回报":latest.kind==="OPEN_SIGNAL"?"开仓信号":"退出信号";
+  return `<article class="strategy-card" data-strategy="${esc(name)}"><button type="button" class="strategy-card-toggle" aria-haspopup="dialog" onclick="openStrategyModal(this.closest('article').dataset.strategy)"><div class="strategy-card-head"><div class="strategy-avatar">${esc(initials)}</div><div><div class="strategy-name">${esc(name)}</div><div class="strategy-account">${esc(item.account_name||"默认 Deribit 账户")} · TradingView</div></div><span class="tag ${state.className}"><i class="strategy-live-dot ${state.className}"></i>${esc(state.label)}</span></div><div class="strategy-stats"><div class="strategy-stat"><b>${item.heartbeats||0}</b><span>连接回报</span></div><div class="strategy-stat"><b>${item.open_signals||0}</b><span>开仓信号</span></div><div class="strategy-stat"><b>${item.exit_signals||0}</b><span>退出信号</span></div><div class="strategy-stat"><b class="positive">${item.accepted||0}</b><span>系统接受</span></div><div class="strategy-stat"><b class="${item.rejected?"negative":""}">${item.rejected||0}</b><span>系统拒绝</span></div><div class="strategy-stat"><b>${item.active_trades||0}</b><span>活跃仓位</span></div></div><div class="strategy-last"><span>最近活动 · <strong>${esc(latestLabel)}</strong></span><span class="strategy-card-chevron">打开信号详情</span></div></button></article>`;
+}
+function openStrategyModal(name){
+  selectedStrategyName=name;
+  strategyModalFilter="ALL";
+  expandedStrategyActivityKeys.clear();
+  renderStrategyModal(model?.signals);
+  $("strategyModal").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeStrategyModal(){
+  $("strategyModal").classList.remove("open");
+  selectedStrategyName=null;
+  expandedStrategyActivityKeys.clear();
+  document.body.style.overflow="";
+}
+function setStrategyModalFilter(filter){
+  strategyModalFilter=filter;
+  renderStrategyModal(model?.signals);
+}
+function toggleStrategyActivity(key){
+  const feed=document.querySelector(".strategy-modal-feed");
+  const scrollTop=feed?.scrollTop||0;
+  if(expandedStrategyActivityKeys.has(key))expandedStrategyActivityKeys.delete(key);
+  else expandedStrategyActivityKeys.add(key);
+  renderStrategyModal(model?.signals);
+  requestAnimationFrame(()=>{
+    const next=document.querySelector(".strategy-modal-feed");
+    if(next)next.scrollTop=scrollTop;
+  });
+}
+function payloadDisplayValue(value){
+  if(value===null)return "null";
+  if(value===undefined)return "—";
+  if(typeof value==="object"){
+    try{return JSON.stringify(value)}
+    catch{return String(value)}
+  }
+  return String(value);
+}
+function strategyTransportDetail(item){
+  const payload=item.payload&&typeof item.payload==="object"?item.payload:{};
+  const payloadEntries=Object.entries(payload).filter(([key])=>key!=="passphrase");
+  const systemEntries=[
+    ["接收类型",item.kind==="HEARTBEAT"?"连接回报":item.kind==="OPEN_SIGNAL"?"开仓信号":"退出信号"],
+    ["服务器状态",item.status||"—"],
+    ["服务器接收时间",time(item.received_at)],
+    ["Webhook 校验","已通过"],
+    ["signal_id",item.signal_id||"—"],
+    ["拒绝原因",item.reject_reason?(REJECT_REASON[item.reject_reason]||item.reject_reason):"—"],
+  ];
+  const rawJson=JSON.stringify(payload,null,2)||"{}";
+  return `<div class="strategy-feed-detail"><div class="strategy-feed-detail-head"><div><strong>本次 Webhook 接收内容</strong><span>下面是后台实际收到并保存的字段，可用于核对 TradingView 是否传输正确。</span></div><span class="strategy-feed-validation">口令校验已通过</span></div><div class="strategy-feed-system-grid">${systemEntries.map(([key,value])=>`<div class="strategy-feed-system-item"><span>${esc(key)}</span><strong>${esc(payloadDisplayValue(value))}</strong></div>`).join("")}</div><div class="strategy-feed-section-title"><strong>TradingView 传输字段</strong><span>${payloadEntries.length} 个字段</span></div><div class="strategy-feed-payload-grid">${payloadEntries.length?payloadEntries.map(([key,value])=>`<div class="strategy-feed-payload-item"><span>${esc(key)}</span><strong>${esc(payloadDisplayValue(value))}</strong></div>`).join(""):`<div class="strategy-feed-payload-item"><span>payload</span><strong>没有可显示字段</strong></div>`}</div><div class="strategy-feed-section-title"><strong>脱敏后的原始 JSON</strong><span>Webhook 口令不会在这里显示</span></div><pre class="strategy-feed-json">${esc(rawJson)}</pre></div>`;
+}
+function strategyModalActivityRow(item,serverTs){
+  const payload=item.payload||{};
+  const heartbeat=item.kind==="HEARTBEAT";
+  const open=item.kind==="OPEN_SIGNAL";
+  const rejected=item.status==="REJECTED";
+  const rowClass=rejected?"rejected":heartbeat?"heartbeat":open?"open":"exit";
+  const expanded=expandedStrategyActivityKeys.has(item.key);
+  const icon=heartbeat?"↗":open?"O":"C";
+  const title=heartbeat?"TradingView 连接回报":open?`${item.spread_type==="CALL_CREDIT"?"CALL":"PUT"} 开仓信号`:"退出 / 平仓信号";
+  const subtitle=heartbeat?"STATUS 已通过 Webhook 校验":[item.signal_id,item.status==="REJECTED"?(REJECT_REASON[item.reject_reason]||item.reject_reason):item.status].filter(Boolean).join(" · ");
+  const facts=[];
+  if(heartbeat){
+    facts.push(`数据时间 ${payload.bar_ts?time(payload.bar_ts):"未提供"}`);
+    if(payload.btc_price!=null)facts.push(`BTC ${money(payload.btc_price)}`);
+  }else{
+    if(payload.tv_id!=null||payload.trade_id!=null)facts.push(`交易 ID ${payload.tv_id??payload.trade_id}`);
+    if(payload.size!=null||payload.quantity!=null)facts.push(`数量 ${num(payload.size??payload.quantity,2)}`);
+    if(payload.reason)facts.push(String(payload.reason));
+  }
+  const status=heartbeat?`<span class="tag live">已连接</span>`:rejected?`<span class="tag bad">已拒绝</span>`:item.status==="ACCEPTED"?`<span class="tag live">已接受</span>`:`<span class="tag busy">处理中</span>`;
+  return `<article class="strategy-feed-entry ${rowClass} ${expanded?"open":""}"><button type="button" class="strategy-feed-row strategy-feed-toggle ${rowClass}" data-key="${esc(item.key)}" aria-expanded="${expanded}" onclick="toggleStrategyActivity(this.dataset.key)"><div class="strategy-feed-icon">${icon}</div><div><div class="strategy-feed-title">${esc(title)} ${status}</div><div class="strategy-feed-subtitle mono">${esc(subtitle||item.event||"TradingView")}</div><div class="strategy-feed-facts">${facts.map(value=>`<span class="strategy-feed-fact">${esc(value)}</span>`).join("")}</div></div><div class="strategy-feed-time number">${time(item.received_at)}<span>${connectionAgeLabel(item.received_at,serverTs)}</span><span class="strategy-feed-expand">${expanded?"收起内容":"查看传输内容"}</span></div></button>${expanded?strategyTransportDetail(item):""}</article>`;
+}
+function renderStrategyModal(data){
+  if(!selectedStrategyName||!data)return;
+  const strategy=(data.strategies||[]).find(item=>(item.strategy||"未命名策略")===selectedStrategyName);
+  if(!strategy){closeStrategyModal();return}
+  const state=strategyConnectionState(strategy,data.server_ts);
+  const all=(data.items||[]).filter(item=>(item.strategy||"未命名策略")===selectedStrategyName);
+  const filtered=all.filter(item=>strategyModalFilter==="ALL"||strategyModalFilter==="HEARTBEAT"&&item.kind==="HEARTBEAT"||strategyModalFilter==="TRADE"&&item.kind!=="HEARTBEAT");
+  const initials=selectedStrategyName.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TV";
+  const rows=filtered.map(item=>strategyModalActivityRow(item,data.server_ts)).join("");
+  $("strategyModalContent").innerHTML=`<header class="strategy-modal-head"><div class="strategy-avatar">${esc(initials)}</div><div><h2 id="strategyModalTitle">${esc(selectedStrategyName)}</h2><div class="strategy-modal-subtitle">${esc(strategy.account_name||"默认 Deribit 账户")} · TradingView 策略信号明细</div></div><div style="display:flex;align-items:center;gap:9px"><span class="tag ${state.className}"><i class="strategy-live-dot ${state.className}"></i>${esc(state.label)}</span><button type="button" class="strategy-modal-close" aria-label="关闭策略详情" onclick="closeStrategyModal()">×</button></div></header><div class="strategy-modal-summary"><div class="strategy-modal-metric"><span>连接回报</span><strong>${strategy.heartbeats||0}</strong></div><div class="strategy-modal-metric"><span>开仓 / 退出</span><strong>${strategy.open_signals||0} / ${strategy.exit_signals||0}</strong></div><div class="strategy-modal-metric"><span>接受 / 拒绝</span><strong>${strategy.accepted||0} / ${strategy.rejected||0}</strong></div><div class="strategy-modal-metric"><span>活跃仓位</span><strong>${strategy.active_trades||0}</strong></div><div class="strategy-modal-metric"><span>最后连接</span><strong>${connectionAgeLabel(strategy.last_heartbeat_at,data.server_ts)}</strong></div></div><main class="strategy-modal-main"><div class="strategy-modal-toolbar"><button class="strategy-modal-filter ${strategyModalFilter==="ALL"?"active":""}" onclick="setStrategyModalFilter('ALL')">全部活动</button><button class="strategy-modal-filter ${strategyModalFilter==="HEARTBEAT"?"active":""}" onclick="setStrategyModalFilter('HEARTBEAT')">连接回报</button><button class="strategy-modal-filter ${strategyModalFilter==="TRADE"?"active":""}" onclick="setStrategyModalFilter('TRADE')">交易信号</button><span class="strategy-modal-count">当前显示 ${filtered.length} / ${all.length} 条</span></div><div class="strategy-modal-feed"><div class="strategy-feed-list">${rows||`<div class="strategy-modal-empty"><div><strong>这个分类暂时没有记录</strong><span>收到新的 TradingView 信号后会自动出现在这里。</span></div></div>`}</div><div class="strategy-modal-note">列表按接收时间倒序排列 · 可以使用鼠标滚轮或右侧滚动条上下查看</div></div></main>`;
+}
+function renderStrategyCenter(data){
+  const strategies=data.strategies||[],items=data.items||[],sum=data.summary||{};
+  const online=strategies.filter(item=>item.last_heartbeat_at&&Number(data.server_ts||Date.now())-Number(item.last_heartbeat_at)<=HEARTBEAT_STALE_MS).length;
+  $("strategyObserved").textContent=strategies.length;
+  $("strategyOnline").textContent=online;
+  $("strategyActions").textContent=`${sum.open_signals||0} / ${sum.exit_signals||0}`;
+  $("strategyAttention").textContent=`${sum.rejected||0} / ${sum.pending||0}`;
+  $("strategyAttention").className=`metric-value ${sum.rejected?"negative":sum.pending?"warning":""}`;
+  $("strategyHealthDot").className=`monitor-dot ${!data.configured?"bad":strategies.length?"live":""}`;
+  $("strategyHealthTitle").textContent=!data.configured?"Webhook 未配置":strategies.length?`${strategies.length} 个策略已接入`:"等待首个 TradingView 策略";
+  $("strategyHealthCopy").textContent=strategies.length?`${online} 个策略近期在线 · 自动发现已开启`:"策略首次发送连接回报或信号后自动出现";
+  $("strategyCountBadge").textContent=`${strategies.length} 个策略`;
+  $("strategyCountBadge").className=`tag ${strategies.length?"live":""}`;
+  $("strategyRoster").innerHTML=strategies.length?strategies.map(item=>modalStrategyCard(item,items,data.server_ts)).join(""):`<div class="strategy-empty"><div><div class="empty-orbit"></div><strong>尚未发现 TradingView 策略</strong><span>无需在后台手工创建。配置 Alert 并发送首个连接回报或信号后，策略会自动出现在这里。</span><br><button class="btn btn-primary" onclick="navigateTo('/tradingview')">前往 TV 接入</button></div></div>`;
+  const real=items.filter(item=>item.kind!=="HEARTBEAT").slice(0,8);
+  $("strategySignalBadge").textContent=`${real.length} 条`;
+  $("strategySignalList").innerHTML=real.length?real.map(signalActivityCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>暂时没有可执行信号</strong><span>连接回报不会触发交易；真实开仓或退出信号会显示在这里</span></div></div>`;
+  if($("strategyModal").classList.contains("open"))renderStrategyModal(data);
+}
+function renderSignals(data){const items=data.items||[],sum=data.summary||{};$("sConfigured").textContent=data.configured?"接收器已就绪":"未配置口令";$("sConfigured").className=`metric-value small ${data.configured?"positive":"negative"}`;$("sLastTime").textContent=data.last_received_at?time(data.last_received_at):"尚未收到";$("sTvCount").textContent=`${sum.open_signals||0} / ${sum.total||0}`;$("sAccepted").textContent=sum.accepted||0;$("sRejected").textContent=sum.rejected||0;$("sRejected").className=`metric-value ${sum.rejected?"negative":""}`;$("sPending").textContent=sum.pending||0;$("sPending").className=`metric-value ${sum.pending?"warning":""}`;const last=data.last_received_at?time(data.last_received_at):null,url=location.origin+(data.webhook_path||"/webhook/signal");$("overviewSignalDot").className=`monitor-dot ${data.configured?"live":"bad"}`;$("overviewSignalState").textContent=data.configured?"Webhook 已就绪，持续监听 TradingView":"Webhook 未配置，暂时无法接收";$("overviewLastSignal").textContent=last?`最近活动 ${last}`:"等待首个连接回报或信号";$("webhookUrl").textContent=url;$("webhookBadge").textContent=data.configured?"已配置":"缺少口令";$("webhookBadge").className=`tag ${data.configured?"live":"bad"}`;$("signalHealthRing").style.setProperty("--value",data.configured?100:35);$("signalHealthRing").style.setProperty("--ring",data.configured?"var(--cyan)":"var(--red)");$("signalHealthTitle").textContent=last?"TradingView 链路已有活动":data.configured?"Webhook 正在监听":"Webhook 未配置";$("signalHealthCopy").textContent=last?`最近接收于 ${last}`:data.configured?"等待首个 TradingView 连接回报或信号":"请配置 WEBHOOK_PASSPHRASE";$("tvSignalBadge").textContent=`${sum.heartbeats||0} 回报 · ${sum.signal_total||0} 信号`;$("tvSignals").innerHTML=items.length?items.map(signalActivityCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>正在实时监听 TradingView</strong><span>尚未收到 TradingView 连接回报或信号</span></div></div>`;renderStrategyCenter(data);renderTvHub(data)}
 const COND_ROWS=[{key:"config",name:"档位配置",hint:"L1 < L2 < L3 递增"},{key:"dvol_tier",name:"DVOL 档位",hint:"档位 ≠ 0（低于 L1 不开仓）"},{key:"hv",name:"HV 分位 (2h)",hint:"≥ 分位下限"},{key:"cci",name:"CCI (2h)",hint:"|CCI| < 上限（避开单边趋势）"},{key:"shape",name:"布林触发形态",hint:"破轨 + 反向收线"}];
 // 心跳每 2h 一次，留够一根 bar 的余量再判定为断流
 const HEARTBEAT_STALE_MS=150*60*1000;
@@ -373,9 +599,8 @@ const pct1=x=>x==null?"—":num(x,1)+"%";
 const NA_CELL={ok:null,value:"—",note:""};
 function condSrc(cell,dim){const cls=cell.ok==null?"na":cell.ok?"ok":"no";return `<div class="cond-src${dim?" dim":""}"><div class="cond-val ${cls}">${esc(cell.value)}</div>${cell.note?`<div class="cond-note">${esc(cell.note)}</div>`:""}</div>`}
 function condBackend(key,b){if(!b)return{ok:null,value:"—",note:"行情不可用"};const c=b.checks[key];switch(key){case"config":return{ok:c.ok,value:c.levels.map(v=>num(v*100,0)+"%").join(" / "),note:"L1 / L2 / L3"};case"dvol_tier":return{ok:c.ok,value:c.percentile==null?"样本不足":pct1(c.percentile*100),note:`${c.tier<0?"档位待定":"档位 L"+c.tier} · ${c.samples}/${c.window_bars} 根`};case"hv":return{ok:c.ok,value:pct1(c.value),note:`需 ≥ ${pct1(c.threshold)}`};case"cci":return{ok:c.ok,value:c.value==null?"—":num(c.value,1),note:`需 < ${num(c.threshold,0)}`};default:return{ok:c.ok,value:c.put?"PUT 成立":c.call?"CALL 成立":"未成立",note:c.lower==null?"":`轨道 ${num(c.lower,0)} ~ ${num(c.upper,0)}`}}}
-function condPine(key,p){if(!p)return NA_CELL;const noPct=p.dvol_percentile==null||p.dvol_percentile<0;switch(key){case"config":return{ok:p.cfg_ok,value:p.cfg_ok?"递增":"配置错误",note:"L1 / L2 / L3"};case"dvol_tier":{const deferred=p.dvol_tier==null||p.dvol_tier<0;
- // Pine 交给后端判定时不能算"通过"——它根本没下结论
- return{ok:deferred?null:p.tier_ok,value:noPct?"样本不足":pct1(p.dvol_percentile*100),note:`${deferred?"交后端判定":"档位 L"+p.dvol_tier} · ${p.dvol_samples??"—"} 根`}}case"hv":return{ok:p.hv_ok,value:pct1(p.hv_percentile==null?null:p.hv_percentile*100),note:"TradingView 口径"};case"cci":return{ok:p.cci_ok,value:p.cci==null?"—":num(p.cci,1),note:"TradingView 口径"};default:return{ok:p.put_shape||p.call_shape,value:p.put_shape?"PUT 成立":p.call_shape?"CALL 成立":"未成立",note:p.boll_lower==null?"":`轨道 ${num(p.boll_lower,0)} ~ ${num(p.boll_upper,0)}`}}}
+function condPine(key,p){if(!p)return NA_CELL;const noPct=p.dvol_percentile==null||p.dvol_percentile<0;switch(key){case"config":return{ok:p.cfg_ok,value:p.cfg_ok?"递增":"配置错误",note:"L1 / L2 / L3"};case"dvol_tier":{const unavailable=p.dvol_tier==null||p.dvol_tier<0;
+ return{ok:unavailable?false:p.tier_ok,value:noPct?"样本不足":pct1(p.dvol_percentile*100),note:`${unavailable?"TradingView 样本不足":"档位 L"+p.dvol_tier} · ${p.dvol_samples??"—"} 根`}}case"hv":return{ok:p.hv_ok,value:pct1(p.hv_percentile==null?null:p.hv_percentile*100),note:"TradingView 口径"};case"cci":return{ok:p.cci_ok,value:p.cci==null?"—":num(p.cci,1),note:"TradingView 口径"};default:return{ok:p.put_shape||p.call_shape,value:p.put_shape?"PUT 成立":p.call_shape?"CALL 成立":"未成立",note:p.boll_lower==null?"":`轨道 ${num(p.boll_lower,0)} ~ ${num(p.boll_upper,0)}`}}}
 function mbarHtml(valPct,thrPct,failSide,cls,ticks){
   // failSide: "lo"=不达标区在左(下限，越高越安全) | "hi"=不达标区在右(上限，越低越安全)
   const v=Math.max(0,Math.min(100,valPct)),t=Math.max(0,Math.min(100,thrPct));
@@ -384,13 +609,13 @@ function mbarHtml(valPct,thrPct,failSide,cls,ticks){
   const dir=failSide==="hi"?"↓ 越低越安全（红=超上限）":"↑ 越高越安全（红=低于下限）";
   return `<div class="mbar">${fail}${tk}<i class="thr" style="left:${t}%"></i><i class="mk ${cls}" style="left:${v}%"></i></div><div class="mbar-cap">${dir}</div>`;
 }
-function condRow(r,data,pineFresh,deferred){
+function condRow(r,data,pineFresh){
   // 每行给出：权威值 + 来源 + 标准 + 离标准差多少（差距条/形态明细）
   const b=data.backend,p=data.pine,params=data.params||{};
   const bc=condBackend(r.key,b),pc=condPine(r.key,p);
-  const pAuth=pineFresh&&!(r.key==="dvol_tier"&&deferred);
+  const pAuth=pineFresh;
   const main=pAuth?pc:bc,cls=main.ok==null?"na":main.ok?"ok":"no";
-  const srcTag=pAuth?"TradingView":r.key==="dvol_tier"?"后端·DVOL权威":!pineFresh?"后端·连接回报降级":"后端";
+  const srcTag=pAuth?"TradingView":!pineFresh?"后端·仅供诊断":"后端·仅供诊断";
   const gp=(txt,g)=>`<span class="std-gap ${g}">${txt}</span>`;
   let value=main.value,standard="",gap="",extra="";
   if(r.key==="config"){
@@ -437,7 +662,7 @@ function condRow(r,data,pineFresh,deferred){
   return {ok:main.ok,cls,value,srcTag,standard,gap,extra};
 }
 function renderConditionCard(row,resolved){
-  const status=resolved.ok==="delegated"?"交后端判断":resolved.ok==="waiting"?"等待触发":resolved.ok==null?"待定":resolved.ok?"通过":"阻断";
+  const status=resolved.ok==="waiting"?"等待触发":resolved.ok==null?"待定":resolved.ok?"通过":"阻断";
   const body=`<div class="condition-card-head"><div><div class="condition-card-name">${esc(row.name)}</div><div class="condition-card-hint">${esc(row.hint)}</div></div><span class="condition-card-status">${status}</span></div>`+
     `<div class="condition-card-value">${esc(resolved.value)}</div>`+
     `<div class="condition-card-gap">${resolved.gap||"等待有效数据"}</div>`+
@@ -445,7 +670,6 @@ function renderConditionCard(row,resolved){
     `<div class="condition-card-details">${resolved.extra||""}</div>`+
     `<div class="condition-card-source"><span>判断来源</span><b>${esc(resolved.srcTag)}</b></div>`;
   if(resolved.ok===false)return `<article class="condition-card blocker">${body}</article>`;
-  if(resolved.ok==="delegated")return `<article class="condition-card delegated">${body}</article>`;
   if(resolved.ok==="waiting")return `<article class="condition-card waiting">${body}</article>`;
   if(resolved.ok==null)return `<article class="condition-card pending">${body}</article>`;
   return `<article class="condition-card passed">${body}</article>`;
@@ -455,17 +679,16 @@ function buildTradingViewStage(data){
   if(!p)return {state:"unknown",title:"TradingView 暂时无法完成判断",blockers:[],passed:0,delegated:0,waiting:0,blocked:0};
   const now=data.server_ts||Date.now();
   if(p.received_at&&now-p.received_at>150*60*1000)return {state:"unknown",title:"TradingView 连接回报已过期",blockers:[],passed:0,delegated:0,waiting:0,blocked:0};
-  const delegated=p.dvol_tier==null||p.dvol_tier<0;
   const checks=[
     {name:"档位配置",value:p.cfg_ok},
-    ...(!delegated?[{name:"DVOL 档位",value:p.tier_ok}]:[]),
+    {name:"DVOL 档位",value:p.dvol_tier==null||p.dvol_tier<0?false:p.tier_ok},
     {name:"HV 分位",value:p.hv_ok},
     {name:"CCI",value:p.cci_ok},
   ];
   const blockers=checks.filter(x=>x.value===false).map(x=>x.name);
   const pending=checks.filter(x=>x.value==null).map(x=>x.name);
   const shapeKnown=p.put_shape!=null&&p.call_shape!=null,shape=p.put_shape===true||p.call_shape===true;
-  const base={blockers,pending,passed:checks.filter(x=>x.value===true).length,delegated:delegated?1:0,waiting:shape?0:1,blocked:blockers.length,shape};
+  const base={blockers,pending,passed:checks.filter(x=>x.value===true).length,delegated:0,waiting:shape?0:1,blocked:blockers.length,shape};
   if(blockers.length)return {...base,state:"blocked",title:"TradingView 当前不会发送开仓信号"};
   if(pending.length)return {...base,state:"unknown",title:"TradingView 暂时无法完成判断"};
   if(!shapeKnown)return {...base,state:"unknown",title:"TradingView 布林形态数据待确认",waiting:0};
@@ -516,14 +739,10 @@ function buildBackendStage(data,signals){
       state,actual:true,status,
       reason:matched.reject_reason||null,
       signal:matched,
-      dvol:data?.backend?.checks?.dvol_tier||null,
     };
   }
-  const check=data?.backend?.checks?.dvol_tier;
   return {
     state:"waiting",actual:false,
-    preflight:!check||check.ok==null?"unknown":check.ok?"allow":"reject",
-    dvol:check||null,
   };
 }
 // 第 4 步执行映射：只有后端「真实接受」后才进入执行，父交易状态翻译成新手文案。
@@ -554,7 +773,8 @@ function tradingViewPrimaryReason(data,tv){
       :"TradingView 数据不足，暂时无法判断";
   }
   if(p.cfg_ok===false)return "档位配置不符合 L1 < L2 < L3";
-  if(p.dvol_tier>=0&&p.tier_ok===false)return "TradingView DVOL 档位低于开仓要求";
+  if(p.dvol_tier==null||p.dvol_tier<0)return "TradingView DVOL 样本不足，策略不会发出开仓信号";
+  if(p.tier_ok===false)return "TradingView DVOL 档位低于开仓要求";
   if(p.hv_ok===false){
     const value=p.hv_percentile==null?"—":`${(Number(p.hv_percentile)*100).toFixed(1)}%`;
     const threshold=Number(p?.params?.hv_pctl_min??data?.backend?.checks?.hv?.threshold??30);
@@ -609,8 +829,8 @@ function buildSignalJourney(data,signals,trades){
           :"processing",
     }
     :{
-      ...backend,state:"preflight",mode:"preflight",tone:"info",
-      title:"提前预警，不是实际拒绝",
+      ...backend,state:"idle",mode:"idle",tone:"idle",
+      title:"等待真实开仓申请",
     };
 
   let currentStep,state,headline,reason;
@@ -662,14 +882,110 @@ function buildSignalJourney(data,signals,trades){
     tv,delivery,safety,execution,
   };
 }
-function renderPerformance(data){const s=data.summary;for(const [id,v] of [["pNet",s.tracked_net_pnl_btc],["pRealized",s.realized_pnl_btc],["pUnrealized",s.unrealized_pnl_btc],["pToday",s.today_realized_btc]]){const el=$(id);el.textContent=`${signed(v,6)} BTC`;el.className=`metric-value ${tone(v)}`}$("pPeriods").textContent=`${signed(s.last_7d_realized_btc,5)} / ${signed(s.last_30d_realized_btc,5)} BTC`;$("pPeriods").className=`metric-value small ${tone(s.last_30d_realized_btc)}`;$("pWinRate").textContent=`${num(s.win_rate*100,1)}%`;$("pWinNote").textContent=`${s.wins} 胜 · ${s.losses} 负 · ${s.closed_trades} 笔结束`;$("pFeeBadge").textContent=`对冲手续费 ${num(s.hedge_fees_btc,6)} BTC`;$("pTradeBadge").textContent=`${data.trades.length} 笔`;renderPnlChart(data.daily);$("pnlTradesTable").innerHTML=`<thead><tr><th>交易</th><th>信号</th><th>类型</th><th>状态</th><th>开仓</th><th>平仓</th><th>已实现</th><th>未实现</th><th>合计</th></tr></thead><tbody>${data.trades.length?data.trades.map(t=>{const total=Number(t.realized_pnl_btc)+Number(t.unrealized_pnl_btc);return `<tr><td class="number">#${t.id}</td><td class="mono">${esc(t.signal_id||"—")}</td><td>${t.spread_type==="CALL_CREDIT"?"CALL":"PUT"}</td><td>${stateTag(t.state)}</td><td class="number">${time(t.opened_at)}</td><td class="number">${time(t.closed_at)}</td><td class="number ${tone(t.realized_pnl_btc)}">${signed(t.realized_pnl_btc,6)}</td><td class="number ${tone(t.unrealized_pnl_btc)}">${signed(t.unrealized_pnl_btc,6)}</td><td class="number ${tone(total)}">${signed(total,6)} BTC</td></tr>`}).join(""):`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">暂无策略交易收益记录</td></tr>`}</tbody>`}
+function renderPerformance(data){const s=data.summary;for(const [id,v] of [["pNet",s.tracked_net_pnl_btc],["pRealized",s.realized_pnl_btc],["pUnrealized",s.unrealized_pnl_btc],["pToday",s.today_realized_btc]]){const el=$(id);el.textContent=`${signed(v,6)} BTC`;el.className=`metric-value ${tone(v)}`}$("pPeriods").textContent=`${signed(s.last_7d_realized_btc,5)} / ${signed(s.last_30d_realized_btc,5)} BTC`;$("pPeriods").className=`metric-value small ${tone(s.last_30d_realized_btc)}`;$("pWinRate").textContent=`${num(s.win_rate*100,1)}%`;$("pWinNote").textContent=`${s.wins} 胜 · ${s.losses} 负 · ${s.closed_trades} 笔结束`;$("pFeeBadge").textContent=`对冲手续费 ${num(s.hedge_fees_btc,6)} BTC`;$("pTradeBadge").textContent=`${data.trades.length} 笔`;renderPnlChart(data.daily);$("pnlTradesTable").innerHTML=`<thead><tr><th>交易</th><th>策略 / Alert / 信号</th><th>类型</th><th>状态</th><th>开仓</th><th>平仓</th><th>已实现</th><th>未实现</th><th>合计</th></tr></thead><tbody>${data.trades.length?data.trades.map(t=>{const total=Number(t.realized_pnl_btc)+Number(t.unrealized_pnl_btc);return `<tr><td class="number">#${t.id}</td><td>${tradeIdentity(t,false)}</td><td>${t.spread_type==="CALL_CREDIT"?"CALL":"PUT"}</td><td>${stateTag(t.state)}</td><td class="number">${time(t.opened_at)}</td><td class="number">${time(t.closed_at)}</td><td class="number ${tone(t.realized_pnl_btc)}">${signed(t.realized_pnl_btc,6)}</td><td class="number ${tone(t.unrealized_pnl_btc)}">${signed(t.unrealized_pnl_btc,6)}</td><td class="number ${tone(total)}">${signed(total,6)} BTC</td></tr>`}).join(""):`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">暂无策略交易收益记录</td></tr>`}</tbody>`}
 function renderPnlChart(rows){const chart=$("pnlChart");if(!rows.length){chart.innerHTML=`<div class="empty" style="width:100%;min-height:180px"><div><strong>近 30 日暂无已实现收益</strong><span>交易平仓后会在这里形成收益柱状图</span></div></div>`;return}const byDay=Object.fromEntries(rows.map(r=>[r.day,Number(r.realized_pnl_btc)])),pad=n=>String(n).padStart(2,"0"),recent=Array.from({length:30},(_,i)=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(29-i));const day=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;return {day,realized_pnl_btc:byDay[day]||0}}),max=Math.max(...recent.map(r=>Math.abs(Number(r.realized_pnl_btc))),1e-9);chart.innerHTML=recent.map((r,i)=>{const v=Number(r.realized_pnl_btc),h=v===0?0:Math.max(2,Math.abs(v)/max*45),style=v>=0?`bottom:50%;height:${h}%`:`top:50%;height:${h}%`;return `<div class="chart-col" title="${esc(r.day)} · ${signed(v,6)} BTC"><div class="chart-track"><i class="chart-bar ${v===0?"zero":v<0?"neg":""}" style="${style}"></i></div><div class="chart-label">${i%5===0||i===recent.length-1?esc(r.day.slice(5)):""}</div></div>`}).join("")}
-async function copyWebhook(){try{await navigator.clipboard.writeText($("webhookUrl").textContent);toast("Webhook 地址已复制")}catch{toast("复制失败，请手动选择地址","bad")}}
-function currentPage(){return location.pathname==="/signals"?"active-signals":location.pathname==="/signal-log"?"signal-log":location.pathname==="/returns"?"position-log":"positions"}
-function renderRoute(){const page=currentPage();document.querySelectorAll(".page-view").forEach(x=>x.classList.toggle("active",x.id===`page-${page}`));document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));const titles={positions:"仓位","active-signals":"活跃信号","signal-log":"信号日志","position-log":"仓位日志"};document.title=`BTC 期权卖方系统 · ${titles[page]}`}
+async function copyText(text){
+  try{
+    if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);return true}
+  }catch{}
+  const area=document.createElement("textarea");area.value=text;area.style.cssText="position:fixed;left:-9999px;top:-9999px";document.body.appendChild(area);area.focus();area.select();
+  try{return document.execCommand("copy")}catch{return false}finally{area.remove()}
+}
+async function copyWebhook(){const ok=await copyText($("webhookUrl").textContent);toast(ok?"Webhook 地址已复制":"复制失败，请手动选择地址",ok?"ok":"bad")}
+function buildTvAlertTemplate(){
+  const account=$("tvAccountName").value.trim()||tvSetup?.account_name||"account_1";
+  const secret=$("tvPassphrase").value;
+  const strategy=$("tvStrategyName").value.trim()||tvSetup?.strategy||"BTC_OPTION_SELLER_V2";
+  const alertId=ensureTvAlertId();
+  return `{
+  "schema_version": "1",
+  "passphrase": ${JSON.stringify(secret||"请填写WEBHOOK_PASSPHRASE")},
+  "accountName": ${JSON.stringify(account)},
+  "strategy": ${JSON.stringify(strategy)},
+  "tv_id": ${alertId},
+  "order_id": "{{strategy.order.id}}",
+  "bar_time": "{{time}}",
+  "action": "{{strategy.order.alert_message}}",
+  "side": "{{strategy.order.action}}",
+  "marketPosition": "{{strategy.market_position}}",
+  "prevMarketPosition": "{{strategy.prev_market_position}}",
+  "symbol": "{{ticker}}",
+  "exchange": "{{exchange}}",
+  "period": "{{interval}}",
+  "price": "{{close}}",
+  "timestamp": "{{timenow}}",
+  "size": "{{strategy.order.contracts}}",
+  "positionSize": "{{strategy.position_size}}",
+  "qtyType": "fixed",
+  "sell_delta": "{{plot_2}}",
+  "dte_min": "{{plot_3}}",
+  "dte_max": "{{plot_4}}",
+  "dvol_tier": "{{plot_5}}",
+  "group_split_count": "{{plot_6}}",
+  "delta_account_risk_pct": "{{plot_7}}",
+  "delta_trigger_pct": "{{plot_8}}",
+  "call_hedge_release_pct": "{{plot_9}}",
+  "put_hedge_release_pct": "{{plot_10}}",
+  "reason": "{{strategy.order.comment}}"
+}`;
+}
+function generateTvId(){
+  if(globalThis.crypto?.getRandomValues){
+    const value=new Uint32Array(1);
+    globalThis.crypto.getRandomValues(value);
+    return value[0]%2147483647+1;
+  }
+  return Math.floor(Math.random()*2147483647)+1;
+}
+function ensureTvAlertId(){
+  if(!tvAlertId)tvAlertId=generateTvId();
+  const field=$("tvAlertId");
+  if(field)field.value=String(tvAlertId);
+  return tvAlertId;
+}
+function regenerateTvId(showToast=true){
+  tvAlertId=generateTvId();
+  $("tvAlertId").value=String(tvAlertId);
+  updateTvTemplate();
+  if(showToast)toast(`已为新警报生成 tv_id：${tvAlertId}`);
+}
+function updateTvTemplate(){tvAlertTemplate=buildTvAlertTemplate();$("tvAlertMessage").textContent=tvAlertTemplate}
+function syncTvSetup(){
+  if(!tvSetup)return;
+  if(!$("tvAccountName").value)$("tvAccountName").value=tvSetup.account_name||"account_1";
+  if(!$("tvStrategyName").value)$("tvStrategyName").value=tvSetup.strategy||"BTC_OPTION_SELLER_V2";
+  $("tvPassphrase").value=tvSetup.passphrase||"";
+  $("tvSetupWebhook").textContent=location.origin+(tvSetup.webhook_path||"/webhook/signal");
+  $("tvSetupCondition").textContent=tvSetup.condition||"策略 → 订单成交和 alert() 函数调用";
+  updateTvTemplate();
+}
+function renderTvHub(data){
+  const configured=Boolean(data?.configured);
+  const last=data?.last_received_at?time(data.last_received_at):null;
+  $("tvHubDot").className=`monitor-dot ${configured?"live":"bad"}`;
+  $("tvHubStatus").textContent=configured?"Webhook 接收器已就绪":"Webhook 尚未配置口令";
+  $("tvHubStatusCopy").textContent=last?`最近接收 ${last}`:configured?"正在等待 TradingView 信号":"请先设置后端 WEBHOOK_SECRET";
+  $("tvHubBadge").textContent=configured?"后端已配置":"缺少后端口令";
+  $("tvHubBadge").className=`tag ${configured?"live":"bad"}`;
+}
+async function openTvSetup(){
+  try{if(!tvSetup)tvSetup=await api("/api/tradingview_setup")}catch(e){toast(e.message,"bad");return}
+  syncTvSetup();
+  navigateTo("/tradingview");
+}
+function clearTvSecret(showToast=true){$("tvPassphrase").value="";updateTvTemplate();if(showToast)toast("页面内的 Webhook 口令已清空")}
+async function copyTvSecret(){const secret=$("tvPassphrase").value;if(!secret){toast("服务器尚未配置 Webhook 口令","bad");return}const ok=await copyText(secret);toast(ok?"Webhook 口令已复制":"复制失败，请手动选择口令",ok?"ok":"bad")}
+async function copyTvWebhook(){const ok=await copyText($("tvSetupWebhook").textContent);toast(ok?"TradingView Webhook 地址已复制":"复制失败，请手动选择地址",ok?"ok":"bad")}
+async function copyTvMessage(){
+  if(!$("tvAccountName").value.trim()){toast("请先填写 Deribit 账户名称","bad");return}
+  if(!$("tvPassphrase").value){toast("请先填写 WEBHOOK_PASSPHRASE","bad");$("tvPassphrase").focus();return}
+  const ok=await copyText(tvAlertTemplate);toast(ok?"TradingView Alert JSON 已复制":"复制失败，请在代码框中手动复制",ok?"ok":"bad")
+}
+function currentPage(){return location.pathname==="/tradingview"?"tradingview":location.pathname==="/signals"?"active-signals":location.pathname==="/signal-log"?"signal-log":location.pathname==="/returns"?"position-log":"positions"}
+function renderRoute(){const page=currentPage();document.querySelectorAll(".page-view").forEach(x=>x.classList.toggle("active",x.id===`page-${page}`));document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));const titles={positions:"仓位",tradingview:"TradingView 接入","active-signals":"策略信号","signal-log":"信号日志","position-log":"仓位日志"};document.title=`BTC 期权卖方系统 · ${titles[page]}`}
 function navigateTo(path){if(location.pathname!==path)history.pushState({},"",path);renderRoute();window.scrollTo({top:0,behavior:"smooth"})}
 function enhanceMobileTables(){document.querySelectorAll(".data-table").forEach(table=>{const labels=[...table.querySelectorAll("thead th")].map(th=>th.textContent.trim());table.querySelectorAll("tbody tr").forEach(row=>[...row.cells].forEach((cell,index)=>{cell.dataset.label=labels[index]||""}))})}
-async function refresh(manual=false){if(refreshing)return;refreshing=true;try{const [status,acc,events,trades,hedges,signals,performance,conditions]=await Promise.all([api("/status"),api("/account"),api("/events?limit=100"),api("/trades?limit=50"),api("/hedge_stats?days=14"),api("/api/signals?limit=100"),api("/api/performance"),api(`/api/entry_conditions${manual?"?refresh=true":""}`)]);model={status,acc,events,trades,hedges,signals,performance,conditions};renderStatus(status,acc);renderMetrics(status,acc);renderGlobalMetrics(status,acc,trades,signals,performance);renderPositions(acc);renderEvents(events);renderTrades(trades);renderHedges(hedges);renderSignals(signals);renderPerformance(performance);renderConditions(conditions,signals,trades);enhanceMobileTables();$("errorBanner").style.display="none";if(manual)toast("数据已刷新")}catch(e){$("errorBanner").textContent=`后端连接异常：${e.message}`;$("errorBanner").style.display="block";$("connectionText").textContent="策略引擎不可达";if(manual)toast(e.message,"bad")}finally{refreshing=false}}
+async function refresh(manual=false){if(refreshing)return;refreshing=true;try{const [status,acc,events,trades,hedges,signals,performance,setup]=await Promise.all([api("/status"),api("/account"),api("/events?limit=100"),api("/trades?limit=50"),api("/hedge_stats?days=14"),api("/api/signals?limit=100"),api("/api/performance"),api("/api/tradingview_setup")]);tvSetup=setup;syncTvSetup();model={status,acc,events,trades,hedges,signals,performance,setup};renderStatus(status,acc);renderMetrics(status,acc);renderGlobalMetrics(status,acc,trades,signals,performance);renderPositions(acc);renderEvents(events);renderTrades(trades);renderHedges(hedges);renderSignals(signals);renderPerformance(performance);enhanceMobileTables();$("errorBanner").style.display="none";if(manual)toast("数据已刷新")}catch(e){$("errorBanner").textContent=`后端连接异常：${e.message}`;$("errorBanner").style.display="block";$("connectionText").textContent="策略引擎不可达";if(manual)toast(e.message,"bad")}finally{refreshing=false}}
 function showTab(name){document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===name));document.querySelectorAll(".tab-view").forEach(x=>x.classList.toggle("active",x.id===`tab-${name}`))}
 function setEventFilter(level){eventLevel=level;document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x.dataset.level===level));if(model)renderEvents(model.events)}
 async function toggleTrading(){const current=model?.status?.trading_enabled;if(current&&!confirm("暂停接收新的开仓信号？现有仓位仍会继续管理。"))return;try{await api(`/control/trading?enabled=${!current}`,{method:"POST"});toast(current?"新开仓已暂停":"新开仓已启用");await refresh()}catch(e){toast(e.message,"bad")}}
@@ -678,21 +994,37 @@ function openForceDialog(){$("forceModal").classList.add("open")}function closeF
 async function confirmForceClose(){try{await api("/control/force_close?reason=ui_manual",{method:"POST"});closeForceDialog();toast("全账户强平已进入最高优先级队列");setTimeout(refresh,1000)}catch(e){toast(e.message,"bad")}}
 async function clearForceClose(){if(!confirm("仅在已经核对 Deribit 账户清仓后解除。确认继续？"))return;try{await api("/control/clear_force_close",{method:"POST"});toast("强平锁定已解除");await refresh()}catch(e){toast(e.message,"bad")}}
 function toggleMobileMenu(){$("mobileMenu").classList.toggle("open")}
-const JOURNEY_STEP_TITLES=["","等待市场出现开仓机会","TradingView 发送开仓申请","系统进行最终安全检查","允许并执行开仓"];
+const JOURNEY_STEPS=[
+  null,
+  {title:"TradingView 判断市场条件",owner:"TradingView",scope:"基础门槛 + 入场形态",pass:"基础门槛全部通过，并出现 PUT 或 CALL 布林触发形态"},
+  {title:"确认开仓申请已送达",owner:"Webhook 链路",scope:"只检查申请有没有到达",pass:"收到同一根 2h K 线的真实 OPEN_REQUEST"},
+  {title:"后端执行安全校验",owner:"交易后端",scope:"交易开关、现有仓位、参数、风险上限与可用合约",pass:"真实申请通过安全校验并返回 ACCEPTED"},
+  {title:"交易系统执行开仓",owner:"交易系统 · Deribit",scope:"建记录、选腿、下单与成交",pass:"对应交易记录进入 OPEN 状态"},
+];
+const JOURNEY_STEP_TITLES=JOURNEY_STEPS.map(step=>step?.title||"");
 const JOURNEY_STATUS_LABEL={pass:"已通过",block:"受阻",timeout:"超时未到",failed:"执行失败",wait:"等待中",processing:"处理中",info:"提前预警",idle:"未开始"};
 const EXECUTION_COPY={starting:"准备建立交易记录",checking:"正在检查现有仓位",selecting:"正在选择期权合约",opening:"订单已提交，等待成交",open:"期权价差已经开仓",failed:"开仓执行失败",not_started:"前序步骤通过后才会开始"};
 function journeyStatusLabel(tone){return JOURNEY_STATUS_LABEL[tone]||"—"}
 // 四步共用外壳：整行标题是一个可点击按钮，body 通过 hidden 控制展开。
-function journeyStepShell(step,title,summary,tone,open,body){
+function journeyScope(step){
+  const meta=JOURNEY_STEPS[step];
+  return `<div class="journey-scope" aria-label="第 ${step} 步职责说明">
+    <div class="journey-scope-item"><div class="journey-scope-label">谁来判断</div><div class="journey-scope-value">${esc(meta.owner)}</div></div>
+    <div class="journey-scope-item"><div class="journey-scope-label">本步只看</div><div class="journey-scope-value">${esc(meta.scope)}</div></div>
+    <div class="journey-scope-item"><div class="journey-scope-label">怎样算通过</div><div class="journey-scope-value">${esc(meta.pass)}</div></div>
+  </div>`;
+}
+function journeyStepShell(step,title,summary,tone,statusLabel,open,body){
+  const owner=JOURNEY_STEPS[step]?.owner||"";
   return `<button type="button" class="journey-step-toggle"
       aria-expanded="${open}" aria-controls="journeyStepBody${step}"
       onclick="toggleJourneyStep(${step})">
     <span class="journey-step-number">${step}</span>
-    <span class="journey-step-label"><strong>${esc(title)}</strong><small>${esc(summary)}</small></span>
-    <span class="journey-step-status ${esc(tone)}">${esc(journeyStatusLabel(tone))}</span>
+    <span class="journey-step-label"><span class="journey-step-owner">${esc(owner)}</span><strong>${esc(title)}</strong><small>${esc(summary)}</small></span>
+    <span class="journey-step-status ${esc(tone)}">${esc(statusLabel||journeyStatusLabel(tone))}</span>
     <span class="journey-step-chevron">⌄</span>
   </button>
-  <div id="journeyStepBody${step}" class="journey-step-body" ${open?"":"hidden"}>${body}</div>`;
+  <div id="journeyStepBody${step}" class="journey-step-body" ${open?"":"hidden"}>${journeyScope(step)}${body}</div>`;
 }
 function renderConditions(data,signals,trades){
   const journey=buildSignalJourney(data,signals,trades);
@@ -726,7 +1058,7 @@ function renderJourneyStep(step,journey,data){
     :step===2?renderStep2(journey)
       :step===3?renderStep3(journey,data)
         :renderStep4(journey);
-  return journeyStepShell(step,title,view.summary,view.tone,open,view.body);
+  return journeyStepShell(step,title,view.summary,view.tone,view.status,open,view.body);
 }
 function step1LiveStrip(lv){
   if(lv&&lv.price!=null){
@@ -744,44 +1076,43 @@ function step1RawData(data,p,pineFresh,pineAge){
   if(!p)foot.push('<span class="warning">尚未收到 Pine 连接回报 —— 请在 TradingView 更新脚本并重建 Alert；口令不匹配时连接回报也不会到达。</span>');
   else if(!pineFresh)foot.push(`<span class="warning">Pine 连接回报已停 ${Math.floor(pineAge/60000)} 分钟（正常每 2 小时一次）—— 请检查 TradingView Alert 是否仍在运行。</span>`);
   else foot.push(`Pine 连接回报 · 对应 2h K 线 ${time(p.bar_ts)}`);
-  foot.push("两列数据源不同：Pine 用 TradingView 的 BTCUSDT，后端用 Deribit 永续，数值有小幅偏差属正常。开仓信号由 Pine 决定是否发出；DVOL 档位由后端权威判定。");
+  foot.push("两列数据源不同：Pine 用 TradingView 的 BTCUSDT，后端用 Deribit 永续，数值有小幅偏差属正常。TradingView 是开仓策略的唯一判断来源；后端自算数据只用于监控诊断，不会再次批准或否决 TradingView 的 DVOL、HV、CCI 与布林条件。");
   return `<section id="condEvidence" class="condition-evidence"><button type="button" class="condition-toggle" aria-expanded="${conditionSections.evidence}" onclick="toggleConditionSection('evidence')"><span class="condition-toggle-icon">i</span><span class="condition-toggle-copy"><span class="condition-toggle-title">查看原始计算数据</span><span class="condition-toggle-note">K 线时间、指标数值、布林轨道与数据来源</span></span><span class="condition-chevron">⌄</span></button>${conditionSections.evidence?`<div class="condition-collapsible"><div class="cond-foot">${foot.map(x=>`<div>${x}</div>`).join("")}</div></div>`:""}</section>`;
 }
 function renderStep1(journey,data){
   const p=data.pine,now=data.server_ts||Date.now();
   const pineAge=p&&p.received_at?now-p.received_at:null;
   const pineFresh=pineAge!=null&&pineAge<=HEARTBEAT_STALE_MS;
-  const deferred=Boolean(pineFresh&&p&&(p.dvol_tier==null||p.dvol_tier<0));
-  const cards=COND_ROWS.map(row=>({row,resolved:condRow(row,data,pineFresh,false)}));
+  const cards=COND_ROWS.map(row=>({row,resolved:condRow(row,data,pineFresh)}));
   if(!pineFresh)cards.forEach(x=>x.resolved={...x.resolved,ok:null,value:"—",gap:"等待 TradingView 连接回报",srcTag:"TradingView"});
-  if(deferred)cards[1].resolved={...cards[1].resolved,ok:"delegated",value:`Pine 样本 ${p.dvol_samples??"—"} 根`,gap:'<span class="std-gap delegated">样本不足不阻止 TradingView 发信 · 交后端判断</span>',standard:"Pine 不做 DVOL 档位结论；后端收到开仓信号后用全历史复核",srcTag:"TradingView → 后端",extra:""};
   const shapeCard=cards[4];
   if(shapeCard.resolved.ok===false)shapeCard.resolved={...shapeCard.resolved,ok:"waiting",gap:shapeCard.resolved.gap||'<span class="std-gap">等待 PUT/CALL 破轨 + 反向收线</span>'};
-  const gates=cards.slice(0,4);
+  // TradingView 是策略唯一判断源，DVOL、HV、CCI 和配置都在这里一次性判断。
+  const gates=cards.filter(x=>["config","dvol_tier","hv","cci"].includes(x.row.key));
   const blocked=gates.filter(x=>x.resolved.ok===false);
   const pending=gates.filter(x=>x.resolved.ok==null);
-  const delegatedCards=gates.filter(x=>x.resolved.ok==="delegated");
   const passed=gates.filter(x=>x.resolved.ok===true);
   const waitingShape=shapeCard.resolved.ok==="waiting";
   const grid=list=>`<div class="condition-card-grid">${list.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`;
-  const sect=(id,cls,title,sub,list)=>`<section id="${id}" class="condition-section visible"><div class="condition-section-title"><h3>${esc(title)}</h3><span>${esc(sub)}</span></div>${grid(list)}</section>`;
+  const sect=(id,cls,index,title,sub,list)=>`<section id="${id}" class="condition-section visible"><div class="condition-section-title"><h3><span class="section-index">${esc(index)}</span>${esc(title)}</h3><span>${esc(sub)}</span></div>${grid(list)}</section>`;
   let body=step1LiveStrip(data.live);
   // Pine 缺失或过期：显式告警，绝不沿用旧的通过状态
   if(!p||!pineFresh)body+=`<div class="journey-result failed"><div class="journey-result-title">${!p?"尚未收到 TradingView 状态，暂时无法判断":"TradingView 状态已过期，暂时无法判断"}</div><div class="journey-result-copy">${!p?"请在 TradingView 更新脚本并重建 Alert；口令不匹配时连接回报也不会到达。":`Pine 连接回报已停 ${Math.floor((pineAge||0)/60000)} 分钟（正常每 2 小时一次），请检查 Alert 是否仍在运行。旧的通过状态不再有效。`}</div></div>`;
-  if(blocked.length)body+=sect("condBlockers","blocker","正在阻止发信",`${blocked.length} 项未达标，TradingView 现在不会发出开仓申请`,blocked);
-  if(waitingShape)body+=sect("condShape","waiting","等待市场触发形态","配置与指标已满足，只差 PUT/CALL 破轨 + 反向收线",[shapeCard]);
-  else if(shapeCard.resolved.ok===true)body+=sect("condShape","passed","触发形态已成立","PUT/CALL 布林形态已满足",[shapeCard]);
-  else body+=sect("condShape","pending","触发形态","等待有效数据",[shapeCard]);
-  if(delegatedCards.length)body+=sect("condDelegated","delegated","交后端判断","不阻止 TradingView 发信；后端收到后用全历史复核",delegatedCards);
-  if(pending.length)body+=sect("condPending","pending","暂时无法判定","数据完整前不会误标为通过",pending);
+  if(blocked.length)body+=sect("condBlockers","blocker","A","基础门槛未通过",`${blocked.length} 项未达标；配置、DVOL、HV、CCI 都必须由 TradingView 判定通过`,blocked);
+  else if(pending.length)body+=sect("condPending","pending","A","基础门槛暂时无法判定","数据完整前不会误标为通过",pending);
+  else body+=`<div class="journey-result pass"><div class="journey-result-title">A · 基础门槛已通过</div><div class="journey-result-copy">档位配置、DVOL、HV 与 CCI 均符合 TradingView 发信要求。</div></div>`;
+  if(waitingShape)body+=sect("condShape","waiting","B","等待入场时机","这不是报错；市场尚未出现 PUT/CALL 破轨 + 反向收线",[shapeCard]);
+  else if(shapeCard.resolved.ok===true)body+=sect("condShape","passed","B","入场形态已成立","PUT/CALL 布林形态已满足",[shapeCard]);
+  else body+=sect("condShape","pending","B","入场形态暂时无法判定","等待有效数据",[shapeCard]);
   if(passed.length)body+=`<section id="condPassed" class="condition-section visible"><button type="button" class="condition-toggle" aria-expanded="${conditionSections.passed}" onclick="toggleConditionSection('passed')"><span class="condition-toggle-icon">✓</span><span class="condition-toggle-copy"><span class="condition-toggle-title">已通过 ${passed.length} 项</span><span class="condition-toggle-note">默认收起，需要时可展开核对</span></span><span class="condition-chevron">⌄</span></button>${conditionSections.passed?`<div class="condition-collapsible condition-card-grid">${passed.map(x=>renderConditionCard(x.row,x.resolved)).join("")}</div>`:""}</section>`;
   body+=step1RawData(data,p,pineFresh,pineAge);
   let tone,summary;
-  if(journey.currentStep>1){tone="pass";summary="市场条件已满足，可以进入下一步";}
-  else if(blocked.length){tone="block";summary=journey.reason;}
-  else if(waitingShape){tone="wait";summary="配置与指标已满足，等待 PUT/CALL 形态触发";}
-  else{tone="info";summary=journey.reason;}
-  return {tone,summary,body};
+  let status;
+  if(journey.currentStep>1){tone="pass";status="市场已就绪";summary="基础门槛与入场形态均已满足";}
+  else if(blocked.length){tone="block";status=`${blocked.length} 项门槛未通过`;summary=journey.reason;}
+  else if(waitingShape){tone="wait";status="等待入场形态";summary="基础门槛已通过，市场时机尚未出现";}
+  else{tone="info";status="等待有效数据";summary=journey.reason;}
+  return {tone,status,summary,body};
 }
 // 安全展示白名单：只暴露非敏感字段，绝不透出 Webhook 口令、API 密钥或认证头等秘密
 function safeSignalDetails(signal){
@@ -804,31 +1135,25 @@ function renderStep2(journey){
   const tone={received:"pass",timeout:"timeout",waiting:"wait",not_expected:"idle"}[d.state]||"idle";
   let body;
   if(d.state==="received")body=`<div class="journey-result pass"><div class="journey-result-title">已收到开仓申请</div><div class="journey-result-copy">${esc(d.reason)}</div>${signalMetaGrid(d.signal)}</div>`;
-  else if(d.state==="timeout")body=`<div class="journey-result failed"><div class="journey-result-title">开仓申请到达超时</div><div class="journey-result-copy">${esc(d.reason)}。请按下面清单排查 TradingView 与 Webhook。</div><ul class="journey-checklist"><li>确认 TradingView Alert 仍为启用状态</li><li>确认条件选择“任何 alert() 函数调用”</li><li>确认 Webhook 地址与当前系统一致</li><li>查看 TradingView 日志是否显示 Webhook 成功发送</li></ul></div>`;
+  else if(d.state==="timeout")body=`<div class="journey-result failed"><div class="journey-result-title">开仓申请到达超时</div><div class="journey-result-copy">${esc(d.reason)}。请按下面清单排查 TradingView 与 Webhook。</div><ul class="journey-checklist"><li>确认 TradingView Alert 仍为启用状态</li><li>确认条件选择“订单成交和 alert() 函数调用”</li><li>确认 Webhook 地址与当前系统一致</li><li>查看 TradingView 日志是否显示 Webhook 成功发送</li></ul></div>`;
   else if(d.state==="waiting")body=`<div class="journey-result processing"><div class="journey-result-title">等待开仓申请到达</div><div class="journey-result-copy">${esc(d.reason)}。收盘后约有 2 分钟宽限，请稍候。</div></div>`;
   else body=`<div class="journey-note">${esc(d.reason)}。只有市场条件全部满足后，TradingView 才会发出开仓申请；连接回报和 STATUS 记录不算开仓申请。</div>`;
-  return {tone,summary:d.title,body};
+  const status={received:"申请已送达",timeout:"送达超时",waiting:"等待送达",not_expected:"尚未到发送时机"}[d.state]||"未开始";
+  return {tone,status,summary:d.title,body};
 }
 function renderStep3(journey,data){
   const safety=journey.safety;
-  const dvol=safety.dvol||data?.backend?.checks?.dvol_tier||{};
-  const levels=data?.backend?.checks?.config?.levels||[];
-  const threshold=levels[0]!=null?levels[0]*100:null;
-  const pct=dvol.percentile!=null?dvol.percentile*100:null;
-  const dvolGrid=`<div class="journey-detail-grid"><div class="journey-metric"><div class="journey-metric-label">当前分位</div><div class="journey-metric-value">${pct==null?"—":num(pct,1)+"%"}</div></div><div class="journey-metric"><div class="journey-metric-label">开仓下限 (L1)</div><div class="journey-metric-value">${threshold==null?"—":num(threshold,0)+"%"}</div></div><div class="journey-metric"><div class="journey-metric-label">当前档位</div><div class="journey-metric-value">${dvol.tier==null||dvol.tier<0?"待定":"L"+dvol.tier}</div></div><div class="journey-metric"><div class="journey-metric-label">样本 / 窗口</div><div class="journey-metric-value">${dvol.samples??"—"} / ${dvol.window_bars??"—"}</div></div></div><div class="journey-note">判断来源：后端 · Deribit DVOL 全历史</div>`;
   if(!safety.actual){
-    if(data?.backend_error)return {tone:"info",summary:"系统检查数据暂不可用",body:`<div class="journey-preflight"><strong>系统检查数据暂不可用</strong><p>后端安全检查数据暂时无法获取：${esc(data.backend_error)}。收到真实开仓申请后会重新判定，不会据此推导乐观结论。</p></div>`};
-    const willReject=safety.preflight==="reject";
-    const body=`<div class="journey-preflight"><strong>提前预警，不是实际拒绝</strong><p>${willReject?"如果现在收到开仓申请，系统预计会因 DVOL 档位不足而拒绝。":safety.preflight==="allow"?"如果现在收到开仓申请，DVOL 门槛预计允许继续（仍需通过交易开关、账户仓位、风险预算与选腿检查）。":"后端 DVOL 数据暂不可用，收到申请后会重新判定。"}</p></div>${dvolGrid}`;
-    return {tone:"info",summary:"提前预警：收到申请后才会真正检查",body};
+    const body=`<div class="journey-note">尚未收到真实开仓申请，本步不会提前审批市场指标。申请到达后，后端只校验交易开关、重复信号、现有仓位、请求参数、风险上限以及是否有可交易的 Deribit 期权合约。</div>`;
+    return {tone:"idle",status:"等待真实申请",summary:"收到 TradingView 申请后才开始安全校验",body};
   }
   if(safety.state==="rejected"){
     const reason=REJECT_REASON[safety.reason]||safety.reason||"系统未提供具体原因";
-    const body=`<div class="journey-result failed"><div class="journey-result-title">系统已拒绝本次开仓申请</div><div class="journey-result-copy">拒绝原因：${esc(reason)}</div>${safety.reason?`<div class="journey-note">原始代码：<span class="mono">${esc(safety.reason)}</span></div>`:""}</div>${dvolGrid}`;
-    return {tone:"block",summary:`已拒绝：${reason}`,body};
+    const body=`<div class="journey-result failed"><div class="journey-result-title">系统已拒绝本次开仓申请</div><div class="journey-result-copy">拒绝原因：${esc(reason)}</div>${safety.reason?`<div class="journey-note">原始代码：<span class="mono">${esc(safety.reason)}</span></div>`:""}</div>`;
+    return {tone:"block",status:"真实申请已拒绝",summary:`已拒绝：${reason}`,body};
   }
-  if(safety.state==="accepted")return {tone:"pass",summary:"已通过安全检查，进入执行",body:`<div class="journey-result pass"><div class="journey-result-title">已通过最终安全检查</div><div class="journey-result-copy">开仓申请已被后端接受，进入执行阶段。</div></div>${dvolGrid}`};
-  return {tone:"processing",summary:"系统正在进行最终安全检查",body:`<div class="journey-result processing"><div class="journey-result-title">系统正在检查</div><div class="journey-result-copy">后端已收到开仓申请，正在做最终判断。</div></div>${dvolGrid}`};
+  if(safety.state==="accepted")return {tone:"pass",status:"真实申请已通过",summary:"已通过执行安全校验，进入下单",body:`<div class="journey-result pass"><div class="journey-result-title">已通过执行安全校验</div><div class="journey-result-copy">后端接受 TradingView 的市场判断，本步只确认本次请求可以安全执行。</div></div>`};
+  return {tone:"processing",status:"正在校验真实申请",summary:"系统正在进行执行安全校验",body:`<div class="journey-result processing"><div class="journey-result-title">系统正在检查</div><div class="journey-result-copy">后端已收到开仓申请，正在检查账户状态、风险额度与可用合约。</div></div>`};
 }
 function renderStep4(journey){
   const ex=journey.execution;
@@ -844,9 +1169,10 @@ function renderStep4(journey){
     const failReason=ex.state==="failed"&&ex.reason?`<div class="journey-note">失败原因：${esc(REJECT_REASON[ex.reason]||ex.reason)}</div>`:"";
     body=`<div class="journey-result ${resultTone}"><div class="journey-result-title">${esc(copy)}</div><div class="journey-result-copy">${ex.state==="open"?"期权信用价差已经建立，可在「仓位」页查看详情。":ex.state==="failed"?"开仓执行失败：订单执行未成功，系统已停止本次开仓。":"交易系统正在按步骤执行开仓。"}</div>${failReason}</div>${gridHtml}`;
   }
-  return {tone,summary:copy,body};
+  const status={open:"开仓成功",failed:"执行失败",not_started:"等待后端批准",starting:"准备执行",checking:"检查仓位",selecting:"正在选腿",opening:"等待成交"}[ex.state]||"执行中";
+  return {tone,status,summary:copy,body};
 }
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeForceDialog();$("mobileMenu").classList.remove("open")}});window.addEventListener("popstate",renderRoute);renderRoute();refresh();setInterval(refresh,5000);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeStrategyModal();closeForceDialog();$("mobileMenu").classList.remove("open")}});window.addEventListener("popstate",renderRoute);renderRoute();updateTvTemplate();refresh();setInterval(refresh,5000);
 </script>
 </body>
 </html>

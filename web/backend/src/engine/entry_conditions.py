@@ -11,6 +11,7 @@ BTC-PERPETUAL，两条价格序列高度相关但不相同，CCI/布林/HV 会�
 from __future__ import annotations
 
 import math
+import time
 from typing import Optional, Sequence
 
 from ..exchange import market_data
@@ -133,8 +134,38 @@ def evaluate(bars: Sequence[market_data.Candle], dvol_pct: Optional[float],
     }
 
 
+async def _dvol_entry_cached(ctx, ttl: float = 600.0) -> tuple:
+    """DVOL 开仓分位（2 年历史，分页 ~13 次调用）单独长缓存。
+
+    DVOL 每 12h 才收一根，两年窗口的分位不会在几秒内变化；与 2h 门槛快照分开
+    缓存，看板降到 15s 高频刷新时不必反复重拉全历史（防 Deribit 限频）。
+    返回 (pct, tier, samples)。
+    """
+    now = time.time()
+    cached = ctx.dvol_entry_cache
+    if cached is not None and now - ctx.dvol_entry_cache_ts < ttl:
+        return cached
+    cfg = ctx.cfg
+    dvol_bars = await market_data.fetch_dvol_12h_days(
+        ctx.ws, cfg.strategy.currency, cfg.strategy.dvol_entry_window_days)
+    completed = [b.close for b in dvol_bars if b.completed()]
+    dvol_pct, tier = indicators.dvol_entry_tier(
+        completed, cfg.strategy.dvol_entry_window_days * 2,
+        cfg.strategy.dvol_entry_levels)
+    if dvol_pct is None:
+        tier = -1          # 样本不足：与 Pine 一致标记为"待判定"，不算作 tier=0 拦截
+    result = (dvol_pct, tier, len(completed))
+    ctx.dvol_entry_cache = result
+    ctx.dvol_entry_cache_ts = now
+    return result
+
+
 async def snapshot(ctx) -> dict:
-    """拉取 2h K 线与 DVOL 全历史，算出当前这根已收盘 bar 的门槛结论。"""
+    """拉取 2h K 线（每次）与 DVOL 分位（长缓存），算出当前已收盘 bar 的门槛结论。
+
+    2h 门槛（HV/CCI/布林）随 snapshot_ttl_sec（默认 15s）刷新；DVOL 2 年分位走
+    _dvol_entry_cached 长缓存，避免高频刷新重拉全历史。
+    """
     cfg = ctx.cfg
     es = cfg.entry_signal
     bars_needed = max(es.hv_pctl_window + es.hv_len + 8, es.boll_len + 4, es.cci_len + 4)
@@ -146,19 +177,72 @@ async def snapshot(ctx) -> dict:
     if not done:
         raise RuntimeError("没有已收盘的 2h bar")
 
-    dvol_bars = await market_data.fetch_dvol_12h_days(
-        ctx.ws, cfg.strategy.currency, cfg.strategy.dvol_entry_window_days)
-    completed = [b.close for b in dvol_bars if b.completed()]
-    dvol_pct, tier = indicators.dvol_entry_tier(
-        completed, cfg.strategy.dvol_entry_window_days * 2,
-        cfg.strategy.dvol_entry_levels)
-    if dvol_pct is None:
-        tier = -1          # 样本不足：与 Pine 一致标记为"待判定"，不算作 tier=0 拦截
+    dvol_pct, tier, samples = await _dvol_entry_cached(ctx)
 
-    result = evaluate(done, dvol_pct, tier, len(completed), cfg)
+    result = evaluate(done, dvol_pct, tier, samples, cfg)
     result.update({
         "source": "backend",
         "instrument": cfg.hedge.perp_instrument,
         "computed_at": now,
     })
     return result
+
+
+BAR_2H_MS = BAR_2H_SEC * 1000
+PUSH_GRACE_MS = 120_000       # 收盘后 2 分钟宽限：给 alert→webhook 的网络延迟留时间
+PUSH_MATCH_LEAD_MS = 300_000  # 收盘前 5 分钟起算（时钟/时间戳微小偏差容错）
+PUSH_MATCH_TAIL_MS = 3_600_000  # 收盘后 1 小时内到达都算这根 bar 的推送
+
+
+async def push_watchdog(ctx) -> dict:
+    """推送看门狗（规范第五节链路可观测）：核对「Pine 自报满足 → 是否真的收到推送」。
+
+    Pine 心跳带着它对每道门槛的判定（put_shape/call_shape/cfg/tier/hv/cci）。当 Pine
+    自己判定某根 2h bar 满足全部条件时，它就会 alert() 发 OPEN_REQUEST——我们理应收到。
+    这里用「收盘时间窗 + spread 方向」匹配 signals 表（避开 signal_id 文本格式差异），
+    没匹配到就是「满足了但没收到 TradingView 推送」。纯读，不产生副作用（emit 由扫描器
+    按 bar 去重触发）。
+    """
+    from ..webhook import PINE_STATUS_KEY
+    import json as _json
+    repo = ctx.repo
+    raw = await repo.get_state(PINE_STATUS_KEY)
+    if not raw:
+        return {"armed": False, "reason": "no_heartbeat"}
+    try:
+        p = _json.loads(raw)
+    except (TypeError, ValueError):
+        return {"armed": False, "reason": "bad_heartbeat"}
+
+    side = ("PUT_CREDIT" if p.get("put_shape") else
+            "CALL_CREDIT" if p.get("call_shape") else None)
+    pine_can_fire = bool(p.get("cfg_ok") and p.get("tier_ok") and p.get("hv_ok")
+                         and p.get("cci_ok") and side)
+    bar_ts = p.get("bar_ts")
+    if not pine_can_fire or not bar_ts:
+        return {"armed": False, "side": side, "bar_ts": bar_ts,
+                "pine_can_fire": pine_can_fire, "heartbeat_at": p.get("received_at")}
+
+    bar_close = int(bar_ts) + BAR_2H_MS
+    now = int(time.time() * 1000)
+    cur = await repo.conn.execute(
+        "SELECT signal_id, status, received_at FROM signals "
+        "WHERE event='OPEN_REQUEST' AND spread_type=? "
+        "AND received_at BETWEEN ? AND ? ORDER BY received_at DESC LIMIT 1",
+        (side, bar_close - PUSH_MATCH_LEAD_MS, bar_close + PUSH_MATCH_TAIL_MS))
+    row = await cur.fetchone()
+    received = row is not None
+    overdue = now >= bar_close + PUSH_GRACE_MS
+    return {
+        "armed": True,
+        "side": side,
+        "bar_ts": int(bar_ts),
+        "bar_close": bar_close,
+        "pine_can_fire": True,
+        "signal_received": received,
+        "signal_id": row["signal_id"] if row else None,
+        "signal_status": row["status"] if row else None,
+        "overdue": overdue,
+        "alarm": bool(overdue and not received),
+        "heartbeat_at": p.get("received_at"),
+    }

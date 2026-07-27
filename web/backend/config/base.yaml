@@ -60,7 +60,7 @@ entry_signal:
   hv_len: 20                         # HV 计算窗口（2h bar 数）⚠待核对
   hv_pctl_window: 252                # HV 分位窗口（2h bar 数）⚠待核对
   hv_pctl_min: 30.0                  # HV 分位下限 (%)
-  snapshot_ttl_sec: 300              # 快照缓存秒数（2h bar 两小时才变一次）
+  snapshot_ttl_sec: 15               # 2h 门槛快照缓存秒数（看板准实时刷新；DVOL 2年分位另走长缓存）
 
 execution:
   n_exec_groups: 5                   # 执行分批数（下单节奏，≠管理子组 group_split_count）

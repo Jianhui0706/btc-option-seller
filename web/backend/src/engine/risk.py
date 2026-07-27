@@ -102,6 +102,15 @@ async def handle_force_close(ctx: Ctx, payload: dict) -> None:
     task = ctx.current_exec_task
     if task and not task.done():
         task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+        except Exception as exc:  # noqa: BLE001 - 强平继续以交易所仓位为事实源
+            log.warning("等待被打断的执行任务结束时出错: %s", exc)
+        finally:
+            if ctx.current_exec_task is task:
+                ctx.current_exec_task = None
 
     # 3. 撤销全部未成交订单
     try:

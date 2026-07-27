@@ -26,11 +26,15 @@ class Database:
             "ALTER TABLE hedge_state ADD COLUMN futures_delta_btc REAL DEFAULT 0",
             "ALTER TABLE trade_groups ADD COLUMN unrealized_pnl_btc REAL DEFAULT 0",
             "ALTER TABLE trade_groups ADD COLUMN profit_ratio REAL",
+            "ALTER TABLE parent_trades ADD COLUMN trade_id TEXT",
         ):
             try:
                 await conn.execute(ddl)
             except Exception:  # noqa: BLE001 - 列已存在
                 pass
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_parent_trades_trade_id "
+            "ON parent_trades(trade_id)")
         await conn.commit()
         self._conn = conn
         return conn

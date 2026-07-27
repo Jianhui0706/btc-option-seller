@@ -4,10 +4,10 @@ import {test} from "node:test";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
-test("dashboard navigation follows the teacher's four-tab workflow", () => {
-  const labels = ["仓位", "活跃信号", "信号日志", "仓位日志"];
-  const routes = ["/", "/signals", "/signal-log", "/returns"];
-  const pages = ["positions", "active-signals", "signal-log", "position-log"];
+test("dashboard navigation promotes TradingView setup beside the teacher workflow", () => {
+  const labels = ["仓位", "TV 接入", "策略信号", "信号日志", "仓位日志"];
+  const routes = ["/", "/tradingview", "/signals", "/signal-log", "/returns"];
+  const pages = ["positions", "tradingview", "active-signals", "signal-log", "position-log"];
 
   const positions = labels.map((label) => html.indexOf(`<span>${label}</span>`));
   assert.ok(positions.every((position) => position >= 0));
@@ -16,7 +16,7 @@ test("dashboard navigation follows the teacher's four-tab workflow", () => {
   pages.forEach((page) => assert.match(html, new RegExp(`id="page-${page}"`)));
 });
 
-test("shared overview appears before the four-tab switcher", () => {
+test("shared overview appears before the primary switcher", () => {
   const hero = html.indexOf('class="dashboard-hero"');
   const metrics = html.indexOf('class="global-metrics"');
   const tabs = html.indexOf('class="main-nav reference-tabs"');
@@ -34,18 +34,22 @@ test("shared shell keeps five core metrics visible across all tabs", () => {
   assert.match(html, /renderGlobalMetrics\(status,acc,trades,signals,performance\)/);
 });
 
-test("each teacher tab owns the correct operational content", () => {
-  const positions = html.split('id="page-positions"')[1].split('id="page-active-signals"')[0];
+test("each primary page owns the correct operational content", () => {
+  const positions = html.split('id="page-positions"')[1].split('id="page-tradingview"')[0];
+  const tradingview = html.split('id="page-tradingview"')[1].split('id="page-active-signals"')[0];
   const activeSignals = html.split('id="page-active-signals"')[1].split('id="page-signal-log"')[0];
   const signalLog = html.split('id="page-signal-log"')[1].split('id="page-position-log"')[0];
   const positionLog = html.split('id="page-position-log"')[1].split('id="forceModal"')[0];
 
   assert.match(positions, /id="activeTrades"/);
   assert.match(positions, /id="positionsTable"/);
-  assert.match(activeSignals, /id="journeySummary"/);
-  assert.match(activeSignals, /id="journeyStep1"/);
-  assert.match(activeSignals, /id="journeyStep4"/);
-  assert.match(activeSignals, /id="activeSignalList"/);
+  assert.match(tradingview, /id="tvSetupWebhook"/);
+  assert.match(tradingview, /id="tvAlertMessage"/);
+  assert.match(tradingview, /四步完成接入/);
+  assert.match(activeSignals, /id="strategyRoster"/);
+  assert.match(activeSignals, /id="strategySignalList"/);
+  assert.match(activeSignals, /不重复计算任何策略指标/);
+  assert.doesNotMatch(activeSignals, /id="journeySummary"/);
   assert.doesNotMatch(activeSignals, /id="tvSignals"/);
   assert.match(signalLog, /id="tvSignals"/);
   assert.match(signalLog, /id="webhookUrl"/);
@@ -53,11 +57,11 @@ test("each teacher tab owns the correct operational content", () => {
   assert.match(positionLog, /id="eventTimeline"/);
   assert.match(positionLog, /id="tradesTable"/);
   assert.match(positionLog, /id="hedgesTable"/);
-  assert.match(html, /function renderActiveSignals\(items\)/);
+  assert.match(html, /function renderStrategyCenter\(data\)/);
 });
 
-test("four-tab shell is responsive and keeps danger actions explicit", () => {
-  assert.match(html, /\.main-nav\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+test("five-page shell is responsive and keeps danger actions explicit", () => {
+  assert.match(html, /\.main-nav\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(html, /\.global-metrics\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(html, /@media\(max-width:700px\)[\s\S]*\.global-metrics\{grid-template-columns:repeat\(2,1fr\)/);
   assert.match(html, /class="btn btn-danger hide-tablet" onclick="openForceDialog\(\)"/);

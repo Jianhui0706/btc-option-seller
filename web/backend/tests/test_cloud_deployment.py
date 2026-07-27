@@ -12,6 +12,7 @@ def test_caddy_site_isolated_from_existing_projects():
     assert DOMAIN in source
     assert "reverse_proxy 127.0.0.1:8310" in source
     assert "path /webhook/tradingview" in source
+    assert "/webhook/signal" in source
 
 
 def test_unrestricted_dashboard_cannot_reach_mainnet():
@@ -90,3 +91,12 @@ def test_package_builder_excludes_runtime_state_and_requires_local_secrets():
     assert "LiteralPath (Join-Path $projectRoot 'deploy\\cloud\\*')" not in source
     assert "UTF8Encoding]::new($false)" in source
     assert '.Replace("`r`n", "`n")' in source
+
+
+def test_installer_preserves_cloud_environment_and_database_on_upgrade():
+    source = (DEPLOY / "install.sh").read_text(encoding="utf-8")
+
+    assert '$PREVIOUS_ROOT/web/backend/.env' in source
+    assert 'cp -a "$PREVIOUS_ROOT/web/backend/.env" "$APP_ROOT/web/backend/.env"' in source
+    assert '$PREVIOUS_ROOT/web/backend/data' in source
+    assert 'cp -a "$PREVIOUS_ROOT/web/backend/data/." "$APP_ROOT/web/backend/data/"' in source

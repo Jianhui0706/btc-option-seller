@@ -24,6 +24,7 @@ class EnvSettings(BaseSettings):
     deribit_mainnet_client_id: str = ""
     deribit_mainnet_client_secret: str = ""
     webhook_passphrase: str = ""
+    trading_account_name: str = "account_1"
     # 旧版兼容：新变量未配置时临时回退，云端应使用上面两枚独立密钥。
     webhook_secret: str = ""
 

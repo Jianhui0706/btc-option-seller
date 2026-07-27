@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 
 from ..config import DATA_DIR
 from ..context import Ctx
@@ -34,8 +35,9 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
                      force_close=await ctx.force_close_active())
         return
 
-    parent_id = await repo.create_parent(signal_id, spread_type,
-                                         signal.get("dvol_tier"))
+    parent_id = await repo.create_parent(
+        signal_id, spread_type, signal.get("dvol_tier"),
+        trade_id=signal.get("trade_id"))
 
     # 1. 开仓前持仓检查（规范第三节：任何期权卖方持仓都阻止，无论来源）
     await repo.transition_parent(parent_id, "POSITION_CHECKING")
@@ -58,46 +60,42 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
                                      ev.REJECT_EXISTING_OPTION_SHORT)
         return
 
-    # 2a. DVOL 档位权威判定（后端拉全历史计算——Pine 3分钟图历史不足，其档位仅参考）
-    from . import indicators
-    force_tier = signal.get("force_tier")
-    completed: list[float] = []
-    if force_tier and cfg.env.is_testnet:
-        # testnet 调试旁路：面板模拟信号跳过档位判定
-        dvol_pct, tier_no = None, int(force_tier)
-    else:
-        dvol_bars = await market_data.fetch_dvol_12h_days(
-            ws, cfg.strategy.currency, cfg.strategy.dvol_entry_window_days)
-        completed = [b.close for b in dvol_bars if b.completed()]
-        dvol_pct, tier_no = indicators.dvol_entry_tier(
-            completed, cfg.strategy.dvol_entry_window_days * 2,
-            cfg.strategy.dvol_entry_levels)
-    if tier_no == 0:
-        await repo.transition_parent(parent_id, "OPEN_FAILED",
-                                     ev.REJECT_DVOL_BELOW_ENTRY,
-                                     dvol_percentile=dvol_pct,
-                                     samples=len(completed))
-        await repo.set_signal_status(signal_id, "REJECTED", ev.REJECT_DVOL_BELOW_ENTRY)
-        return
-    pine_tier = signal.get("dvol_tier")
-    if pine_tier not in (None, -1) and int(pine_tier) != tier_no:
-        await ev.emit(repo.conn, ev.DVOL_TIER_MISMATCH, level="WARN",
-                      parent_id=parent_id, pine_tier=pine_tier,
-                      backend_tier=tier_no, backend_pct=dvol_pct)
-
-    # 2b. 选腿
+    # 2. 选腿。TradingView 已经决定是否交易，并把本次执行所需的
+    # sell_delta / DTE 区间随信号传入；后端只做参数校验和真实合约选择。
+    # 旧 Alert 暂时可用 dvol_tier 映射执行参数，但后端不再拉行情重算档位。
     await repo.transition_parent(parent_id, "SELECTING_LEGS")
-    tier = cfg.leg_selection.tier_map.get(tier_no)
-    if tier is None:
+    sell_delta = signal.get("sell_delta")
+    dte_lo = signal.get("dte_min")
+    dte_hi = signal.get("dte_max")
+    tier_no = signal.get("dvol_tier")
+    if sell_delta is None or dte_lo is None or dte_hi is None:
+        try:
+            tier = cfg.leg_selection.tier_map.get(int(tier_no))
+        except (TypeError, ValueError):
+            tier = None
+        if tier is not None:
+            sell_delta = tier.sell_delta
+            dte_lo = tier.dte_lo
+            dte_hi = tier.dte_hi
+    if sell_delta is None or dte_lo is None or dte_hi is None:
         await repo.transition_parent(parent_id, "OPEN_FAILED", ev.REJECT_BAD_PAYLOAD,
-                                     reason=f"未知档位 {tier_no}")
+                                     reason="TradingView 未提供 sell_delta/DTE")
+        await repo.set_signal_status(signal_id, "REJECTED", ev.REJECT_BAD_PAYLOAD)
+        return
+    sell_delta = abs(float(sell_delta))
+    dte_lo, dte_hi = float(dte_lo), float(dte_hi)
+    if (not cfg.leg_selection.sell_delta_min <= sell_delta
+            <= cfg.leg_selection.sell_delta_max
+            or not 1 <= dte_lo <= dte_hi <= 730):
+        await repo.transition_parent(parent_id, "OPEN_FAILED", ev.REJECT_BAD_PAYLOAD,
+                                     reason="TradingView 选腿参数超出安全范围")
         await repo.set_signal_status(signal_id, "REJECTED", ev.REJECT_BAD_PAYLOAD)
         return
     opt_type = "put" if spread_type == "PUT_CREDIT" else "call"
     chain = await market_data.option_chain_tickers(
-        ws, cfg.strategy.currency, opt_type, tier.dte_lo, tier.dte_hi)
+        ws, cfg.strategy.currency, opt_type, dte_lo, dte_hi)
     sel = leg_selector.select_spread(
-        chain.tickers, spread_type, tier.sell_delta,
+        chain.tickers, spread_type, sell_delta,
         sell_delta_min=cfg.leg_selection.sell_delta_min,
         sell_delta_max=cfg.leg_selection.sell_delta_max,
         min_credit_btc=cfg.leg_selection.min_credit_btc,
@@ -111,9 +109,17 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
 
     # 3. 算量（风险预算）
     summ = await account.get_account_summary(ws, cfg.strategy.currency)
-    qty = leg_selector.contracts_for_budget(
+    risk_qty = leg_selector.contracts_for_budget(
         summ.equity_btc, cfg.risk.account_risk_pct, sel.max_loss_btc,
         cfg.strategy.min_lot)
+    requested = signal.get("quantity")
+    if requested is not None and signal.get("qty_type", "fixed") == "fixed":
+        requested_qty = (
+            math.floor(float(requested) / cfg.strategy.min_lot + 1e-9)
+            * cfg.strategy.min_lot)
+        qty = min(risk_qty, requested_qty)
+    else:
+        qty = risk_qty
     if qty < cfg.strategy.min_lot:
         await repo.transition_parent(parent_id, "OPEN_FAILED",
                                      ev.REJECT_INSUFFICIENT_RISK_BUDGET,

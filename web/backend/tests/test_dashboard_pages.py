@@ -1,11 +1,13 @@
 import base64
+import json
 from pathlib import Path
 from types import SimpleNamespace
 import time
 
 import pytest
+from fastapi import Response
 
-from src.api import performance, signal_feed
+from src.api import performance, signal_feed, trades_history, tradingview_setup
 from src.app import app
 from src.store.db import Database
 from src.store.repo import Repo
@@ -13,15 +15,51 @@ from src.webhook import tradingview_webhook
 
 
 def test_dashboard_exposes_signal_and_returns_pages_and_apis():
-    routes = {(route.path, method) for route in app.routes
+    def walk(items):
+        for route in items:
+            if hasattr(route, "path"):
+                yield route
+            nested = getattr(route, "routes", None)
+            if nested is None:
+                nested = getattr(getattr(route, "original_router", None),
+                                 "routes", None)
+            if nested:
+                yield from walk(nested)
+
+    routes = {(route.path, method) for route in walk(app.routes)
               for method in getattr(route, "methods", set())}
 
     assert ("/api/signals", "GET") in routes
     assert ("/api/performance", "GET") in routes
+    assert ("/api/tradingview_setup", "GET") in routes
+    assert ("/webhook/signal", "POST") in routes
+    assert ("/webhook/tradingview", "POST") in routes
     assert ("/signals", "GET") in routes
+    assert ("/tradingview", "GET") in routes
     assert ("/signal-log", "GET") in routes
     assert ("/returns", "GET") in routes
     assert ("/control/test_signal", "POST") not in routes
+
+
+@pytest.mark.asyncio
+async def test_tradingview_setup_exposes_configured_secret_for_experiment():
+    ctx = SimpleNamespace(cfg=SimpleNamespace(
+        env=SimpleNamespace(
+            trading_account_name="account_1",
+            webhook_auth_token="super-secret",
+        ),
+        strategy=SimpleNamespace(name="BTC_OPTION_SELLER_V2"),
+    ))
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(ctx=ctx)))
+
+    response = Response()
+    result = await tradingview_setup(request, response)
+
+    assert result["webhook_path"] == "/webhook/signal"
+    assert result["account_name"] == "account_1"
+    assert result["passphrase_configured"] is True
+    assert result["passphrase"] == "super-secret"
+    assert response.headers["cache-control"] == "no-store"
 
 
 def test_dashboard_pages_disable_heuristic_caching():
@@ -32,32 +70,31 @@ def test_dashboard_pages_disable_heuristic_caching():
     assert _dashboard_page().headers["cache-control"] == "no-cache"
 
 
-def test_signals_page_has_entry_condition_panel():
+def test_signals_page_is_multi_strategy_activity_center():
     source = (Path(__file__).resolve().parents[2] / "frontend" / "index.html").read_text(
         encoding="utf-8"
     )
 
-    # 新手友好的四步开仓流程取代了旧的两段式看板
-    assert "开仓流程 · 现在走到哪一步" in source
-    assert 'id="journeySummary"' in source
-    assert 'id="journeyStep1"' in source
-    assert 'id="journeyStep4"' in source
-    # 第 1 步内仍复用条件卡片：已通过折叠与原始数据折叠
-    assert 'id="condPassed"' in source
-    assert 'id="condEvidence"' in source
-    assert source.count("尚未收到心跳") <= 1
+    page = source.split('id="page-active-signals"', 1)[1].split(
+        'id="page-signal-log"', 1)[0]
+    assert "策略信号中心" in page
+    assert 'id="strategyRoster"' in page
+    assert 'id="strategySignalList"' in page
+    assert 'id="journeySummary"' not in page
+    assert "DVOL 档位" not in page
 
 
-def test_frontend_contains_four_teacher_dashboard_views():
+def test_frontend_contains_primary_tradingview_and_teacher_dashboard_views():
     source = (Path(__file__).resolve().parents[2] / "frontend" / "index.html").read_text(
         encoding="utf-8"
     )
 
     assert 'id="page-positions"' in source
+    assert 'id="page-tradingview"' in source
     assert 'id="page-active-signals"' in source
     assert 'id="page-signal-log"' in source
     assert 'id="page-position-log"' in source
-    assert "TradingView 发送开仓申请" in source
+    assert "TradingView 负责策略判断，后端负责统一执行" in source
     assert "TradingView 实时监听" in source
     assert "测试工具" not in source
     assert "testSignal(" not in source
@@ -67,7 +104,8 @@ def test_frontend_contains_four_teacher_dashboard_views():
     assert '<div class="topbar-primary">' in source
     assert '<div class="topbar-command">' in source
     assert '<small>Positions</small>' in source
-    assert '<small>Active Signals</small>' in source
+    assert '<small>Primary Setup</small>' in source
+    assert '<small>Strategies</small>' in source
     assert '<small>Signal Log</small>' in source
     assert '<small>Position Log</small>' in source
     assert 'class="btn icon-btn mobile-only primary-mobile-menu"' in source
@@ -174,6 +212,64 @@ async def test_signal_feed_merges_heartbeats_and_real_tradingview_signals(tmp_pa
         assert result["items"][1]["reject_reason"] == "REJECT_DVOL_BELOW_ENTRY"
         assert result["items"][1]["payload"]["btc_price"] == 66000
         assert all("passphrase" not in item["payload"] for item in result["items"])
+        assert result["server_ts"] > 0
+        assert result["strategies"] == [{
+            "strategy": "BTC_OPTION_SELLER_V2",
+            "account_name": "",
+            "signal_total": 2,
+            "open_signals": 1,
+            "exit_signals": 1,
+            "accepted": 1,
+            "rejected": 1,
+            "pending": 0,
+            "heartbeats": 2,
+            "active_trades": 0,
+            "last_signal_at": 300,
+            "last_heartbeat_at": 400,
+            "last_activity_at": 400,
+        }]
+    finally:
+        await db.close()
+
+
+@pytest.mark.asyncio
+async def test_signal_feed_groups_multiple_strategies_independently(tmp_path):
+    db = Database(tmp_path / "multi-strategy-signals.db")
+    conn = await db.open()
+    try:
+        repo = Repo(conn)
+        await repo.insert_signal(
+            "ALPHA-OPEN", "OPEN_REQUEST", "ALPHA", "PUT_CREDIT",
+            {"source": "tradingview", "account_name": "account_1"},
+        )
+        await repo.set_signal_status("ALPHA-OPEN", "ACCEPTED")
+        await repo.insert_signal(
+            "BETA-EXIT", "EXIT_DVOL", "BETA", "",
+            {"source": "tradingview", "account_name": "account_1"},
+        )
+        await repo.set_signal_status("BETA-EXIT", "REJECTED", "no_matching_trade")
+        await repo.record_pine_heartbeat({
+            "event": "STATUS", "strategy": "BETA",
+            "bar_ts": 500, "received_at": 500,
+        })
+        await conn.commit()
+        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(
+            ctx=SimpleNamespace(
+                repo=repo,
+                cfg=SimpleNamespace(env=SimpleNamespace(webhook_auth_token="configured")),
+            )
+        )))
+
+        result = await signal_feed(request, limit=20)
+        by_name = {item["strategy"]: item for item in result["strategies"]}
+
+        assert set(by_name) == {"ALPHA", "BETA"}
+        assert by_name["ALPHA"]["open_signals"] == 1
+        assert by_name["ALPHA"]["accepted"] == 1
+        assert by_name["ALPHA"]["account_name"] == "account_1"
+        assert by_name["BETA"]["exit_signals"] == 1
+        assert by_name["BETA"]["rejected"] == 1
+        assert by_name["BETA"]["heartbeats"] == 1
     finally:
         await db.close()
 
@@ -210,14 +306,23 @@ async def test_performance_summarizes_realized_unrealized_and_trade_results(tmp_
     now = int(time.time() * 1000)
     eight_days_ago = now - 8 * 86400 * 1000
     try:
+        repo = Repo(conn)
+        await repo.insert_signal(
+            "TV-OPEN-1", "OPEN_REQUEST", "PARAMETER_SET_A", "PUT_CREDIT",
+            {"source": "tradingview", "tv_id": "1784851200123"},
+        )
         await conn.executemany(
             "INSERT INTO parent_trades(id, signal_id, spread_type, state, closed_at, created_at) "
             "VALUES(?,?,?,?,?,?)",
             [
-                (1, None, "PUT_CREDIT", "CLOSED", now, now - 1000),
+                (1, "TV-OPEN-1", "PUT_CREDIT", "CLOSED", now, now - 1000),
                 (2, None, "CALL_CREDIT", "CLOSED", eight_days_ago, eight_days_ago - 1000),
                 (3, None, "PUT_CREDIT", "OPEN", None, now),
             ],
+        )
+        await conn.execute(
+            "UPDATE parent_trades SET trade_id=? WHERE id=1",
+            ("1784851200123",),
         )
         await conn.executemany(
             "INSERT INTO trade_groups(parent_id, group_index, qty, state, "
@@ -234,10 +339,11 @@ async def test_performance_summarizes_realized_unrealized_and_trade_results(tmp_
         )
         await conn.commit()
         request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(
-            ctx=SimpleNamespace(repo=SimpleNamespace(conn=conn))
+            ctx=SimpleNamespace(repo=repo)
         )))
 
         result = await performance(request)
+        history = await trades_history(request)
 
         summary = result["summary"]
         assert summary["realized_pnl_btc"] == pytest.approx(0.01)
@@ -251,6 +357,14 @@ async def test_performance_summarizes_realized_unrealized_and_trade_results(tmp_
         assert summary["losses"] == 1
         assert summary["win_rate"] == pytest.approx(0.5)
         assert len(result["trades"]) == 3
+        attributed = next(t for t in result["trades"] if t["id"] == 1)
+        assert attributed["strategy"] == "PARAMETER_SET_A"
+        assert attributed["trade_id"] == "1784851200123"
+        assert attributed["tv_id"] == "1784851200123"
+        history_trade = next(t for t in history if t["id"] == 1)
+        assert history_trade["strategy"] == "PARAMETER_SET_A"
+        assert history_trade["tv_id"] == "1784851200123"
+        assert history_trade["signal_id"] == "TV-OPEN-1"
     finally:
         await db.close()
 
@@ -297,5 +411,6 @@ async def test_tradingview_webhook_marks_the_stored_signal_source():
 
     result = await tradingview_webhook(FakeRequest())
 
-    assert result["status"] == "queued"
+    assert result.status_code == 202
+    assert json.loads(result.body)["status"] == "queued"
     assert repo.stored_payload["source"] == "tradingview"

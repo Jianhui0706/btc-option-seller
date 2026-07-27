@@ -88,6 +88,12 @@ cp -a "$BACKEND_SOURCE/." "$APP_ROOT/web/backend/"
 cp -a "$SOURCE_ROOT/deploy/cloud/." "$APP_ROOT/deploy/cloud/"
 install -d -m 0750 -o ubuntu -g ubuntu \
     "$APP_ROOT/web/backend/data" "$APP_ROOT/web/backend/logs"
+# 升级时云端 .env 是运行期配置，不能被开发机打包的密钥覆盖。
+# 首次安装没有旧目录时才使用部署包内的 .env。
+if [[ -n "$PREVIOUS_ROOT" && -f "$PREVIOUS_ROOT/web/backend/.env" ]]; then
+    cp -a "$PREVIOUS_ROOT/web/backend/.env" "$APP_ROOT/web/backend/.env"
+    echo "Carried over cloud environment from $PREVIOUS_ROOT"
+fi
 # 部署包不含 data/，不把上一版的库搬回来的话，
 # 每次部署都会静默清空策略数据库（持仓归属、子组、事件历史全丢）。
 if [[ -n "$PREVIOUS_ROOT" && -d "$PREVIOUS_ROOT/web/backend/data" ]]; then
@@ -153,4 +159,4 @@ if [[ "$public_status" != "403" && "$public_status" != "200" ]]; then
 fi
 
 echo "Deployment complete: https://${DOMAIN}"
-echo "Webhook URL: https://${DOMAIN}/webhook/tradingview"
+echo "Webhook URL: https://${DOMAIN}/webhook/signal"

@@ -47,6 +47,13 @@ npm run dev
 管理页面不要求访问口令。TradingView webhook 继续使用独立的
 `WEBHOOK_PASSPHRASE` 验证信号来源。
 
+系统采用单一策略权威：TradingView Pine 负责产生开仓/平仓订单信号，
+Python 后端只做鉴权、去重、执行安全校验、Deribit 选腿与下单。打开监控台
+顶部“TV 接入”页，即可复制 Webhook URL 和完整 Alert JSON 到 TradingView。
+每套 TradingView 策略填写不同的 `strategy` 名称；“策略信号”页会按名称
+自动发现并汇总连接回报、开仓/退出信号、执行结果和关联仓位，不在后端重复
+计算任何 Pine 策略指标。
+
 只有修改后端代码并需要自动重新加载时，才使用
 `python server.py --reload`。
 

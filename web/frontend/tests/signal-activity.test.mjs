@@ -27,9 +27,10 @@ test("activity colors distinguish connection, open signal, exit, and rejection",
   assert.match(html, /REJECT_DVOL_BELOW_ENTRY:"DVOL 低于开仓门槛"/);
 });
 
-test("active signal panel contains opening signals only", () => {
-  assert.match(html, /filter\(x=>x\.kind==="OPEN_SIGNAL"\)/);
-  assert.doesNotMatch(html, /filter\(x=>x\.kind==="OPEN_SIGNAL"\|\|x\.kind==="EXIT_SIGNAL"\)/);
+test("strategy center contains all executable signals but excludes connection reports", () => {
+  assert.match(html, /items\.filter\(item=>item\.kind!=="HEARTBEAT"\)\.slice\(0,8\)/);
+  assert.match(html, /id="strategySignalList"/);
+  assert.match(html, /真实开仓或退出信号/);
 });
 
 test("activity details remove secrets and escape dynamic values", () => {

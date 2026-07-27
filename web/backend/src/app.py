@@ -108,6 +108,11 @@ async def signals_dashboard():
     return _dashboard_page()
 
 
+@app.get("/tradingview")
+async def tradingview_dashboard():
+    return _dashboard_page()
+
+
 @app.get("/signal-log")
 async def signal_log_dashboard():
     return _dashboard_page()

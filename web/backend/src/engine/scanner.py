@@ -14,7 +14,7 @@ import time
 from ..context import Ctx
 from ..exchange import account, market_data
 from ..monitor import events as ev
-from . import hedge, indicators, risk
+from . import entry_conditions, hedge, risk
 
 log = logging.getLogger("v2.scan")
 
@@ -41,29 +41,6 @@ async def _last_completed_3m_bar(ctx: Ctx) -> tuple[float, int]:
     if not done:
         raise RuntimeError("没有已收盘的 3min bar")
     return done[-1].close, done[-1].ts
-
-
-async def _check_dvol_exit(ctx: Ctx) -> bool:
-    """第 5 步：后端自算 DVOL 滚动退出（每根 12h bar 只判一次）。"""
-    repo, cfg = ctx.repo, ctx.cfg
-    bars = await market_data.fetch_dvol_12h(ctx.ws, cfg.strategy.currency,
-                                            points=cfg.exit.dvol_window_bars + 8)
-    completed = [b for b in bars if b.completed()]
-    if not completed:
-        return False
-    last_ts = completed[-1].ts
-    checked = await repo.get_state("last_dvol_bar_ts")
-    if checked is not None and int(checked) >= last_ts:
-        return False   # 该 12h bar 已判过
-    triggered, threshold = indicators.dvol_exit_triggered(
-        [b.close for b in completed],
-        window=cfg.exit.dvol_window_bars, pct=cfg.exit.dvol_percentile)
-    if triggered:
-        await ev.emit(repo.conn, ev.EXIT_DVOL_ROLLING_30, source="backend",
-                      current=completed[-1].close, threshold=threshold)
-    # 标记放最后：中途异常时该 12h bar 下轮扫描重判，退出信号不会被吞
-    await repo.set_state("last_dvol_bar_ts", str(last_ts))
-    return triggered
 
 
 async def _quotes_available(ctx: Ctx, parents: list[dict]) -> bool:
@@ -105,10 +82,31 @@ async def _update_group_pnl(ctx: Ctx, parents: list[dict], opts: list) -> None:
                 group["id"], pnl_per_contract * remaining, ratio)
 
 
+async def _check_push_watchdog(ctx: Ctx) -> None:
+    """推送看门狗：Pine 自报某根 2h bar 满足全部条件却没收到推送 → 记录 WARN（每 bar 一次）。"""
+    repo = ctx.repo
+    try:
+        wd = await entry_conditions.push_watchdog(ctx)
+    except Exception as exc:  # noqa: BLE001 - 看门狗不得影响扫描主流程
+        log.debug("push watchdog 计算失败: %s", exc)
+        return
+    if not wd.get("alarm"):
+        return
+    last = await repo.get_state("last_push_alarm_bar_ts")
+    if last is not None and int(last) >= wd["bar_ts"]:
+        return   # 该 bar 已告警过，避免每 3 分钟重复刷
+    await ev.emit(repo.conn, ev.PUSH_MISSING, level="WARN",
+                  bar_ts=wd["bar_ts"], side=wd["side"], bar_close=wd["bar_close"])
+    await repo.set_state("last_push_alarm_bar_ts", str(wd["bar_ts"]))
+
+
 async def handle_scan(ctx: Ctx, payload: dict) -> None:
     repo, cfg = ctx.repo, ctx.cfg
     ctx.hedge_frozen = False   # 每根 bar 重置"平仓冻结对冲"标志
     t0 = time.time()
+
+    # 推送看门狗（规范第五节链路可观测）：与持仓无关，每根扫描都跑，不影响主流程
+    await _check_push_watchdog(ctx)
 
     # 3. FORCE_CLOSE 已激活 → 只做核对，不做其他动作
     if await ctx.force_close_active():
@@ -124,8 +122,8 @@ async def handle_scan(ctx: Ctx, payload: dict) -> None:
         ctx.quote_missing_count += 1
         log.warning("scan 持仓获取失败(%s)，连续 %d 次", exc, ctx.quote_missing_count)
         if ctx.quote_missing_count >= cfg.risk.quote_missing_scans:
-            ctx.queue.put(ctx.queue.force_close(
-                "RISK_ENGINE", f"持仓/盘口连续 {ctx.quote_missing_count} 轮不可用"))
+            ctx.request_force_close(
+                "RISK_ENGINE", f"持仓/盘口连续 {ctx.quote_missing_count} 轮不可用")
         return
 
 
@@ -135,8 +133,8 @@ async def handle_scan(ctx: Ctx, payload: dict) -> None:
         log.warning("活跃期权盘口连续缺失 %d/%d 轮",
                     ctx.quote_missing_count, cfg.risk.quote_missing_scans)
         if ctx.quote_missing_count >= cfg.risk.quote_missing_scans:
-            ctx.queue.put(ctx.queue.force_close(
-                "RISK_ENGINE", f"期权盘口连续 {ctx.quote_missing_count} 轮缺失"))
+            ctx.request_force_close(
+                "RISK_ENGINE", f"期权盘口连续 {ctx.quote_missing_count} 轮缺失")
         return
     ctx.quote_missing_count = 0
 
@@ -145,7 +143,7 @@ async def handle_scan(ctx: Ctx, payload: dict) -> None:
     # 2. 与数据库核对 + 附带风控检查（保证金/日亏/Delta 异常）
     reason = await risk.run_risk_checks(ctx, opts, futs)
     if reason:
-        ctx.queue.put(ctx.queue.force_close("RISK_ENGINE", reason))
+        ctx.request_force_close("RISK_ENGINE", reason)
         return
 
     closing = [p for p in await repo.active_parents() if p["state"] == "CLOSING"]
@@ -155,14 +153,7 @@ async def handle_scan(ctx: Ctx, payload: dict) -> None:
         await repo.set_state("last_scan_ts", str(int(t0 * 1000)))
         return
 
-    # 5. DVOL 退出（后端自算，与 TV webhook 互为双保险）
-    if parents and await _check_dvol_exit(ctx):
-        for p in parents:
-            ctx.queue.put(ctx.queue.normal_close(p["id"], ev.EXIT_DVOL_ROLLING_30))
-        await repo.set_state("last_scan_ts", str(int(t0 * 1000)))
-        return   # 同一 bar 只执行平仓，不再新增对冲（规范第十五节）
-
-    # 5b. DTE 到期保护（沿用 V1：距到期 ≤ N 天平仓）
+    # 5. DTE 到期保护属于执行安全兜底，不是策略退出信号。
     now = market_data.now_ms()
     for p in parents:
         if p["expiry_ts"]:

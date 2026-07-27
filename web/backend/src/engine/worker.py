@@ -27,7 +27,13 @@ async def run_worker(ctx: Ctx) -> None:
         try:
             await handler(ctx, cmd.payload)
         except asyncio.CancelledError:
-            raise
+            # FORCE_CLOSE 会取消当前开/平仓的子任务。等待已取消子任务时抛出的
+            # CancelledError 不代表 worker 自身应退出；应用停机直接取消 worker
+            # 时，cancelling() > 0，仍按正常停机路径向上传播。
+            current = asyncio.current_task()
+            if current is not None and current.cancelling():
+                raise
+            log.warning("command %s interrupted; worker continues", cmd.kind)
         except Exception as exc:  # noqa: BLE001 - 单条命令失败不拖垮 worker
             log.exception("command %s failed", cmd.kind)
             try:

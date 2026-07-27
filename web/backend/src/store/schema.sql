@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS signals (
 CREATE TABLE IF NOT EXISTS parent_trades (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
   signal_id       TEXT REFERENCES signals(signal_id),
+  trade_id        TEXT,                        -- TradingView 交易实例 ID，供精确平仓关联
   spread_type     TEXT NOT NULL,
   state           TEXT NOT NULL,
   dvol_tier       INTEGER,

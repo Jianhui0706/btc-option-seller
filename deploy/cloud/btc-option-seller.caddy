@@ -22,7 +22,7 @@ btc-option-seller-43-160-202-151.sslip.io {
     encode zstd gzip
 
     # webhook 必须对 TradingView 开放（其自身用 passphrase 鉴权）
-    @tradingview_webhook path /webhook/tradingview
+    @tradingview_webhook path /webhook/tradingview /webhook/signal
     handle @tradingview_webhook {
         reverse_proxy 127.0.0.1:8310
     }
