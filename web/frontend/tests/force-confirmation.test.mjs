@@ -17,3 +17,11 @@ test("force-close warning and click actions remain", () => {
   assert.match(html, /onclick="confirmForceClose\(\)"[^>]*>确认强平</);
   assert.match(html, /api\("\/control\/force_close\?reason=ui_manual"/);
 });
+
+test("force-close result reports the real exchange failure", () => {
+  assert.match(html, /function forceCloseResultText\(p\)/);
+  assert.match(html, /强平失败：/);
+  assert.match(html, /item\.instrument/);
+  assert.match(html, /item\.error/);
+  assert.match(html, /强平完成，Deribit 实际仓位已归零/);
+});

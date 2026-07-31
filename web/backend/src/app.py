@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse
 from . import api, webhook
 from .config import db_path, load_config
 from .context import Ctx
-from .engine import closer, hedge, orchestrator, risk, scanner, worker
+from .engine import closer, hedge, orchestrator, reverser, risk, scanner, worker
 from .engine.commands import CommandQueue
 from .exchange.deribit_ws import DeribitWS, MAINNET_URL, TESTNET_URL
 from .store.db import Database
@@ -59,7 +59,8 @@ async def lifespan(app: FastAPI):
     ctx = Ctx(cfg=cfg, db=db, repo=repo, ws=ws, queue=CommandQueue())
     ctx.handlers = {
         "OPEN": orchestrator.handle_open,
-        "SCAN": scanner.handle_scan,
+        "REVERSE": reverser.handle_reverse,
+        "RECOVER_OPENING": risk.handle_opening_recovery,
         "NORMAL_CLOSE": closer.handle_normal_close,
         "GROUP_CLOSE": closer.handle_group_close,
         "HEDGE_RELEASE": hedge.handle_release,
@@ -78,6 +79,7 @@ async def lifespan(app: FastAPI):
     finally:
         scanner_task.cancel()
         worker_task.cancel()
+        await asyncio.gather(scanner_task, worker_task, return_exceptions=True)
         await ws.close()
         await db.close()
 

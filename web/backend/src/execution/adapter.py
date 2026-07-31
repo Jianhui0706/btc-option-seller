@@ -27,6 +27,35 @@ log = logging.getLogger("v2.exec")
 OnEvent = Optional[Callable[[str], None]]
 
 
+def _merge_liquidity_roles(*roles: str) -> str:
+    known = {role for role in roles if role in {"MAKER", "TAKER", "MIXED"}}
+    if "MIXED" in known or {"MAKER", "TAKER"} <= known:
+        return "MIXED"
+    if "MAKER" in known:
+        return "MAKER"
+    if "TAKER" in known:
+        return "TAKER"
+    return "UNKNOWN"
+
+
+def _spread_report_liquidity_role(report) -> str:
+    """根据真实成交批次汇总 maker/taker；未成交委托不计入。"""
+    roles: list[str] = []
+    if report.combo_filled > EPS:
+        roles.append("MAKER")  # combo 委托强制 post_only
+    for group in report.groups:
+        for attempt in group.attempts:
+            if attempt.buy_filled + attempt.sell_filled > EPS:
+                roles.append("TAKER" if attempt.attempt >= 3 else "MAKER")
+    if any(float(item.get("swept") or 0.0) > EPS
+           for item in report.leftover.values()):
+        roles.append("TAKER")
+    if any(float(item.get("filled") or 0.0) > EPS
+           for item in report.rebalance):
+        roles.append("TAKER")
+    return _merge_liquidity_roles(*roles)
+
+
 @dataclass
 class OpenResult:
     qty: float                 # 两腿等量成交张数（=最终登记持仓量）
@@ -35,6 +64,7 @@ class OpenResult:
     sell_avg: float
     combo_qty: float
     unwound_qty: float         # 被回滚的买腿张数
+    liquidity_role: str = "UNKNOWN"
     events: list[str] = field(default_factory=list)
 
     @property
@@ -112,7 +142,8 @@ async def open_credit_spread(
     if dry_run:
         emit("dry-run：跳过买先阶段真实下单")
         return OpenResult(qty=0.0, net_credit_btc=0.0, buy_avg=0.0, sell_avg=0.0,
-                          combo_qty=0.0, unwound_qty=0.0, events=events)
+                          combo_qty=0.0, unwound_qty=0.0,
+                          liquidity_role="UNKNOWN", events=events)
 
     # ---------------- 阶段B：剩余量买腿先行逐组执行 ----------------
     remaining = round_lot(qty - combo_qty, min_lot)
@@ -120,6 +151,7 @@ async def open_credit_spread(
     buy_cost = 0.0
     sell_filled = 0.0
     sell_revenue = 0.0
+    liquidity_roles = ["MAKER"] if combo_qty > EPS else []
 
     for gi, g_qty in enumerate(_exec_groups(remaining, n_exec_groups, min_lot), start=1):
         # 组前健康检查：当前盘口是否仍满足最低净权利金
@@ -136,6 +168,7 @@ async def open_credit_spread(
         buy_ex = SingleLegExecutor(ws, buy_instrument, "buy", SingleLegParams(
             amount=g_qty, min_lot=min_lot, attempt_waits=attempt_waits), on_event=emit)
         brep = await buy_ex.execute()
+        liquidity_roles.append(brep.liquidity_role)
         if brep.filled < min_lot - EPS:
             emit(f"[组{gi}] 买腿未成交，停止后续开仓")
             break
@@ -147,6 +180,7 @@ async def open_credit_spread(
             amount=brep.filled, min_lot=min_lot, attempt_waits=attempt_waits,
             limit_price=round(brep.avg_price + min_credit_btc, 10)), on_event=emit)
         srep = await sell_ex.execute()
+        liquidity_roles.append(srep.liquidity_role)
         sell_filled = round_lot(sell_filled + srep.filled, min_lot)
         sell_revenue += srep.filled * srep.avg_price
         if srep.filled + EPS < brep.filled:
@@ -159,9 +193,11 @@ async def open_credit_spread(
     if excess >= min_lot - EPS:
         emit(f"卖腿缺口 {excess:.1f} 张，回滚多余买腿（IOC 卖出平掉）")
         un_ex = SingleLegExecutor(ws, buy_instrument, "sell", SingleLegParams(
-            amount=excess, min_lot=min_lot, attempt_waits=(2.0, 4.0, 6.0), rounds=3),
+            amount=excess, min_lot=min_lot, attempt_waits=(2.0, 4.0, 6.0),
+            rounds=3, reduce_only=True),
             on_event=emit)
         urep = await un_ex.execute()
+        liquidity_roles.append(urep.liquidity_role)
         unwound = urep.filled
         buy_filled = round_lot(buy_filled - urep.filled, min_lot)
         buy_cost -= urep.filled * urep.avg_price   # 回滚收回的权利金冲减买腿成本
@@ -180,6 +216,7 @@ async def open_credit_spread(
          f"净权利金 {net_credit:.4f}/张，回滚 {unwound:.1f} 张")
     return OpenResult(qty=total_qty, net_credit_btc=net_credit, buy_avg=buy_avg,
                       sell_avg=sell_avg, combo_qty=combo_qty, unwound_qty=unwound,
+                      liquidity_role=_merge_liquidity_roles(*liquidity_roles),
                       events=events)
 
 
@@ -189,6 +226,7 @@ class CloseResult:
     buy_back_avg: float        # 买回卖腿均价（BTC/张）
     sell_out_avg: float        # 卖出买腿均价（双腿全平时）
     complete: bool
+    liquidity_role: str = "UNKNOWN"
     events: list[str] = field(default_factory=list)
 
 
@@ -214,7 +252,10 @@ async def close_spread_both_legs(
 
     params = ExecParams(
         amount=qty,
-        use_combo=True,
+        # Combo instruments cannot constrain each component with reduce_only.
+        # Close through the two real option instruments so every order is
+        # position-reducing and can never create an inverted spread.
+        use_combo=False,
         strict_five_groups=False,
         n_groups=n_exec_groups,
         taker_fallback=True,
@@ -238,6 +279,7 @@ async def close_spread_both_legs(
         buy_back_avg=rep.leg_avg_price.get(sell_instrument, 0.0),
         sell_out_avg=rep.leg_avg_price.get(buy_instrument, 0.0),
         complete=complete,
+        liquidity_role=_spread_report_liquidity_role(rep),
         events=events,
     )
 
@@ -259,11 +301,12 @@ async def close_sell_leg_only(
             on_event(msg)
 
     ex = SingleLegExecutor(ws, sell_instrument, "buy", SingleLegParams(
-        amount=qty, min_lot=min_lot, rounds=3), on_event=emit)
+        amount=qty, min_lot=min_lot, rounds=3, reduce_only=True), on_event=emit)
     rep = await ex.execute()
     return CloseResult(closed_qty=round_lot(rep.filled, min_lot),
                        buy_back_avg=rep.avg_price, sell_out_avg=0.0,
-                       complete=rep.complete, events=events)
+                       complete=rep.complete,
+                       liquidity_role=rep.liquidity_role, events=events)
 
 
 async def close_long_leg(
@@ -283,8 +326,9 @@ async def close_long_leg(
             on_event(msg)
 
     ex = SingleLegExecutor(ws, instrument, "sell", SingleLegParams(
-        amount=qty, min_lot=min_lot, rounds=3), on_event=emit)
+        amount=qty, min_lot=min_lot, rounds=3, reduce_only=True), on_event=emit)
     rep = await ex.execute()
     return CloseResult(closed_qty=round_lot(rep.filled, min_lot),
                        buy_back_avg=0.0, sell_out_avg=rep.avg_price,
-                       complete=rep.complete, events=events)
+                       complete=rep.complete,
+                       liquidity_role=rep.liquidity_role, events=events)

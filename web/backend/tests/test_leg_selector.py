@@ -53,6 +53,38 @@ def test_no_candidates_when_rr_too_strict():
     assert select_spread(PUT_CHAIN, "PUT_CREDIT", 0.20, risk_reward_max=0.5) is None
 
 
+def test_tries_next_nearby_sell_leg_when_closest_has_no_valid_spread():
+    chain = [
+        _ticker(50000, -0.05, 0.0030, 0.0040),
+        _ticker(54000, -0.10, 0.0060, 0.0070),
+        _ticker(56000, -0.14, 0.0090, 0.0100),
+        _ticker(58000, -0.20, 0.0140, 0.0150),
+    ]
+
+    sel = select_spread(chain, "PUT_CREDIT", 0.15, risk_reward_max=12.0)
+
+    assert sel is not None
+    assert sel.sell.instrument == "BTC-7AUG26-58000-P"
+    assert sel.risk_reward <= 12.0
+    assert sel.diag["sell_candidates_checked"] >= 2
+
+
+def test_nearby_sell_search_never_exceeds_configured_delta_radius():
+    chain = [
+        _ticker(50000, -0.05, 0.0030, 0.0040),
+        _ticker(56000, -0.14, 0.0090, 0.0100),
+        _ticker(62000, -0.40, 0.0300, 0.0310),
+    ]
+
+    assert select_spread(
+        chain,
+        "PUT_CREDIT",
+        0.15,
+        sell_delta_search_radius=0.10,
+        risk_reward_max=12.0,
+    ) is None
+
+
 def test_one_sided_quotes_excluded():
     chain = [
         _ticker(62000, -0.218, 0.0, 0.0110),   # 无 bid

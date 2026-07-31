@@ -30,6 +30,7 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .layout{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(310px,.72fr);gap:14px}.panel{border:1px solid var(--line);background:linear-gradient(155deg,rgba(16,23,32,.96),rgba(11,17,25,.96));border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.055)}.panel-title{font-size:13px;font-weight:780;letter-spacing:.15px}.panel-kicker{font-size:11px;color:var(--muted);margin-top:2px}.panel-body{padding:18px 20px}.full{grid-column:1/-1}.stack{display:grid;gap:14px}
 .trade-card{border:1px solid var(--line2);border-radius:16px;background:linear-gradient(150deg,#131d28,#0d141d);overflow:hidden}.trade-card+.trade-card{margin-top:14px}.trade-top{display:flex;align-items:center;gap:12px;padding:16px 17px;border-bottom:1px solid var(--line)}.trade-icon{width:39px;height:39px;border-radius:11px;display:grid;place-items:center;font-weight:850;background:rgba(70,215,195,.10);color:var(--cyan)}.trade-icon.call{background:rgba(102,166,255,.1);color:var(--blue)}.trade-name{font-weight:760}.trade-id{color:var(--muted);font-size:11px;margin-top:1px}.tag{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:999px;padding:4px 8px;font-size:10px;font-weight:750;color:var(--muted)}.tag.live{color:var(--cyan);border-color:rgba(70,215,195,.28);background:rgba(70,215,195,.07)}.tag.busy{color:var(--amber);border-color:rgba(246,184,74,.3)}.tag.bad{color:var(--red);border-color:rgba(255,101,119,.28)}
 .trade-content{padding:16px 17px}.trade-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}.datum{background:#0b121a;border:1px solid rgba(255,255,255,.055);border-radius:11px;padding:11px 12px;min-width:0}.datum-label{font-size:10px;color:var(--muted);margin-bottom:5px}.datum-value{font-weight:720;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.legs{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:15px}.leg{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;padding:10px 11px;min-width:0}.leg-side{font-size:9px;font-weight:850;letter-spacing:.8px;border-radius:6px;padding:3px 6px}.leg.sell .leg-side{color:#ff9ba6;background:rgba(255,101,119,.1)}.leg.buy .leg-side{color:#8bc1ff;background:rgba(102,166,255,.1)}.leg-name{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.section-label{display:flex;align-items:center;justify-content:space-between;margin:4px 0 9px;color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.55px;text-transform:uppercase}.groups{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.group{border:1px solid var(--line);border-radius:10px;padding:10px;background:#0c131b}.group-top{display:flex;align-items:center;justify-content:space-between;gap:5px}.group-name{font-size:11px;font-weight:780}.group-meta{font-size:10px;color:var(--muted);margin:5px 0}.group-pnl{font-size:11px;font-weight:700}.mini-btn{border:0;background:transparent;color:var(--muted);font-size:10px;padding:2px;cursor:pointer}.mini-btn:hover{color:var(--amber)}
+.hedge-diagnostic{margin:-2px 0 15px;padding:12px;border:1px solid rgba(102,166,255,.2);border-radius:12px;background:linear-gradient(135deg,rgba(102,166,255,.075),rgba(7,14,21,.92))}.hedge-diagnostic.wait{border-color:rgba(246,184,74,.22);background:linear-gradient(135deg,rgba(246,184,74,.065),rgba(7,14,21,.92))}.hedge-diagnostic.action{border-color:rgba(70,215,195,.3);background:linear-gradient(135deg,rgba(70,215,195,.09),rgba(7,14,21,.92))}.hedge-diagnostic-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.hedge-diagnostic-title{font-size:11px;font-weight:800}.hedge-diagnostic-copy{margin-top:3px;color:#b8c7d4;font-size:10px;line-height:1.5}.hedge-diagnostic-code{flex:0 0 auto;padding:4px 7px;border:1px solid rgba(255,255,255,.1);border-radius:999px;color:var(--muted);font:8px/1 "SFMono-Regular",Consolas,monospace}.hedge-diagnostic-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:10px}.hedge-diagnostic-metric{min-width:0;padding:7px 8px;border:1px solid rgba(255,255,255,.055);border-radius:8px;background:rgba(4,9,14,.42)}.hedge-diagnostic-metric span{display:block;color:var(--faint);font-size:8px}.hedge-diagnostic-metric strong{display:block;margin-top:3px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hedge-diagnostic-next{display:flex;justify-content:space-between;gap:12px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.055);color:var(--muted);font-size:9px}.hedge-diagnostic-next strong{color:#c7d5e1;font-weight:680}.hedge-diagnostic-time{white-space:nowrap;color:var(--faint)}
 .empty{min-height:190px;display:grid;place-items:center;text-align:center;color:var(--muted)}.empty-orbit{width:54px;height:54px;border:1px solid var(--line2);border-radius:50%;margin:0 auto 12px;position:relative}.empty-orbit:after{content:"";width:7px;height:7px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);border-radius:50%;position:absolute;top:4px;left:9px}.empty strong{display:block;color:var(--text);margin-bottom:4px}
 .risk-list{display:grid;gap:14px}.risk-row{display:grid;grid-template-columns:1fr auto;gap:7px}.risk-label{font-size:11px;color:var(--muted)}.risk-value{font-size:11px;font-weight:700}.bar{grid-column:1/-1;height:5px;border-radius:999px;background:#1b2633;overflow:hidden}.bar>i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--cyan2),var(--cyan));transition:width .35s}.bar.warn>i{background:linear-gradient(90deg,#c7892f,var(--amber))}.bar.danger>i{background:linear-gradient(90deg,#c54153,var(--red))}.control-card{border:1px solid var(--line);border-radius:13px;padding:13px;margin-top:14px;background:#0b121a}.control-line{display:flex;justify-content:space-between;align-items:center;gap:10px}.control-desc{font-size:10px;color:var(--muted);margin-top:2px}.monitor-card{background:linear-gradient(135deg,rgba(70,215,195,.075),#0b121a 55%);border-color:rgba(70,215,195,.2)}.monitor-line{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px}.monitor-dot{width:10px;height:10px;border-radius:50%;background:var(--faint);box-shadow:0 0 0 5px rgba(82,97,115,.1)}.monitor-dot.live{background:var(--cyan);box-shadow:0 0 0 5px rgba(70,215,195,.1),0 0 14px rgba(70,215,195,.45)}.monitor-dot.bad{background:var(--red);box-shadow:0 0 0 5px rgba(255,101,119,.1)}.monitor-time{color:var(--muted);font-size:10px;text-align:right;white-space:nowrap}
 .table-wrap{overflow:auto;max-height:420px}.data-table{width:100%;border-collapse:collapse;min-width:720px}.data-table th{position:sticky;top:0;background:#101720;z-index:2;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.65px;text-align:left;font-weight:750;padding:11px 12px;border-bottom:1px solid var(--line)}.data-table td{padding:12px;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px}.data-table tr:hover td{background:rgba(255,255,255,.018)}.instrument{font-family:"SFMono-Regular",Consolas,monospace;color:#cbd6e2}.tabs{display:flex;gap:4px;background:#0a1118;border:1px solid var(--line);padding:4px;border-radius:10px}.tab{border:0;background:transparent;color:var(--muted);padding:6px 10px;border-radius:7px;font-size:10px;font-weight:750;cursor:pointer}.tab.active{background:#182331;color:var(--text)}.tab-view{display:none}.tab-view.active{display:block}
@@ -41,6 +42,9 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 .tv-dialog{width:min(820px,100%);max-height:min(90vh,920px);overflow:auto}.tv-dialog-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}.tv-dialog-head h3{margin:0 0 4px}.tv-close{margin-left:auto;border:0;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}.tv-setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.tv-field{display:grid;gap:6px}.tv-field label{font-size:10px;color:var(--muted);font-weight:750;letter-spacing:.45px}.tv-field input{width:100%;border:1px solid var(--line2);border-radius:10px;background:#080e15;color:var(--text);padding:10px 12px;outline:none}.tv-field input:focus{border-color:rgba(70,215,195,.55);box-shadow:0 0 0 3px rgba(70,215,195,.08)}.tv-setup-block{margin-top:13px;border:1px solid var(--line);border-radius:13px;background:#0b121a;padding:13px}.tv-setup-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:11px;font-weight:760}.tv-code{margin:0;white-space:pre-wrap;word-break:break-word;max-height:330px;overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:#070c12;color:#bcd0e3;padding:13px;font:11px/1.55 "SFMono-Regular",Consolas,monospace}.tv-steps{margin:0;padding-left:20px;color:#b8c5d2;font-size:11px;line-height:1.8}.tv-warning{margin-top:13px;border:1px solid rgba(246,184,74,.25);border-radius:11px;background:rgba(246,184,74,.07);color:#e8c98f;padding:11px 12px;font-size:11px}.tv-local-note{color:var(--muted);font-size:10px;margin-top:5px}
 .tv-hub-hero{position:relative;overflow:hidden;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:22px;margin:24px 0 14px;padding:28px;border:1px solid rgba(70,215,195,.25);border-radius:20px;background:radial-gradient(circle at 82% 10%,rgba(70,215,195,.15),transparent 34%),linear-gradient(135deg,#13202b,#0c131c 62%);box-shadow:var(--shadow)}.tv-hub-hero:after{content:"";position:absolute;right:-60px;bottom:-90px;width:240px;height:240px;border:1px solid rgba(70,215,195,.11);border-radius:50%}.tv-hub-mark{width:66px;height:66px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,var(--cyan),#38a99c);color:#06110f;font-size:22px;font-weight:900;box-shadow:0 0 32px rgba(70,215,195,.23)}.tv-hub-hero h1{margin:5px 0 6px;font-size:29px;letter-spacing:-.55px}.tv-hub-hero p{margin:0;color:var(--muted);max-width:720px}.tv-hub-status{position:relative;z-index:1;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px;min-width:236px;border:1px solid rgba(70,215,195,.22);border-radius:14px;padding:13px 14px;background:rgba(7,13,19,.62)}.tv-hub-status .monitor-dot{grid-row:1/3}.tv-hub-status strong{font-size:12px}.tv-hub-status small{color:var(--muted);font-size:10px}.tv-hub-layout{display:grid;grid-template-columns:minmax(230px,.58fr) minmax(0,1.42fr);gap:14px;margin-bottom:30px}.tv-hub-steps,.tv-hub-workspace{border:1px solid var(--line);border-radius:18px;background:linear-gradient(155deg,rgba(16,23,32,.98),rgba(11,17,25,.98));box-shadow:var(--shadow)}.tv-hub-steps{padding:20px}.tv-hub-steps h2,.tv-hub-workspace h2{font-size:16px;margin:0 0 4px}.tv-hub-copy{color:var(--muted);font-size:11px;line-height:1.6}.tv-step-list{display:grid;gap:10px;margin-top:18px}.tv-step-card{display:grid;grid-template-columns:32px minmax(0,1fr);gap:11px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:12px;background:#0a1118}.tv-step-number{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:rgba(70,215,195,.1);color:var(--cyan);font-weight:850}.tv-step-card strong{font-size:12px}.tv-step-card p{margin:3px 0 0;color:var(--muted);font-size:10px;line-height:1.5}.tv-hub-workspace{padding:22px}.tv-workspace-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.tv-setup-grid.prominent{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.tv-setup-grid.prominent .tv-field{border:1px solid var(--line);border-radius:13px;padding:13px;background:#0a1118}.tv-setup-grid.prominent .tv-field input{font-size:13px}.tv-setup-block.primary{border-color:rgba(70,215,195,.25);background:linear-gradient(135deg,rgba(70,215,195,.075),#0b121a 56%);padding:16px}.tv-setup-block.primary .endpoint{padding:13px}.tv-setup-block.primary code{font-size:12px}.tv-copy-main{padding:10px 16px;font-size:12px}.tv-copy-wide{width:100%;margin-top:11px;justify-content:center;font-size:13px;padding:12px}.tv-secret-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}.tv-source-note{margin-top:14px;border:1px solid rgba(102,166,255,.22);border-radius:12px;padding:12px;background:rgba(102,166,255,.055);color:#aebed0;font-size:11px;line-height:1.65}
 .chart-bar.zero{display:none}
+.position-overview-grid{align-items:start}.position-primary-stack{display:grid;gap:14px;min-width:0}.active-strategy-panel .panel-head,.actual-position-panel .panel-head{padding:14px 17px}.active-strategy-panel .panel-body{padding:12px 14px}.active-strategy-panel .trade-top{padding:10px 12px}.active-strategy-panel .trade-icon{width:34px;height:34px;border-radius:9px}.active-strategy-panel .trade-content{padding:10px 12px}.active-strategy-panel .trade-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:9px}.active-strategy-panel .datum{padding:7px 9px}.active-strategy-panel .datum-label{margin-bottom:3px}.active-strategy-panel .legs{gap:7px;margin-bottom:8px}.active-strategy-panel .leg{padding:7px 9px}.active-strategy-panel .section-label{margin:3px 0 6px}.active-strategy-panel .groups{gap:6px}.active-strategy-panel .group{padding:7px 8px}.active-strategy-panel .group-meta{margin:3px 0}.actual-position-panel .table-wrap{max-height:310px;overflow:auto}
+.portfolio-subnav{display:flex;align-items:center;gap:5px;width:max-content;margin:20px 0 4px;padding:5px;border:1px solid var(--line);border-radius:12px;background:#091018}.portfolio-subnav button{display:flex;align-items:center;gap:8px;border:0;border-radius:8px;background:transparent;color:var(--muted);padding:9px 14px;font:inherit;font-size:11px;font-weight:760;cursor:pointer}.portfolio-subnav button.active{background:#172431;color:var(--text);box-shadow:inset 0 0 0 1px rgba(70,215,195,.18)}.portfolio-subnav small{color:var(--faint);font-size:9px;font-weight:650}.portfolio-subnav button.active small{color:var(--cyan)}.portfolio-subview{display:none}.portfolio-subview.active{display:block}
+.position-history-section{margin-top:30px;padding-top:28px;border-top:1px solid var(--line)}.position-history-section.portfolio-subview{margin-top:0;padding-top:22px;border-top:0}.position-history-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.position-history-head h2{margin:5px 0 6px;font-size:25px}.position-history-head p{margin:0;color:var(--muted);font-size:12px;max-width:720px;line-height:1.7}.history-jump{white-space:nowrap}.curve-panel{overflow:hidden;margin-bottom:14px}.curve-toolbar{display:flex;align-items:center;gap:6px}.curve-range{border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);font:inherit;font-size:10px;padding:6px 9px;cursor:pointer}.curve-range.active{border-color:rgba(70,215,195,.35);background:rgba(70,215,195,.09);color:var(--cyan)}.curve-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:13px 18px;border-bottom:1px solid var(--line);background:rgba(5,10,15,.25)}.curve-stat{padding:10px 12px;border:1px solid rgba(255,255,255,.055);border-radius:10px;background:#081018}.curve-stat span{display:block;color:var(--faint);font-size:9px}.curve-stat strong{display:block;margin-top:4px;font-size:15px}.curve-stage{position:relative;height:320px;padding:12px 14px 8px}.curve-stage canvas{display:block;width:100%;height:100%;cursor:crosshair}.curve-tooltip{position:absolute;z-index:3;min-width:170px;max-width:250px;padding:9px 10px;border:1px solid var(--line2);border-radius:9px;background:rgba(7,13,20,.96);box-shadow:0 10px 30px rgba(0,0,0,.38);pointer-events:none;transform:translate(-50%,-110%);font-size:10px;color:var(--muted);opacity:0;transition:opacity .12s}.curve-tooltip.show{opacity:1}.curve-tooltip strong{display:block;color:var(--text);font-size:11px;margin-bottom:4px}.curve-tooltip-row{display:flex;justify-content:space-between;gap:14px;margin-top:3px}.curve-legend{display:flex;align-items:center;gap:14px;padding:0 18px 14px;color:var(--muted);font-size:9px}.curve-legend span{display:flex;align-items:center;gap:6px}.curve-legend i{width:9px;height:9px;border-radius:50%;background:var(--cyan)}.curve-legend .win i{background:var(--green)}.curve-legend .loss i{background:var(--red)}.combined-log{margin-top:14px}
 .cond-summary{display:flex;align-items:center;gap:11px;border:1px solid var(--line);background:#0b121a;border-radius:12px;padding:12px 14px;margin-bottom:14px}.cond-summary.blocked{border-color:rgba(246,184,74,.28);background:rgba(246,184,74,.06)}.cond-summary.ready{border-color:rgba(84,214,154,.3);background:rgba(84,214,154,.06)}.cond-summary.broken{border-color:rgba(255,101,119,.3);background:rgba(255,101,119,.06)}.cond-summary-icon{width:34px;height:34px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:16px;font-weight:850;background:rgba(255,255,255,.05)}.cond-summary-title{font-weight:760;font-size:13px}.cond-summary-copy{color:var(--muted);font-size:11px;margin-top:2px}
 /* 满足全部条件时更醒目：绿色高亮 + 呼吸光晕 */
 .cond-summary.ready{border-color:rgba(84,214,154,.6);background:linear-gradient(90deg,rgba(84,214,154,.17),rgba(84,214,154,.05));animation:readyPulse 1.9s ease-in-out infinite}
@@ -181,6 +185,13 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
 @media(max-width:700px){.connection-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.connection-health{grid-template-columns:auto minmax(0,1fr)}.connection-age{grid-column:2}.connection-record{grid-template-columns:auto minmax(0,1fr) auto}.connection-record-meta{display:none}}
 .strategy-modal{z-index:70;padding:22px}.strategy-modal-dialog{width:min(1040px,100%);height:min(88vh,900px);display:grid;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;border:1px solid #34485b;border-radius:22px;background:linear-gradient(155deg,#111a24,#0a1118);box-shadow:0 38px 120px rgba(0,0,0,.7)}.strategy-modal-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:19px 21px;border-bottom:1px solid var(--line)}.strategy-modal-head h2{margin:0;font-size:19px}.strategy-modal-subtitle{margin-top:3px;color:var(--muted);font-size:10px}.strategy-modal-close{width:38px;height:38px;border:1px solid var(--line2);border-radius:10px;background:#0b131c;color:var(--muted);font-size:22px;cursor:pointer}.strategy-modal-close:hover{color:var(--text);border-color:#43586e}.strategy-modal-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:12px 21px;border-bottom:1px solid rgba(255,255,255,.055);background:rgba(5,10,15,.24)}.strategy-modal-metric{padding:9px 10px;border:1px solid rgba(255,255,255,.055);border-radius:10px;background:#081018}.strategy-modal-metric span{display:block;color:var(--faint);font-size:9px}.strategy-modal-metric strong{display:block;margin-top:3px;font-size:13px}.strategy-modal-main{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr)}.strategy-modal-toolbar{display:flex;align-items:center;gap:7px;padding:11px 21px}.strategy-modal-filter{border:1px solid var(--line2);border-radius:999px;background:transparent;color:var(--muted);padding:6px 11px;font-size:10px;cursor:pointer}.strategy-modal-filter.active{color:var(--cyan);border-color:rgba(70,215,195,.34);background:rgba(70,215,195,.08)}.strategy-modal-count{margin-left:auto;color:var(--muted);font-size:10px}.strategy-modal-feed{min-height:0;overflow-y:scroll;overscroll-behavior:contain;padding:0 21px 20px;scrollbar-width:auto;scrollbar-color:#355063 #09111a}.strategy-modal-feed::-webkit-scrollbar{width:12px}.strategy-modal-feed::-webkit-scrollbar-track{background:#09111a;border-radius:999px}.strategy-modal-feed::-webkit-scrollbar-thumb{background:#355063;border:3px solid #09111a;border-radius:999px}.strategy-feed-list{display:grid;gap:7px}.strategy-feed-entry{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#09121a}.strategy-feed-entry.open{border-color:rgba(102,166,255,.34);box-shadow:0 10px 30px rgba(0,0,0,.18)}.strategy-feed-row{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;min-height:67px;padding:10px 12px;border:0;border-left:3px solid transparent;background:transparent;color:inherit;text-align:left}.strategy-feed-toggle{cursor:pointer}.strategy-feed-toggle:hover{background:rgba(102,166,255,.035)}.strategy-feed-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}.strategy-feed-row.heartbeat{border-left-color:var(--blue)}.strategy-feed-row.open{border-left-color:var(--green)}.strategy-feed-row.exit{border-left-color:var(--amber)}.strategy-feed-entry.rejected{border-color:rgba(255,101,119,.24);background:rgba(255,101,119,.035)}.strategy-feed-row.rejected{border-left-color:var(--red)}.strategy-feed-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(102,166,255,.1);color:var(--blue);font-weight:850}.strategy-feed-row.open .strategy-feed-icon{color:var(--green);background:rgba(84,214,154,.1)}.strategy-feed-row.exit .strategy-feed-icon{color:var(--amber);background:rgba(246,184,74,.1)}.strategy-feed-row.rejected .strategy-feed-icon{color:var(--red);background:rgba(255,101,119,.1)}.strategy-feed-title{font-size:11px;font-weight:780}.strategy-feed-subtitle{margin-top:2px;color:var(--muted);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.strategy-feed-facts{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:5px;flex-wrap:wrap}.strategy-feed-fact{padding:3px 6px;border-radius:5px;background:rgba(255,255,255,.045);color:#9fb0c1;font-size:9px}.strategy-feed-time{text-align:right;color:#b9c7d4;font-size:10px;white-space:nowrap}.strategy-feed-time>span{display:block;margin-top:2px;color:var(--faint);font-size:9px}.strategy-feed-expand{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:6px;color:var(--blue);font-size:9px;font-weight:760}.strategy-feed-expand:after{content:"⌄";font-size:14px;line-height:8px;transition:transform .18s ease}.strategy-feed-entry.open .strategy-feed-expand:after{transform:rotate(180deg)}.strategy-feed-detail{padding:14px 15px 16px;border-top:1px solid rgba(102,166,255,.18);background:#071018}.strategy-feed-detail-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.strategy-feed-detail-head strong{display:block;font-size:11px}.strategy-feed-detail-head span{display:block;margin-top:3px;color:var(--muted);font-size:9px}.strategy-feed-validation{padding:5px 8px;border:1px solid rgba(84,214,154,.25);border-radius:999px;background:rgba(84,214,154,.08);color:var(--green)!important;font-weight:760;white-space:nowrap}.strategy-feed-system-grid,.strategy-feed-payload-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.strategy-feed-system-item,.strategy-feed-payload-item{min-width:0;padding:8px 9px;border:1px solid rgba(255,255,255,.055);border-radius:8px;background:#09131c}.strategy-feed-system-item span,.strategy-feed-payload-item span{display:block;color:var(--faint);font-size:8px;overflow-wrap:anywhere}.strategy-feed-system-item strong,.strategy-feed-payload-item strong{display:block;margin-top:4px;color:#c6d5e2;font-family:"SFMono-Regular",Consolas,monospace;font-size:9px;font-weight:650;line-height:1.45;overflow-wrap:anywhere}.strategy-feed-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 7px;color:#c7d4df;font-size:10px}.strategy-feed-section-title span{color:var(--faint);font-size:8px}.strategy-feed-json{max-height:260px;margin:0;padding:12px;border:1px solid rgba(102,166,255,.15);border-radius:9px;background:#050a0f;color:#a9c4da;font:9px/1.55 "SFMono-Regular",Consolas,monospace;white-space:pre-wrap;overflow:auto;overflow-wrap:anywhere}.strategy-modal-empty{height:100%;min-height:220px;display:grid;place-items:center;text-align:center;color:var(--muted);border:1px dashed var(--line2);border-radius:12px}.strategy-modal-empty strong{display:block;color:var(--text);margin-bottom:4px}.strategy-modal-note{padding:8px 0 2px;color:var(--faint);font-size:9px;text-align:center}
 @media(max-width:700px){.strategy-modal{padding:8px}.strategy-modal-dialog{height:94vh;border-radius:16px}.strategy-modal-head{padding:14px;gap:10px}.strategy-modal-head h2{font-size:16px}.strategy-modal-summary{grid-template-columns:repeat(2,minmax(0,1fr));padding:9px 14px;max-height:160px;overflow:auto}.strategy-modal-toolbar{padding:9px 14px;overflow-x:auto}.strategy-modal-filter{white-space:nowrap}.strategy-modal-feed{padding:0 12px 14px}.strategy-feed-row{grid-template-columns:auto minmax(0,1fr)}.strategy-feed-time{grid-column:2;text-align:left}.strategy-feed-facts{justify-content:flex-start}.strategy-feed-expand{justify-content:flex-start}.strategy-feed-system-grid,.strategy-feed-payload-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.strategy-feed-detail-head{display:grid}.strategy-feed-validation{justify-self:start}}
+.strategy-workbench{display:grid;grid-template-columns:minmax(280px,340px) minmax(0,1fr);gap:14px;margin-bottom:30px;align-items:start}.strategy-directory{position:sticky;top:14px;overflow:hidden}.strategy-directory-list{display:grid;gap:7px;max-height:720px;padding:10px;overflow:auto}.strategy-source-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:7px;border:1px solid var(--line);border-radius:12px;background:#09121a;padding:5px}.strategy-source-card.selected{border-color:rgba(70,215,195,.45);background:linear-gradient(110deg,rgba(70,215,195,.10),#09121a);box-shadow:inset 3px 0 0 var(--cyan)}.strategy-source-select{min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px;padding:8px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}.strategy-source-select:focus-visible{outline:2px solid var(--cyan);border-radius:9px}.strategy-source-avatar{width:35px;height:35px;border-radius:10px;display:grid;place-items:center;background:rgba(70,215,195,.11);color:var(--cyan);font-size:10px;font-weight:900}.strategy-source-name{font-size:11px;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.strategy-source-meta{display:flex;gap:8px;margin-top:4px;color:var(--muted);font-size:9px}.strategy-source-meta .negative{color:var(--red)}.strategy-source-delete{width:30px;height:30px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--faint);cursor:pointer}.strategy-source-delete:hover:not(:disabled){border-color:rgba(255,101,119,.28);background:rgba(255,101,119,.08);color:var(--red)}.strategy-source-delete:disabled{opacity:.25;cursor:not-allowed}.strategy-inspector-shell{min-height:670px;overflow:hidden}.strategy-inspector-empty{min-height:560px;display:grid;place-items:center;text-align:center;color:var(--muted)}.strategy-inspector-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:13px;padding:17px 19px;border-bottom:1px solid var(--line)}.strategy-inspector-title{font-size:17px;font-weight:820}.strategy-inspector-subtitle{margin-top:3px;color:var(--muted);font-size:10px}.strategy-inspector-actions{display:flex;align-items:center;gap:8px}.strategy-delete-btn{border:1px solid rgba(255,101,119,.30);border-radius:9px;background:rgba(255,101,119,.06);color:var(--red);padding:8px 10px;font-size:10px;cursor:pointer}.strategy-delete-btn:hover:not(:disabled){background:rgba(255,101,119,.13)}.strategy-delete-btn:disabled{opacity:.35;cursor:not-allowed}.strategy-inspector-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:12px 19px;background:rgba(5,10,15,.24);border-bottom:1px solid var(--line)}.strategy-inspector-kpi{padding:10px;border:1px solid rgba(255,255,255,.055);border-radius:10px;background:#081018}.strategy-inspector-kpi span{display:block;color:var(--faint);font-size:9px}.strategy-inspector-kpi strong{display:block;margin-top:4px;font-size:15px}.strategy-success-bar{height:4px;margin-top:7px;border-radius:999px;background:#172431;overflow:hidden}.strategy-success-bar i{display:block;height:100%;background:var(--green)}.strategy-inspector-toolbar{display:flex;align-items:center;gap:7px;padding:11px 19px;border-bottom:1px solid rgba(255,255,255,.04)}.strategy-inspector-feed{max-height:510px;min-height:430px;padding:12px 19px 19px;overflow:auto}.strategy-delete-note{margin-left:auto;color:var(--faint);font-size:9px}.strategy-source-empty{padding:32px 16px;text-align:center;color:var(--muted);font-size:10px}
+@media(max-width:1120px){.strategy-workbench{grid-template-columns:1fr}.strategy-directory{position:static}.strategy-directory-list{grid-template-columns:repeat(2,minmax(0,1fr));max-height:360px}.strategy-inspector-shell{min-height:620px}}
+@media(max-width:1120px){.actual-position-panel .table-wrap{max-height:380px}}
+@media(max-width:700px){.strategy-workbench{gap:9px}.strategy-directory-list{grid-template-columns:1fr;max-height:320px}.strategy-inspector-head{grid-template-columns:auto minmax(0,1fr);padding:13px}.strategy-inspector-actions{grid-column:1/-1;justify-content:space-between}.strategy-inspector-kpis{grid-template-columns:repeat(2,minmax(0,1fr));padding:9px 12px}.strategy-inspector-kpi:last-child{grid-column:1/-1}.strategy-inspector-toolbar{padding:9px 12px;overflow:auto}.strategy-inspector-feed{padding:9px 10px 14px;min-height:360px}.strategy-delete-note{display:none}}
+@media(max-width:700px){.portfolio-subnav{width:100%;margin-top:14px}.portfolio-subnav button{flex:1;justify-content:center;padding:9px 8px}.portfolio-subnav small{display:none}.position-primary-stack>.panel{height:auto;min-height:0;max-height:none}.position-primary-stack>.panel>.panel-body,.position-primary-stack>.panel>.table-wrap{overflow:visible}.active-strategy-panel .trade-grid,.active-strategy-panel .legs{grid-template-columns:1fr 1fr}.active-strategy-panel .groups{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.hedge-diagnostic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hedge-diagnostic-head,.hedge-diagnostic-next{display:grid}.hedge-diagnostic-code{justify-self:start}.hedge-diagnostic-time{white-space:normal}}
+@media(max-width:700px){.position-history-section{margin-top:20px;padding-top:20px}.position-history-head{display:block}.position-history-head h2{font-size:21px}.history-jump{margin-top:11px}.curve-panel .panel-head{display:block}.curve-toolbar{margin-top:10px}.curve-summary{grid-template-columns:1fr 1fr;padding:9px 11px}.curve-stat:last-child{grid-column:1/-1}.curve-stage{height:270px;padding:8px 6px}.curve-legend{padding:0 12px 12px;flex-wrap:wrap}}
 .trade-identity{display:grid;gap:3px;min-width:190px}.trade-identity strong{color:var(--text);font-size:11px}.trade-identity span{display:block;color:var(--muted);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}.trade-identity b{color:var(--faint);font-weight:700;margin-right:5px}.trade-identity .mono{color:#adc0d2}
 </style>
 </head>
@@ -204,12 +215,12 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
     <div class="global-metric"><div class="metric-label">账户权益</div><div id="gEquity" class="metric-value"><i class="skeleton"></i></div><div class="metric-note">BTC Equity</div></div>
     <div class="global-metric"><div class="metric-label">可用资金</div><div id="gAvailable" class="metric-value"><i class="skeleton"></i></div><div class="metric-note">Available funds</div></div>
     <div class="global-metric"><div class="metric-label">当前仓位</div><div id="gPositions" class="metric-value">0</div><div class="metric-note">活跃策略数量</div></div>
-    <div class="global-metric"><div class="metric-label">开仓信号 / 收到信号</div><div id="gSignals" class="metric-value">0 / 0</div><div class="metric-note">收到数包含连接回报</div></div>
+    <div class="global-metric"><div class="metric-label">开仓信号 / 收到信号</div><div id="gSignals" class="metric-value">0 / 0</div><div class="metric-note">全部 TradingView 活动累计</div></div>
     <div class="global-metric"><div class="metric-label">今日收益</div><div id="gTodayPnl" class="metric-value">—</div><div class="metric-note">今日已实现 BTC</div></div>
   </section>
   <div class="page-switcher">
     <div class="topbar-command">
-      <nav class="main-nav reference-tabs"><button class="nav-btn" data-page="positions" onclick="navigateTo('/')"><span>仓位</span><small>Positions</small></button><button class="nav-btn tv-primary-nav" data-page="tradingview" onclick="navigateTo('/tradingview')"><span>TV 接入</span><small>Primary Setup</small></button><button class="nav-btn" data-page="active-signals" onclick="navigateTo('/signals')"><span>策略信号</span><small>Strategies</small></button><button class="nav-btn" data-page="signal-log" onclick="navigateTo('/signal-log')"><span>信号日志</span><small>Signal Log</small></button><button class="nav-btn" data-page="position-log" onclick="navigateTo('/returns')"><span>仓位日志</span><small>Position Log</small></button></nav>
+      <nav class="main-nav reference-tabs"><button class="nav-btn" data-page="positions" onclick="navigateTo('/')"><span>仓位</span><small>Positions</small></button><button class="nav-btn tv-primary-nav" data-page="tradingview" onclick="navigateTo('/tradingview')"><span>TV 接入</span><small>Primary Setup</small></button><button class="nav-btn" data-page="active-signals" onclick="navigateTo('/signals')"><span>策略信号</span><small>Strategies</small></button><button class="nav-btn" data-page="signal-log" onclick="navigateTo('/signal-log')"><span>信号日志</span><small>Signal Log</small></button></nav>
       <div class="spacer"></div>
       <div class="actions">
         <button class="btn btn-ghost hide-tablet" onclick="refresh(true)">刷新数据</button>
@@ -221,6 +232,8 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
   </div>
 
   <div id="page-positions" class="page-view">
+  <nav class="portfolio-subnav" aria-label="仓位子页面"><button id="portfolioCurrentTab" class="active" onclick="setPortfolioView('current')">当前仓位 <small>实时风险与执行</small></button><button id="portfolioHistoryTab" onclick="setPortfolioView('history')">历史与收益 <small>曲线与逐笔记录</small></button></nav>
+  <div id="portfolioCurrent" class="portfolio-subview active">
   <section class="hero">
     <div><div class="eyebrow">Live risk & execution</div><h1>BTC 期权卖方策略控制台</h1><p>执行、风险、对冲和子组减仓集中在一个清晰视图中。所有价格和持仓以 Deribit 返回为准。</p></div>
   </section>
@@ -232,8 +245,11 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
     <div class="metric"><div class="metric-label">策略对冲归属</div><div id="mManaged" class="metric-value"><i class="skeleton"></i></div><div class="metric-note">不含人工原有仓位</div></div>
   </section>
 
-  <main class="layout">
-    <section class="panel"><div class="panel-head"><div><div class="panel-title">活跃策略</div><div id="activeKicker" class="panel-kicker">正在读取交易状态</div></div><span id="activeBadge" class="tag">—</span></div><div id="activeTrades" class="panel-body"><div class="empty"><div><div class="empty-orbit"></div><strong>正在同步持仓</strong><span>请稍候</span></div></div></div></section>
+  <main class="layout position-overview-grid">
+    <div class="position-primary-stack">
+      <section class="panel active-strategy-panel"><div class="panel-head"><div><div class="panel-title">活跃策略</div><div id="activeKicker" class="panel-kicker">正在读取交易状态</div></div><div style="display:flex;align-items:center;gap:7px"><button class="mini-btn" onclick="setPortfolioView('history')">历史与收益 →</button><span id="activeBadge" class="tag">—</span></div></div><div id="activeTrades" class="panel-body"><div class="empty"><div><div class="empty-orbit"></div><strong>正在同步持仓</strong><span>请稍候</span></div></div></div></section>
+      <section class="panel actual-position-panel"><div class="panel-head"><div><div class="panel-title">Deribit 实际持仓</div><div class="panel-kicker">期权仓位与未成交订单</div></div><span id="positionCount" class="tag">0 项</span></div><div class="table-wrap"><table id="positionsTable" class="data-table"></table></div></section>
+    </div>
 
     <aside class="stack">
       <section class="panel"><div class="panel-head"><div><div class="panel-title">风险状态</div><div class="panel-kicker">每 3 分钟更新</div></div><span id="riskBadge" class="tag">检查中</span></div><div class="panel-body">
@@ -243,14 +259,40 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
           <div class="risk-row"><span class="risk-label">账户 Delta</span><span id="rDelta" class="risk-value">—</span><div id="rDeltaBar" class="bar"><i></i></div></div>
         </div>
         <div class="control-card monitor-card"><div class="monitor-line"><span id="overviewSignalDot" class="monitor-dot"></span><div><strong style="font-size:12px">TradingView 实时监听</strong><div id="overviewSignalState" class="control-desc">正在检查 Webhook</div></div><div id="overviewLastSignal" class="monitor-time">等待首个信号</div></div></div>
-        <div id="forceLockCard" class="control-card" style="display:none;border-color:rgba(255,101,119,.3)"><div class="control-line"><div><strong class="negative" style="font-size:12px">强平锁定</strong><div class="control-desc">确认账户清仓后才能解除</div></div><button class="btn btn-danger" onclick="clearForceClose()">解除</button></div></div>
       </div></section>
       <section class="panel"><div class="panel-head"><div><div class="panel-title">账户永续仓位</div><div class="panel-kicker">策略归属与账户净仓分开展示</div></div></div><div class="panel-body"><div class="datum"><div class="datum-label">账户 BTC-PERPETUAL</div><div id="accountPerp" class="datum-value number">—</div></div><div style="height:8px"></div><div class="datum"><div class="datum-label">本策略累计建立</div><div id="managedPerp" class="datum-value number">—</div></div></div></section>
     </aside>
 
-    <section class="panel full"><div class="panel-head"><div><div class="panel-title">Deribit 实际持仓</div><div class="panel-kicker">期权仓位与未成交订单</div></div><span id="positionCount" class="tag">0 项</span></div><div class="table-wrap"><table id="positionsTable" class="data-table"></table></div></section>
-
   </main>
+  </div>
+
+  <section id="positionHistory" class="position-history-section portfolio-subview">
+    <div class="position-history-head">
+      <div><div class="eyebrow">Position timeline & performance</div><h2>仓位历史与收益</h2><p>当前仓位、历史平仓和累计收益放在同一条浏览路径中。每笔完整平仓形成曲线上的一个时间点，适合当前单仓位运行模式。</p></div>
+      <button class="btn btn-ghost history-jump" onclick="setPortfolioView('current')">← 返回当前仓位</button>
+    </div>
+    <section class="metrics">
+      <div class="metric"><div class="metric-label">跟踪净收益</div><div id="pNet" class="metric-value">—</div><div class="metric-note">已实现 + 未实现 − 对冲手续费</div></div>
+      <div class="metric"><div class="metric-label">累计已实现</div><div id="pRealized" class="metric-value">—</div><div class="metric-note">已完成平仓的交易</div></div>
+      <div class="metric"><div class="metric-label">当前未实现</div><div id="pUnrealized" class="metric-value">—</div><div class="metric-note">当前唯一活动仓位</div></div>
+      <div class="metric"><div class="metric-label">今日已实现</div><div id="pToday" class="metric-value">—</div><div class="metric-note">本地自然日</div></div>
+      <div class="metric"><div class="metric-label">近 7 日 / 30 日</div><div id="pPeriods" class="metric-value small">—</div><div class="metric-note">滚动周期已实现</div></div>
+      <div class="metric"><div class="metric-label">胜率</div><div id="pWinRate" class="metric-value">—</div><div id="pWinNote" class="metric-note">已结束交易</div></div>
+    </section>
+    <section class="panel curve-panel">
+      <div class="panel-head"><div><div class="panel-title">累计已实现收益曲线</div><div class="panel-kicker">横轴为平仓时间；每个圆点代表一笔完整交易，单位 BTC</div></div><div class="curve-toolbar"><button class="curve-range" data-range="30" onclick="setCurveRange('30')">30 天</button><button class="curve-range" data-range="90" onclick="setCurveRange('90')">90 天</button><button class="curve-range active" data-range="ALL" onclick="setCurveRange('ALL')">全部</button></div></div>
+      <div class="curve-summary"><div class="curve-stat"><span>曲线期末</span><strong id="pCurveNet">—</strong></div><div class="curve-stat"><span>历史峰值</span><strong id="pCurvePeak">—</strong></div><div class="curve-stat"><span>最大回撤</span><strong id="pCurveDrawdown">—</strong></div></div>
+      <div id="curveStage" class="curve-stage"><canvas id="pnlCurveCanvas" role="img" aria-label="按平仓时间绘制的累计已实现收益曲线"></canvas><div id="curveTooltip" class="curve-tooltip"></div></div>
+      <div class="curve-legend"><span><i></i>累计已实现收益</span><span class="win"><i></i>单笔盈利</span><span class="loss"><i></i>单笔亏损</span><span id="pFeeBadge">对冲手续费 —</span></div>
+      <div class="pnl-note" style="padding:0 18px 15px">曲线只使用数据库中已完成交易的已实现期权收益。当前仓位浮盈亏显示在上方；对冲本身的价格盈亏仍以 Deribit 账户权益为权威口径。</div>
+    </section>
+    <section class="panel"><div class="panel-head"><div><div class="panel-title">逐笔仓位历史</div><div class="panel-kicker">按时间查看策略来源、开平仓、流动性角色和每笔收益</div></div><span id="pTradeBadge" class="tag">0 笔</span></div><div class="table-wrap"><table id="pnlTradesTable" class="data-table"></table></div></section>
+    <section class="panel combined-log"><div class="panel-head"><div><div class="panel-title">仓位运行记录</div><div class="panel-kicker">需要排查时再展开事件、交易明细与对冲统计</div></div><div class="tabs"><button class="tab active" data-tab="events" onclick="showTab('events')">事件流</button><button class="tab" data-tab="trades" onclick="showTab('trades')">交易明细</button><button class="tab" data-tab="hedges" onclick="showTab('hedges')">对冲统计</button></div></div>
+      <div id="tab-events" class="tab-view active panel-body"><div style="display:flex;justify-content:flex-end;margin-bottom:4px"><div class="event-filter"><button class="filter active" data-level="ALL" onclick="setEventFilter('ALL')">全部</button><button class="filter" data-level="WARN" onclick="setEventFilter('WARN')">警告</button><button class="filter" data-level="ERROR" onclick="setEventFilter('ERROR')">异常</button></div></div><div id="eventTimeline" class="timeline"></div></div>
+      <div id="tab-trades" class="tab-view"><div class="table-wrap"><table id="tradesTable" class="data-table"></table></div></div>
+      <div id="tab-hedges" class="tab-view"><div class="table-wrap"><table id="hedgesTable" class="data-table"></table></div></div>
+    </section>
+  </section>
   </div>
 
   <div id="page-tradingview" class="page-view">
@@ -266,10 +308,10 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
         <h2>四步完成接入</h2>
         <div class="tv-hub-copy">按顺序做一遍，TradingView 产生信号后，后端只负责接收、校验并执行。</div>
         <div class="tv-step-list">
-          <div class="tv-step-card"><span class="tv-step-number">1</span><div><strong>添加 Pine 策略</strong><p>把项目 Pine 脚本添加到 BTC 的 3 分钟图。</p></div></div>
-          <div class="tv-step-card"><span class="tv-step-number">2</span><div><strong>创建策略警报</strong><p>Condition 选择“订单成交和 alert() 函数调用”。</p></div></div>
+          <div class="tv-step-card"><span class="tv-step-number">1</span><div><strong>添加任意策略</strong><p>把需要接入的 TradingView 策略添加到图表。</p></div></div>
+          <div class="tv-step-card"><span class="tv-step-number">2</span><div><strong>创建策略警报</strong><p>Condition 选择该策略的“订单成交”。</p></div></div>
           <div class="tv-step-card"><span class="tv-step-number">3</span><div><strong>复制 Webhook URL</strong><p>把右侧地址粘贴到 TradingView 通知设置。</p></div></div>
-          <div class="tv-step-card"><span class="tv-step-number">4</span><div><strong>复制完整 JSON</strong><p>填写账户名和口令后，将完整消息粘贴到 Message。</p></div></div>
+          <div class="tv-step-card"><span class="tv-step-number">4</span><div><strong>复制通用 JSON</strong><p>填写来源名称后，将消息粘贴到 Message；更换策略不需要改后端。</p></div></div>
         </div>
         <div class="tv-source-note"><strong>信号从哪里来？</strong><br>TradingView Pine 策略负责判断入场与退出；本系统的 <code>/webhook/signal</code> 接口收到信号后执行 Deribit 开仓或平仓。</div>
       </aside>
@@ -277,31 +319,30 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
       <section class="tv-hub-workspace">
         <div class="tv-workspace-head"><div><div class="eyebrow">Copy to TradingView</div><h2>复制 TradingView Alert 配置</h2><div class="tv-hub-copy">下面内容按当前网站地址自动生成，不需要手工拼 JSON。</div></div><span id="tvHubBadge" class="tag">检查中</span></div>
         <div class="tv-setup-grid prominent">
-          <div class="tv-field"><label for="tvAccountName">DERIBIT 账户名称</label><input id="tvAccountName" autocomplete="off" placeholder="例如 account_1" oninput="updateTvTemplate()"></div>
-          <div class="tv-field"><label for="tvStrategyName">策略名称</label><input id="tvStrategyName" autocomplete="off" placeholder="例如 BTC_OPTION_SELLER_V2" oninput="updateTvTemplate()"><div class="tv-local-note">必须和 Pine 参数里的 strategy 完全一致；只有逻辑或参数真正不同的策略才使用新名称。</div></div>
-          <div class="tv-field"><div class="tv-secret-actions"><label for="tvAlertId">TV 警报 ID（tv_id）</label><button class="mini-btn" onclick="regenerateTvId()">为新警报生成 ID</button></div><input id="tvAlertId" inputmode="numeric" readonly aria-readonly="true"><div class="tv-local-note">同一条 Alert 的开仓和平仓保持此 ID；每创建一条新 Alert，再生成一个不同 ID。</div></div>
+          <div class="tv-field"><label for="tvStrategyName">信号来源名称</label><input id="tvStrategyName" autocomplete="off" placeholder="例如 MACD 1分钟" oninput="updateTvTemplate()"><div class="tv-local-note">用于后台区分不同 TradingView 策略，可以填写便于识别的名称。</div></div>
+          <div class="tv-field"><label for="tvAlertId">信号来源 ID（自动生成）</label><input id="tvAlertId" readonly aria-readonly="true"><div class="tv-local-note">每次开始配置新策略时自动生成；粘贴到 Alert 后，开仓和平仓始终使用同一个 ID。</div></div>
           <div class="tv-field"><div class="tv-secret-actions"><label for="tvPassphrase">WEBHOOK 口令</label><button class="mini-btn" onclick="copyTvSecret()">复制口令</button></div><input id="tvPassphrase" type="text" readonly aria-readonly="true" autocomplete="off" placeholder="正在从服务器读取口令"><div class="tv-local-note">实验阶段由服务器自动读取并显示，也会自动写入下方 Alert JSON。</div></div>
         </div>
         <div class="tv-setup-block primary"><div class="tv-setup-label"><span>Webhook URL</span><span class="tag live">粘贴到通知设置</span></div><div class="endpoint" style="margin:0"><code id="tvSetupWebhook">正在生成地址…</code><div class="spacer"></div><button class="btn btn-primary tv-copy-main" onclick="copyTvWebhook()">复制 Webhook URL</button></div></div>
-        <div class="tv-setup-block"><div class="tv-setup-label"><span>Alert Condition</span><span id="tvSetupCondition" class="tag live">策略 → 订单成交和 alert() 函数调用</span></div><div class="tv-hub-copy">选择当前 Pine 策略，然后选择“订单成交和 alert() 函数调用”。不要选择单独的指标条件。</div></div>
+        <div class="tv-setup-block"><div class="tv-setup-label"><span>Alert Condition</span><span id="tvSetupCondition" class="tag live">策略 → 订单成交</span></div><div class="tv-hub-copy">选择当前 TradingView 策略，然后选择“订单成交”。不要选择单独的指标条件。</div></div>
         <div class="tv-setup-block"><div class="tv-setup-label"><span>Alert Message JSON</span><span class="tag">自动包含开仓 / 平仓信息</span></div><pre id="tvAlertMessage" class="tv-code"></pre><button class="btn btn-primary tv-copy-wide" onclick="copyTvMessage()">复制完整 Alert JSON</button></div>
-        <div class="tv-warning">Pine 脚本或参数修改后，TradingView 已有 Alert 仍保存旧快照，必须删除并重新创建。复制 JSON 前请确认账户名和口令正确。</div>
+        <div class="tv-warning">Pine 脚本或参数修改后，TradingView 已有 Alert 仍保存旧快照，必须删除并重新创建。复制 JSON 前请确认信号来源名称和口令正确。</div>
       </section>
     </main>
   </div>
 
   <div id="page-active-signals" class="page-view">
-    <section class="hero"><div><div class="eyebrow">Multi-strategy operations</div><h1>策略信号中心</h1><p>自动汇总所有通过 Webhook 接入的 TradingView 策略；这里只展示真实活动和执行结果，不重复计算任何策略指标。</p></div><div class="health"><span id="strategyHealthDot" class="monitor-dot"></span><div><div id="strategyHealthTitle" class="health-title">正在发现策略</div><div id="strategyHealthCopy" class="health-copy">按 Webhook 中的 strategy 自动分组</div></div></div></section>
+    <section class="hero"><div><div class="eyebrow">Strategy workspace</div><h1>策略信号中心</h1><p>左侧选择信号来源，右侧查看该策略的状态、执行结果和完整传输记录。</p></div><div class="health"><span id="strategyHealthDot" class="monitor-dot"></span><div><div id="strategyHealthTitle" class="health-title">正在发现策略</div><div id="strategyHealthCopy" class="health-copy">按 Webhook 中的 strategy 自动分组</div></div></div></section>
     <section class="metrics strategy-metrics">
       <div class="metric"><div class="metric-label">已发现策略</div><div id="strategyObserved" class="metric-value">0</div><div class="metric-note">无需预先登记</div></div>
-      <div class="metric"><div class="metric-label">近期在线</div><div id="strategyOnline" class="metric-value positive">0</div><div class="metric-note">150 分钟内有连接回报</div></div>
+      <div class="metric"><div class="metric-label">已有交易信号</div><div id="strategyOnline" class="metric-value positive">0</div><div class="metric-note">至少收到过一条开仓或退出信号</div></div>
       <div class="metric"><div class="metric-label">开仓 / 退出信号</div><div id="strategyActions" class="metric-value">0 / 0</div><div class="metric-note">全部策略累计</div></div>
       <div class="metric"><div class="metric-label">拒绝 / 处理中</div><div id="strategyAttention" class="metric-value">0 / 0</div><div class="metric-note">需要关注的执行结果</div></div>
     </section>
-    <div class="strategy-principle"><span class="strategy-principle-icon">✓</span><div><strong>TradingView 负责策略判断，后端负责统一执行</strong><p>DVOL、HV、CCI、布林带等条件属于各自 Pine 策略，不再固定显示在后台。新策略只要使用不同的 strategy 名称，就会自动出现在这里。</p></div><button class="btn btn-primary" onclick="navigateTo('/tradingview')">配置新策略</button></div>
-    <main class="strategy-center-layout">
-      <section class="panel"><div class="panel-head"><div><div class="panel-title">TradingView 策略</div><div class="panel-kicker">按 strategy 名称自动发现 · 持仓与信号归属分开展示</div></div><span id="strategyCountBadge" class="tag">0 个</span></div><div id="strategyRoster" class="strategy-roster"></div></section>
-      <section class="panel"><div class="panel-head"><div><div class="panel-title">最近可执行信号</div><div class="panel-kicker">跨全部策略展示真实开仓和退出信号；连接回报请到“信号日志”查看</div></div><span id="strategySignalBadge" class="tag">0 条</span></div><div id="strategySignalList" class="activity-stream"></div></section>
+    <div class="strategy-principle"><span class="strategy-principle-icon">✓</span><div><strong>策略来源与交易执行分开管理</strong><p>名称用于识别 TradingView 来源；删除只清理已停用策略的后台记录，共享 Webhook 地址保持不变。</p></div><button class="btn btn-primary" onclick="navigateTo('/tradingview')">配置新策略</button></div>
+    <main class="strategy-workbench">
+      <section class="panel strategy-directory"><div class="panel-head"><div><div class="panel-title">策略来源</div><div class="panel-kicker">选择一项查看详细活动</div></div><span id="strategyCountBadge" class="tag">0 个</span></div><div id="strategyRoster" class="strategy-directory-list"></div></section>
+      <section class="panel strategy-inspector-shell"><div id="strategyInspector" class="strategy-inspector-empty"><div><div class="empty-orbit"></div><strong>请选择一个策略来源</strong><span>详细状态和活动记录会显示在这里</span></div></div></section>
     </main>
   </div>
 
@@ -315,37 +356,19 @@ button,input{font:inherit}button{color:inherit}.mono,.number{font-variant-numeri
       <div class="metric"><div class="metric-label">已拒绝</div><div id="sRejected" class="metric-value">0</div><div class="metric-note">点击记录查看原因</div></div>
       <div class="metric"><div class="metric-label">处理中</div><div id="sPending" class="metric-value">0</div><div class="metric-note">等待策略引擎确认</div></div>
     </section>
-    <section class="panel" style="margin-bottom:14px"><div class="panel-body webhook-card"><div class="webhook-icon">↗</div><div style="min-width:0;flex:1"><div class="panel-title">TradingView Webhook 接收地址</div><div class="panel-kicker">这里负责查看链路；账户、口令和完整 Alert JSON 请到一级“TV 接入”页面配置</div><div class="endpoint"><code id="webhookUrl">正在生成地址…</code><div class="spacer"></div><button class="mini-btn" onclick="copyWebhook()">复制地址</button></div></div><button class="btn btn-primary" onclick="openTvSetup()">打开 TV 接入中心</button><span id="webhookBadge" class="tag">检查中</span></div></section>
+    <section class="panel" style="margin-bottom:14px"><div class="panel-body webhook-card"><div class="webhook-icon">↗</div><div style="min-width:0;flex:1"><div class="panel-title">TradingView Webhook 接收地址</div><div class="panel-kicker">这里负责查看链路；口令和完整 Alert JSON 请到“TV 接入”页面配置</div><div class="endpoint"><code id="webhookUrl">正在生成地址…</code><div class="spacer"></div><button class="mini-btn" onclick="copyWebhook()">复制地址</button></div></div><button class="btn btn-primary" onclick="openTvSetup()">打开 TV 接入中心</button><span id="webhookBadge" class="tag">检查中</span></div></section>
     <section class="panel"><div class="panel-head"><div><div class="panel-title">TradingView 链路与信号活动</div><div class="panel-kicker">蓝色连接回报 · 绿色接受开仓 · 青色接受退出 · 红色系统拒绝 · 黄色等待处理</div></div><span id="tvSignalBadge" class="tag">0 条</span></div><div id="tvSignals" class="activity-stream"></div></section>
   </div>
 
-  <div id="page-position-log" class="page-view">
-    <section class="hero"><div><div class="eyebrow">Strategy performance</div><h1>收益分析</h1><p>只统计本策略数据库归属的期权交易，账户人工仓位不会混入。</p></div></section>
-    <section class="metrics">
-      <div class="metric"><div class="metric-label">跟踪净收益</div><div id="pNet" class="metric-value">—</div><div class="metric-note">已实现 + 未实现 − 对冲手续费</div></div>
-      <div class="metric"><div class="metric-label">累计已实现</div><div id="pRealized" class="metric-value">—</div><div class="metric-note">已关闭子组</div></div>
-      <div class="metric"><div class="metric-label">当前未实现</div><div id="pUnrealized" class="metric-value">—</div><div class="metric-note">仍在管理的子组</div></div>
-      <div class="metric"><div class="metric-label">今日已实现</div><div id="pToday" class="metric-value">—</div><div class="metric-note">本地自然日</div></div>
-      <div class="metric"><div class="metric-label">近 7 日 / 30 日</div><div id="pPeriods" class="metric-value small">—</div><div class="metric-note">滚动周期已实现</div></div>
-      <div class="metric"><div class="metric-label">胜率</div><div id="pWinRate" class="metric-value">—</div><div id="pWinNote" class="metric-note">已结束交易</div></div>
-    </section>
-    <section class="panel" style="margin-bottom:14px"><div class="panel-head"><div><div class="panel-title">近 30 日已实现收益</div><div class="panel-kicker">按子组平仓日期汇总，单位 BTC</div></div><span id="pFeeBadge" class="tag">手续费 —</span></div><div class="panel-body"><div id="pnlChart" class="pnl-chart"></div><div class="pnl-note">注意：当前“跟踪净收益”未计入 BTC-PERPETUAL 对冲交易本身的价格盈亏，仅扣除了数据库记录的对冲手续费；Deribit 账户最终权益仍是总收益权威口径。</div></div></section>
-    <section class="panel"><div class="panel-head"><div><div class="panel-title">逐笔策略收益</div><div class="panel-kicker">父交易汇总其所有管理子组</div></div><span id="pTradeBadge" class="tag">0 笔</span></div><div class="table-wrap"><table id="pnlTradesTable" class="data-table"></table></div></section>
-    <section class="panel" style="margin-top:14px"><div class="panel-head"><div><div class="panel-title">仓位运行记录</div><div class="panel-kicker">事件、交易历史与对冲统计</div></div><div class="tabs"><button class="tab active" data-tab="events" onclick="showTab('events')">事件流</button><button class="tab" data-tab="trades" onclick="showTab('trades')">交易历史</button><button class="tab" data-tab="hedges" onclick="showTab('hedges')">对冲统计</button></div></div>
-      <div id="tab-events" class="tab-view active panel-body"><div style="display:flex;justify-content:flex-end;margin-bottom:4px"><div class="event-filter"><button class="filter active" data-level="ALL" onclick="setEventFilter('ALL')">全部</button><button class="filter" data-level="WARN" onclick="setEventFilter('WARN')">警告</button><button class="filter" data-level="ERROR" onclick="setEventFilter('ERROR')">异常</button></div></div><div id="eventTimeline" class="timeline"></div></div>
-      <div id="tab-trades" class="tab-view"><div class="table-wrap"><table id="tradesTable" class="data-table"></table></div></div>
-      <div id="tab-hedges" class="tab-view"><div class="table-wrap"><table id="hedgesTable" class="data-table"></table></div></div>
-    </section>
-  </div>
 </div>
 
 <div id="strategyModal" class="modal strategy-modal" role="dialog" aria-modal="true" aria-labelledby="strategyModalTitle" onclick="if(event.target===this)closeStrategyModal()"><div id="strategyModalContent" class="strategy-modal-dialog"></div></div>
-<div id="forceModal" class="modal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-icon">!</div><h3>执行全账户强制平仓</h3><p>这是账户级灾难操作，不只是关闭当前策略。</p><div class="danger-list">撤销全部未成交订单<br>平掉账户内全部 BTC 期权多空腿<br>归零 BTC 永续仓位<br>锁定新开仓，直至人工解除</div><div class="dialog-actions" style="margin-top:14px"><button class="btn" onclick="closeForceDialog()">取消</button><button class="btn btn-danger" onclick="confirmForceClose()">确认强平</button></div></div></div>
+<div id="forceModal" class="modal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-icon">!</div><h3>执行全账户强制平仓</h3><p>这是账户级灾难操作，不只是关闭当前策略。</p><div class="danger-list">立即暂停新的开仓信号<br>撤销全部未成交订单<br>平掉账户内全部 BTC 期权多空腿<br>归零 BTC 永续仓位<br>失败时显示红色错误，不再锁定系统</div><div class="dialog-actions" style="margin-top:14px"><button class="btn" onclick="closeForceDialog()">取消</button><button class="btn btn-danger" onclick="confirmForceClose()">确认强平</button></div></div></div>
 <div id="mobileMenu" class="modal"><div class="dialog"><h3 style="margin-top:0">策略操作</h3><div style="display:grid;gap:8px"><button class="btn btn-primary" onclick="toggleTrading();toggleMobileMenu()">切换开仓总开关</button><button class="btn" onclick="refresh(true);toggleMobileMenu()">刷新数据</button><button class="btn btn-danger" onclick="toggleMobileMenu();openForceDialog()">全账户强平</button></div><div class="dialog-actions" style="margin-top:14px"><button class="btn" onclick="toggleMobileMenu()">关闭</button></div></div></div>
 <div id="toasts" class="toast-wrap"></div>
 
 <script>
-const $=id=>document.getElementById(id);let model=null,eventLevel="ALL",refreshing=false,expandedSignalKey=null,selectedStrategyName=null,strategyModalFilter="ALL",expandedStrategyActivityKeys=new Set(),tvSetup=null,tvAlertTemplate="",tvAlertId=null;
+const $=id=>document.getElementById(id);let model=null,eventLevel="ALL",refreshing=false,expandedSignalKey=null,selectedStrategyName=null,strategyModalFilter="ALL",expandedStrategyActivityKeys=new Set(),strategyActivityCache=new Map(),strategyActivityLoading=new Set(),tvSetup=null,tvAlertTemplate="",tvAlertId=null,curveRange="ALL",curveRenderTimer=null,curveCanvasState=null;
 const conditionSections={passed:false,shape:false,evidence:false};
 function toggleConditionSection(name){if(!(name in conditionSections))return;conditionSections[name]=!conditionSections[name];if(model?.conditions)renderConditions(model.conditions,model.signals,model.trades)}
 // 四步流程手风琴：用户手动展开的选择在 5 秒轮询间保留，但换新信号/新 K 线实例时重置。
@@ -377,26 +400,48 @@ const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>
 const time=ms=>ms?new Date(Number(ms)).toLocaleString("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"—";
 const STATE={SIGNAL_RECEIVED:"收到信号",POSITION_CHECKING:"持仓检查",SELECTING_LEGS:"选腿中",OPENING:"开仓中",OPEN:"持仓中",PARTIALLY_CLOSED:"部分平仓",CLOSING:"平仓中",CLOSED:"已平仓",FORCE_CLOSED:"已强平",OPEN_FAILED:"开仓失败",HEDGE_INACTIVE:"未激活",HEDGE_ACTIVE:"对冲中",HEDGE_REBALANCING:"调整中",HEDGE_RELEASE_PENDING:"撤销待确认",HEDGE_CLOSING:"归零中"};
 const stateTag=s=>{const c=["OPEN","HEDGE_ACTIVE"].includes(s)?"live":["FORCE_CLOSED","OPEN_FAILED"].includes(s)?"bad":["OPENING","CLOSING","HEDGE_REBALANCING","HEDGE_RELEASE_PENDING","HEDGE_CLOSING"].includes(s)?"busy":"";return `<span class="tag ${c}">${esc(STATE[s]||s||"—")}</span>`};
-const EVENT={STATE_TRANSITION:"状态变更",OPENED:"开仓完成",NORMAL_CLOSE:"正常平仓",FORCE_CLOSE_MANUAL:"人工强平",FORCE_CLOSE_RISK:"风控强平",BEP_HEDGE_ACTIVATED:"BEP 对冲激活",DELTA_HEDGE_REBALANCE:"Delta 对冲调整",HEDGE_RELEASE_PENDING:"对冲撤销待确认",HEDGE_RELEASE_CANCELLED:"取消对冲撤销",HEDGE_TARGET_ZERO:"对冲目标归零",EXIT_DVOL_ROLLING_30:"DVOL 退出",OPEN_FAILED_UNWOUND:"开仓回滚",RECONCILE_MISMATCH:"启动核对",SCAN_ERROR:"处理异常",REJECT_DUPLICATE_SIGNAL:"拒绝重复信号",REJECT_EXISTING_OPTION_SHORT:"拒绝已有卖仓",REJECT_NO_VALID_LEGS:"拒绝无可用腿",REJECT_INSUFFICIENT_RISK_BUDGET:"拒绝预算不足",REJECT_BAD_PAYLOAD:"拒绝信号参数",REJECT_TRADING_DISABLED:"拒绝交易关闭",REJECT_DVOL_BELOW_ENTRY:"拒绝 DVOL 过低",DVOL_TIER_MISMATCH:"DVOL 档位差异"};
+const EVENT={STATE_TRANSITION:"状态变更",OPENED:"开仓完成",NORMAL_CLOSE:"正常平仓",FORCE_CLOSE_MANUAL:"人工强平",FORCE_CLOSE_RISK:"风控强平",RISK_AUTO_RESUME_ARMED:"瞬时风控待恢复",TRADING_AUTO_RESUMED:"交易自动恢复",BEP_HEDGE_ACTIVATED:"BEP 对冲激活",DELTA_HEDGE_REBALANCE:"Delta 对冲调整",HEDGE_RELEASE_PENDING:"对冲撤销待确认",HEDGE_RELEASE_CANCELLED:"取消对冲撤销",HEDGE_TARGET_ZERO:"对冲目标归零",EXIT_DVOL_ROLLING_30:"DVOL 退出",OPEN_FAILED_UNWOUND:"开仓回滚",RECONCILE_MISMATCH:"启动核对",CLOSE_RESIDUAL_RECOVERY:"平仓残余修复",CLOSE_RESIDUAL_RETRY:"平仓残余待重试",SCAN_ERROR:"处理异常",REJECT_DUPLICATE_SIGNAL:"拒绝重复信号",REJECT_EXISTING_OPTION_SHORT:"拒绝已有卖仓",REJECT_NO_VALID_LEGS:"拒绝无可用腿",REJECT_INSUFFICIENT_RISK_BUDGET:"拒绝预算不足",REJECT_BAD_PAYLOAD:"拒绝信号参数",REJECT_TRADING_DISABLED:"拒绝交易关闭",REJECT_DVOL_BELOW_ENTRY:"拒绝 DVOL 过低",DVOL_TIER_MISMATCH:"DVOL 档位差异"};
 function payload(e){try{return JSON.parse(e.payload_json||"{}")}catch{return {}}}
-function eventText(e){const p=payload(e),tr=p.from_state&&p.to_state?`${STATE[p.from_state]||p.from_state} → ${STATE[p.to_state]||p.to_state}`:"";switch(e.code){case"STATE_TRANSITION":return p.sell?`${tr}；${p.sell} / ${p.buy}，计划 ${num(p.qty,1)} 张`:p.note?`${tr}；${p.note}`:tr;case"OPENED":return `成交 ${num(p.qty,1)} 张 · 净权利金 ${num(p.net_credit)} BTC/张 · BEP ${num(p.bep,1)}`;case"NORMAL_CLOSE":return p.closed_qty!=null?`平仓 ${num(p.closed_qty,1)} 张 · 每张盈亏 ${signed(p.per_contract_pnl,5)} BTC`:`开始平仓 · ${p.reason||"NORMAL"}`;case"FORCE_CLOSE_MANUAL":case"FORCE_CLOSE_RISK":return p.stage==="done"?(p.clean?"强平完成，账户已清仓":"强平未完全完成，请人工核对"):p.stage==="start"?`强平开始 · ${p.reason||""}`:tr||`强平指令 · ${p.reason||""}`;case"BEP_HEDGE_ACTIVATED":return `3分钟收盘 ${num(p.bar_close,1)} 触及 BEP ${num(p.bep,1)}`;case"DELTA_HEDGE_REBALANCE":return `净 Delta ${signed(p.net_delta)} · 调整 ${signed(p.order_usd,0)} USD`;case"HEDGE_RELEASE_PENDING":return `价格 ${num(p.bar_close,1)} 回到撤销区，等待下一根完整K线`;case"HEDGE_RELEASE_CANCELLED":return `价格 ${num(p.bar_close,1)} 再次突破 BEP，继续对冲`;case"HEDGE_TARGET_ZERO":return "开始冲销本策略归属的期货对冲";case"EXIT_DVOL_ROLLING_30":return p.current!=null?`当前 ${num(p.current,2)} < 阈值 ${num(p.threshold,2)} · ${p.source||""}`:`DVOL 退出信号 · ${p.source||""}`;case"OPEN_FAILED_UNWOUND":return `已回滚多余买腿 ${num(p.unwound,1)} 张`;case"SCAN_ERROR":return `${p.command||"命令"}：${p.error||"执行中断"}`;case"REJECT_EXISTING_OPTION_SHORT":return "账户已有期权卖方持仓，拒绝开仓";case"REJECT_DVOL_BELOW_ENTRY":return `DVOL 分位 ${num((p.dvol_percentile||0)*100,1)}% · 样本 ${p.samples||0}`;default:return p.note||p.reason||tr||e.payload_json||"—"}}
+function forceCloseResultText(p){if(p.clean)return "强平完成，Deribit 实际仓位已归零";const failures=Array.isArray(p.failures)?p.failures:[];if(failures.length)return `强平失败：${failures.map(item=>`${item.instrument||"未知合约"} · ${item.error||"仍有仓位"}`).join("；")}`;const remaining=Array.isArray(p.incomplete)?p.incomplete.join("、"):"";return remaining?`强平失败，仍有仓位：${remaining}`:"强平失败，Deribit 实际仓位尚未归零"}
+function eventText(e){const p=payload(e),tr=p.from_state&&p.to_state?`${STATE[p.from_state]||p.from_state} → ${STATE[p.to_state]||p.to_state}`:"";switch(e.code){case"STATE_TRANSITION":return p.sell?`${tr}；${p.sell} / ${p.buy}，计划 ${num(p.qty,1)} 张`:p.note?`${tr}；${p.note}`:tr;case"OPENED":return `成交 ${num(p.qty,1)} 张 · 净权利金 ${num(p.net_credit)} BTC/张 · BEP ${num(p.bep,1)}`;case"NORMAL_CLOSE":return p.closed_qty!=null?`平仓 ${num(p.closed_qty,1)} 张 · 每张盈亏 ${signed(p.per_contract_pnl,5)} BTC`:`开始平仓 · ${p.reason||"NORMAL"}`;case"FORCE_CLOSE_MANUAL":case"FORCE_CLOSE_RISK":return p.stage==="done"?forceCloseResultText(p):p.stage==="start"?`强平开始 · ${p.reason||""}`:tr||`强平指令 · ${p.reason||""}`;case"BEP_HEDGE_ACTIVATED":return `3分钟收盘 ${num(p.bar_close,1)} 触及 BEP ${num(p.bep,1)}`;case"DELTA_HEDGE_REBALANCE":return `净 Delta ${signed(p.net_delta)} · 调整 ${signed(p.order_usd,0)} USD`;case"HEDGE_RELEASE_PENDING":return `价格 ${num(p.bar_close,1)} 回到撤销区，等待下一根完整K线`;case"HEDGE_RELEASE_CANCELLED":return `价格 ${num(p.bar_close,1)} 再次突破 BEP，继续对冲`;case"HEDGE_TARGET_ZERO":return "开始冲销本策略归属的期货对冲";case"EXIT_DVOL_ROLLING_30":return p.current!=null?`当前 ${num(p.current,2)} < 阈值 ${num(p.threshold,2)} · ${p.source||""}`:`DVOL 退出信号 · ${p.source||""}`;case"OPEN_FAILED_UNWOUND":return `已回滚多余买腿 ${num(p.unwound,1)} 张`;case"CLOSE_RESIDUAL_RECOVERY":return `已按交易所实际方向处理 ${Array.isArray(p.actions)?p.actions.length:0} 条残余腿`;case"CLOSE_RESIDUAL_RETRY":return `仍有 ${Array.isArray(p.remaining)?p.remaining.length:0} 条残余腿，保持平仓中并等待重试`;case"SCAN_ERROR":return `${p.command||"命令"}：${p.error||"执行中断"}`;case"REJECT_EXISTING_OPTION_SHORT":return "账户已有期权卖方持仓，拒绝开仓";case"REJECT_DVOL_BELOW_ENTRY":return `DVOL 分位 ${num((p.dvol_percentile||0)*100,1)}% · 样本 ${p.samples||0}`;default:return p.note||p.reason||tr||e.payload_json||"—"}}
 function toast(message,type="ok"){const el=document.createElement("div");el.className=`toast ${type}`;el.textContent=message;$("toasts").appendChild(el);setTimeout(()=>el.remove(),3500)}
 function estimate(parent,acc){const by=Object.fromEntries(acc.option_positions.map(p=>[p.instrument,p]));const sell=by[parent.sell_instrument],buy=by[parent.buy_instrument];if(!sell||!buy||parent.net_credit_btc==null)return null;return parent.net_credit_btc-(sell.mark_price-buy.mark_price)}
-function renderStatus(status,acc){const age=status.last_scan_ts?Math.max(0,Math.round((status.server_ts-Number(status.last_scan_ts))/1000)):null;const stale=age==null||age>400;$("envBadge").textContent=status.env.toUpperCase();$("envBadge").className=`env ${status.env}`;$("connectionText").textContent=stale?"策略引擎扫描异常":"策略引擎在线";$("scanAge").textContent=age==null?"尚未扫描":`扫描于 ${age} 秒前`;$("tradeButton").textContent=status.trading_enabled?"暂停新开仓":"启用新开仓";$("tradeButton").title=status.trading_enabled?"点击后停止接受新的开仓信号":"点击后允许新的开仓信号进入队列";$("forceLockCard").style.display=status.force_close_active?"":"none";
-  let health=stale?35:status.force_close_active?48:status.trading_enabled?100:78;$("healthRing").style.setProperty("--value",health);$("healthRing").style.setProperty("--ring",stale||status.force_close_active?"var(--red)":"var(--cyan)");$("healthTitle").textContent=stale?"扫描状态异常":status.force_close_active?"强平锁定中":"系统运行正常";$("healthCopy").textContent=stale?"请检查后端与 Deribit 连接":status.force_close_active?"新开仓与对冲加仓已冻结":status.trading_enabled?"交易与风控引擎均已启用":"监控在线，新开仓已暂停";
-  const scanPct=age==null?100:Math.min(100,age/400*100);setRisk("rScan",age==null?"无数据":`${age}s`,"rScanBar",scanPct,stale?"danger":age>240?"warn":"");renderActive(status.active_trades,acc)}
+function renderStatus(status,acc){const age=status.last_scan_ts?Math.max(0,Math.round((status.server_ts-Number(status.last_scan_ts))/1000)):null,scan=status.scan||{},execution=status.execution||{},scanError=scan.state==="error",deribitError=scanError&&scan.last_error_kind==="deribit",delayed=age==null||age>400,busy=Boolean(execution.busy),cmd={OPEN:"开仓",REVERSE:"反向平仓并开仓",NORMAL_CLOSE:"平仓",GROUP_CLOSE:"分组平仓",HEDGE_RELEASE:"撤销对冲",HEDGE_REBALANCE:"调整对冲",FORCE_CLOSE:"全账户强平"}[execution.command]||"交易";
+  $("envBadge").textContent=status.env.toUpperCase();$("envBadge").className=`env ${status.env}`;$("connectionText").textContent=deribitError?"Deribit 扫描失败":scanError?"扫描任务异常":busy?"策略引擎执行中":"策略引擎在线";$("scanAge").textContent=scan.running?"正在独立扫描":age==null?"等待首次扫描":`扫描于 ${age} 秒前`;$("tradeButton").textContent=status.trading_enabled?"暂停新开仓":"启用新开仓";$("tradeButton").title=status.trading_enabled?"点击后停止接受新的开仓信号":"点击后允许新的开仓信号进入队列";
+  const health=scanError?35:delayed?62:status.trading_enabled?100:78;$("healthRing").style.setProperty("--value",health);$("healthRing").style.setProperty("--ring",scanError?"var(--red)":delayed?"var(--amber)":"var(--cyan)");$("healthTitle").textContent=deribitError?"Deribit 扫描失败":scanError?"扫描任务异常":delayed?"独立扫描延迟":busy?`${cmd}执行中`:"系统运行正常";$("healthCopy").textContent=scanError?(scan.last_error||(deribitError?"最近一次 Deribit 账户或盘口读取失败":"独立扫描发生内部异常")):delayed?(busy?`${cmd}仍在执行；扫描协程正在独立恢复`:"扫描协程延迟，交易服务仍在线"):busy?`${cmd}正在按信号执行，风险扫描独立运行`:status.trading_enabled?"交易与风控引擎均已启用":status.risk_auto_resume_state?"瞬时风控已暂停新开仓；完整健康扫描后会自动恢复":status.trading_pause_reason?`新开仓已暂停：${status.trading_pause_reason}`:"监控在线，新开仓已暂停";
+  const scanPct=age==null?100:Math.min(100,age/400*100);setRisk("rScan",scan.running?"扫描中":age==null?"等待首次扫描":`${age}s`,"rScanBar",scanPct,scanError?"danger":delayed?"warn":"");renderActive(status.active_trades,acc)}
 function setRisk(valueId,text,barId,pct,kind=""){ $(valueId).textContent=text;const bar=$(barId);bar.className=`bar ${kind}`;bar.firstElementChild.style.width=`${Math.max(2,Math.min(100,pct))}%`}
 function renderMetrics(status,acc){const managed=status.active_trades.reduce((s,t)=>s+Number(t.hedge?.futures_usd||0),0),netDelta=Number(acc.net_option_delta||0)+Number(acc.perp_delta||0),margin=Number(acc.margin_ratio||0);$("mIndex").textContent=money(acc.index_price);$("mDelta").textContent=signed(netDelta);$("mDelta").className=`metric-value ${tone(netDelta)}`;$("mDeltaNote").textContent=`期权 ${signed(acc.net_option_delta)} · 永续 ${signed(acc.perp_delta)}`;$("mMargin").textContent=`${num(margin*100,2)}%`;$("mMargin").className=`metric-value ${margin>.6?"negative":margin>.4?"warning":""}`;$("mMarginNote").textContent=margin>.6?"已越过风控阈值":`距 60% 风控线 ${num((.6-margin)*100,1)}pp`;$("mManaged").textContent=`${signed(managed,0)} USD`;$("accountPerp").textContent=`${signed(acc.perp_usd,0)} USD · Δ ${signed(acc.perp_delta)}`;$("managedPerp").textContent=`${signed(managed,0)} USD`;setRisk("rMargin",`${num(margin*100,2)}%`,"rMarginBar",margin/.6*100,margin>.6?"danger":margin>.4?"warn":"");setRisk("rDelta",signed(netDelta),"rDeltaBar",Math.min(100,Math.abs(netDelta)/1*100),Math.abs(netDelta)>1?"danger":Math.abs(netDelta)>.5?"warn":"");$("riskBadge").textContent=margin>.6?"风险触发":margin>.4?"注意":"正常";$("riskBadge").className=`tag ${margin>.6?"bad":margin>.4?"busy":"live"}`}
 function renderGlobalMetrics(status,acc,trades,signals,performance){const summary=signals?.summary||{},perf=performance?.summary||{};$("gEquity").textContent=`${num(acc.equity_btc,4)} BTC`;$("gAvailable").textContent=`${num(acc.available_funds,4)} BTC`;$("gPositions").textContent=String((status.active_trades||[]).length);$("gSignals").textContent=`${summary.open_signals||0} / ${summary.total||0}`;$("gTodayPnl").textContent=`${signed(perf.today_realized_btc,6)} BTC`;$("gTodayPnl").className=`metric-value ${tone(perf.today_realized_btc)}`}
-function renderActive(items,acc){$("activeKicker").textContent=items.length?`${items.length} 笔父交易正在管理` :"当前没有卖方策略持仓";$("activeBadge").textContent=items.length?`${items.length} ACTIVE`:"FLAT";$("activeBadge").className=`tag ${items.length?"live":""}`;if(!items.length){$("activeTrades").innerHTML=`<div class="empty"><div><div class="empty-orbit"></div><strong>当前账户无活跃策略</strong><span>系统会继续监听 TradingView 开仓信号</span></div></div>`;return}$("activeTrades").innerHTML=items.map(t=>{const p=t.parent,h=t.hedge,per=estimate(p,acc),remaining=t.groups.reduce((s,g)=>s+Math.max(0,Number(g.qty)-Number(g.closed_qty||0)),0),pnl=per==null?null:per*remaining;return `<article class="trade-card"><div class="trade-top"><div class="trade-icon ${p.spread_type==="CALL_CREDIT"?"call":""}">${p.spread_type==="CALL_CREDIT"?"C":"P"}</div><div><div class="trade-name">${p.spread_type==="CALL_CREDIT"?"CALL":"PUT"} 信用价差</div><div class="trade-id mono">TRADE #${p.id} · ${esc(p.signal_id||"")}</div></div><div class="spacer"></div>${stateTag(p.state)} ${stateTag(h?.state)}</div><div class="trade-content"><div class="trade-grid"><div class="datum"><div class="datum-label">剩余数量</div><div class="datum-value number">${num(remaining,1)} 张</div></div><div class="datum"><div class="datum-label">净权利金</div><div class="datum-value number">${num(p.net_credit_btc)} BTC</div></div><div class="datum"><div class="datum-label">盈亏平衡点</div><div class="datum-value number">${money(p.bep_price)}</div></div><div class="datum"><div class="datum-label">估算未实现盈亏</div><div class="datum-value number ${tone(pnl)}">${pnl==null?"—":signed(pnl,5)+" BTC"}</div></div></div><div class="legs"><div class="leg sell"><span class="leg-side">SELL</span><span class="leg-name mono" title="${esc(p.sell_instrument)}">${esc(p.sell_instrument||"选腿中")}</span></div><div class="leg buy"><span class="leg-side">BUY</span><span class="leg-name mono" title="${esc(p.buy_instrument)}">${esc(p.buy_instrument||"选腿中")}</span></div></div><div class="section-label"><span>管理子组</span><span>${t.groups.filter(g=>g.state==="CLOSED").length}/${t.groups.length} 已关闭</span></div><div class="groups">${t.groups.map(g=>{const rem=Math.max(0,Number(g.qty)-Number(g.closed_qty||0)),gp=per==null?null:per*rem;return `<div class="group"><div class="group-top"><span class="group-name">G${String(g.group_index).padStart(2,"0")}</span>${g.state==="OPEN"?`<button class="mini-btn" onclick="closeGroup(${g.id},${g.group_index},${rem})">平掉</button>`:stateTag(g.state)}</div><div class="group-meta number">${num(rem,1)} / ${num(g.qty,1)} 张</div><div class="group-pnl ${tone(gp)}">${gp==null?"PnL —":`${signed(gp,5)} BTC`}</div></div>`}).join("")}</div></div></article>`}).join("")}
+function renderHedgeDiagnostic(d){
+  if(!d)return `<section class="hedge-diagnostic wait"><div class="hedge-diagnostic-head"><div><div class="hedge-diagnostic-title">Delta 对冲诊断</div><div class="hedge-diagnostic-copy">等待后端返回最近一轮对冲判断。</div></div><span class="hedge-diagnostic-code">WAITING_FOR_SCAN</span></div></section>`;
+  const action=["REBALANCE_REQUIRED","REBALANCING","HEDGE_CLOSING"].includes(d.reason_code),wait=["WAITING_FOR_SCAN","WAITING_FOR_BEP","ACTIVATION_PENDING","RELEASE_PENDING","MISSING_BEP","HEDGE_FROZEN"].includes(d.reason_code),klass=action?"action":wait?"wait":"";
+  const value=(v,digits=5,suffix="")=>v==null?"—":`${num(v,digits)}${suffix}`;
+  const observed=d.observed_at?`扫描 ${time(d.observed_at)}`:"等待首次扫描";
+  return `<section class="hedge-diagnostic ${klass}"><div class="hedge-diagnostic-head"><div><div class="hedge-diagnostic-title">Delta 对冲诊断</div><div class="hedge-diagnostic-copy">${esc(d.reason||"—")}</div></div><span class="hedge-diagnostic-code">${esc(d.reason_code||"UNKNOWN")}</span></div><div class="hedge-diagnostic-grid"><div class="hedge-diagnostic-metric"><span>3分钟收盘</span><strong class="number">${d.bar_close==null?"—":money(d.bar_close)}</strong></div><div class="hedge-diagnostic-metric"><span>BEP 激活线</span><strong class="number">${d.bep==null?"—":money(d.bep)}</strong></div><div class="hedge-diagnostic-metric"><span>期权 Delta</span><strong class="number ${tone(d.option_delta)}">${d.option_delta==null?"—":signed(d.option_delta)}</strong></div><div class="hedge-diagnostic-metric"><span>永续 Delta</span><strong class="number ${tone(d.futures_delta)}">${d.futures_delta==null?"—":signed(d.futures_delta)}</strong></div><div class="hedge-diagnostic-metric"><span>衍生品净 Delta</span><strong class="number ${tone(d.net_delta)}">${d.net_delta==null?"—":signed(d.net_delta)}</strong></div><div class="hedge-diagnostic-metric"><span>调仓阈值</span><strong class="number">${value(d.effective_trigger)}</strong></div></div><div class="hedge-diagnostic-next"><span><strong>下一步：</strong>${esc(d.next_action||"—")}</span><span class="hedge-diagnostic-time">${esc(observed)} · 建议调整 ${d.adjustment_usd==null?"—":signed(d.adjustment_usd,0)+" USD"}</span></div></section>`;
+}
+function renderActive(items,acc){
+  $("activeKicker").textContent=items.length?`${items.length} 个策略仓位正在管理`:"当前没有卖方策略持仓";
+  $("activeBadge").textContent=items.length?`${items.length} ACTIVE`:"FLAT";
+  $("activeBadge").className=`tag ${items.length?"live":""}`;
+  if(!items.length){$("activeTrades").innerHTML=`<div class="empty"><div><div class="empty-orbit"></div><strong>当前账户无活跃策略</strong><span>系统会继续监听 TradingView 开仓信号</span></div></div>`;return}
+  $("activeTrades").innerHTML=items.map(t=>{
+    const p=t.parent,h=t.hedge,per=estimate(p,acc),remaining=t.groups.reduce((s,g)=>s+Math.max(0,Number(g.qty)-Number(g.closed_qty||0)),0),pnl=per==null?null:per*remaining;
+    const spread=p.spread_type==="CALL_CREDIT"?"CALL 信用价差 · 偏空":"PUT 信用价差 · 偏多",strategy=p.strategy||"未命名 TradingView 策略";
+    const hedgeTag=h?.state&&h.state!=="HEDGE_INACTIVE"?stateTag(h.state):"";
+    const credit=p.net_credit_btc==null?"净权利金待确认":`净权利金 ${num(p.net_credit_btc)} BTC`;
+    return `<article class="trade-card"><div class="trade-top"><div class="trade-icon ${p.spread_type==="CALL_CREDIT"?"call":""}">${p.spread_type==="CALL_CREDIT"?"C":"P"}</div><div><div class="trade-name">${esc(strategy)}</div><div class="trade-id">${spread} · ${credit} · 仓位 #${p.id}</div></div><div class="spacer"></div>${stateTag(p.state)} ${hedgeTag}</div><div class="trade-content"><div class="trade-grid"><div class="datum"><div class="datum-label">剩余数量</div><div class="datum-value number">${num(remaining,1)} 张</div></div><div class="datum"><div class="datum-label">盈亏平衡点</div><div class="datum-value number">${money(p.bep_price)}</div></div><div class="datum"><div class="datum-label">估算未实现盈亏</div><div class="datum-value number ${tone(pnl)}">${pnl==null?"—":signed(pnl,5)+" BTC"}</div></div></div>${renderHedgeDiagnostic(t.hedge_diagnostic)}<div class="legs"><div class="leg sell"><span class="leg-side">SELL</span><span class="leg-name mono" title="${esc(p.sell_instrument)}">${esc(p.sell_instrument||"选腿中")}</span></div><div class="leg buy"><span class="leg-side">BUY</span><span class="leg-name mono" title="${esc(p.buy_instrument)}">${esc(p.buy_instrument||"选腿中")}</span></div></div><div class="section-label"><span>${t.groups.length} 个可独立平仓分组</span><span>${t.groups.filter(g=>g.state==="CLOSED").length}/${t.groups.length} 已关闭</span></div><div class="groups">${t.groups.map(g=>{const rem=Math.max(0,Number(g.qty)-Number(g.closed_qty||0)),gp=per==null?null:per*rem;return `<div class="group"><div class="group-top"><span class="group-name">G${String(g.group_index).padStart(2,"0")}</span>${g.state==="OPEN"?`<button class="mini-btn" onclick="closeGroup(${g.id},${g.group_index},${rem})">平掉</button>`:stateTag(g.state)}</div><div class="group-meta number">${num(rem,1)} / ${num(g.qty,1)} 张</div><div class="group-pnl ${tone(gp)}">${gp==null?"PnL —":`${signed(gp,5)} BTC`}</div></div>`}).join("")}</div></div></article>`}).join("");
+}
 function renderPositions(acc){const rows=[...acc.option_positions.map(p=>({kind:"期权",name:p.instrument,size:p.size,delta:p.delta,mark:p.mark_price,avg:p.avg_price,pnl:p.pnl,status:"持仓"})),...acc.open_orders.map(o=>({kind:"订单",name:o.instrument,size:(o.direction==="buy"?1:-1)*o.amount,delta:null,mark:o.price,avg:null,pnl:null,status:`${o.direction==="buy"?"买入":"卖出"}挂单`}))];$("positionCount").textContent=`${rows.length} 项`;$("positionsTable").innerHTML=`<thead><tr><th>类别</th><th>合约</th><th>状态</th><th>数量</th><th>Delta</th><th>标记/限价</th><th>开仓均价</th><th>浮动盈亏</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td>${r.kind}</td><td class="instrument">${esc(r.name)}</td><td>${r.status}</td><td class="number ${tone(r.size)}">${signed(r.size,1)}</td><td class="number ${tone(r.delta)}">${signed(r.delta)}</td><td class="number">${num(r.mark)}</td><td class="number">${num(r.avg)}</td><td class="number ${tone(r.pnl)}">${r.pnl==null?"—":signed(r.pnl,5)}</td></tr>`).join(""):`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px">无持仓、无挂单</td></tr>`}</tbody>`}
 function renderEvents(events){const filtered=eventLevel==="ALL"?events:events.filter(e=>e.level===eventLevel);$("eventTimeline").innerHTML=filtered.length?filtered.map(e=>`<div class="event ${e.level}" title="${esc(e.code)}"><div class="event-time number">${time(e.ts)}</div><div class="event-dot"></div><div class="event-code ${e.level==="ERROR"?"negative":e.level==="WARN"?"warning":""}">${esc(EVENT[e.code]||e.code)}</div><div class="event-copy">${esc(eventText(e))}</div></div>`).join(""):`<div class="empty" style="min-height:120px">没有匹配的事件</div>`}
 function tradeIdentity(value,includeTrade=true){return `<div class="trade-identity">${includeTrade?`<strong>后端仓位 #${esc(value.id??"—")}</strong>`:""}<span><b>strategy</b><span class="mono">${esc(value.strategy||"—")}</span></span><span><b>tv_id</b><span class="mono">${esc(value.tv_id??value.trade_id??"—")}</span></span><span title="${esc(value.signal_id||"")}"><b>signal_id</b><span class="mono">${esc(value.signal_id||"—")}</span></span></div>`}
-function renderTrades(trades){$("tradesTable").innerHTML=`<thead><tr><th>交易 / 关联身份</th><th>类型</th><th>状态</th><th>数量</th><th>净权利金</th><th>BEP</th><th>已实现盈亏</th><th>平仓原因</th></tr></thead><tbody>${trades.map(p=>{const pnl=p.groups.reduce((s,g)=>s+Number(g.realized_pnl_btc||0),0);return `<tr><td>${tradeIdentity(p)}</td><td>${p.spread_type==="CALL_CREDIT"?"CALL":"PUT"} Credit</td><td>${stateTag(p.state)}</td><td class="number">${num(p.qty_total,1)}</td><td class="number">${num(p.net_credit_btc)}</td><td class="number">${num(p.bep_price,1)}</td><td class="number ${tone(pnl)}">${signed(pnl,5)} BTC</td><td>${esc(p.close_reason||"—")}</td></tr>`}).join("")}</tbody>`}
+function liquidityTag(role){const labels={MAKER:"Maker 挂单",TAKER:"Taker 吃单",MIXED:"Maker + Taker"},classes={MAKER:"live",TAKER:"busy",MIXED:""};return `<span class="tag ${classes[role]||""}" title="${role==="MAKER"?"post_only 挂单成交":role==="TAKER"?"IOC 主动吃单成交":role==="MIXED"?"本次执行同时包含挂单和吃单成交":"旧记录未保存成交角色"}">${labels[role]||"未记录"}</span>`}
+function tradeLiquidity(p){return `<div style="display:grid;gap:5px;white-space:nowrap"><span>开仓 ${liquidityTag(p.open_liquidity_role)}</span><span>平仓 ${liquidityTag(p.close_liquidity_role)}</span></div>`}
+function renderTrades(trades){$("tradesTable").innerHTML=`<thead><tr><th>交易 / 关联身份</th><th>类型</th><th>状态</th><th>成交方式</th><th>数量</th><th>净权利金</th><th>BEP</th><th>已实现盈亏</th><th>平仓原因</th></tr></thead><tbody>${trades.map(p=>{const pnl=p.groups.reduce((s,g)=>s+Number(g.realized_pnl_btc||0),0);return `<tr><td>${tradeIdentity(p)}</td><td>${p.spread_type==="CALL_CREDIT"?"CALL":"PUT"} Credit</td><td>${stateTag(p.state)}</td><td>${tradeLiquidity(p)}</td><td class="number">${num(p.qty_total,1)}</td><td class="number">${num(p.net_credit_btc)}</td><td class="number">${num(p.bep_price,1)}</td><td class="number ${tone(pnl)}">${signed(pnl,5)} BTC</td><td>${esc(p.close_reason||"—")}</td></tr>`}).join("")}</tbody>`}
 function renderHedges(rows){$("hedgesTable").innerHTML=`<thead><tr><th>日期</th><th>执行次数</th><th>手续费</th><th>平均单量</th><th>最小量跳过</th><th>阈值跳过</th></tr></thead><tbody>${rows.length?rows.map(h=>`<tr><td>${h.day}</td><td class="number">${h.hedge_trades||0}</td><td class="number">${num(h.total_fee,8)} BTC</td><td class="number">${h.avg_order_usd==null?"—":num(h.avg_order_usd,0)+" USD"}</td><td class="number">${h.skipped_min_amount||0}</td><td class="number">${h.skipped_below_trigger||0}</td></tr>`).join(""):`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:28px">暂无对冲记录</td></tr>`}</tbody>`}
 const SIGNAL_EVENT={OPEN_REQUEST:"开仓请求",EXIT_DVOL:"DVOL 退出",EXIT_DVOL_ROLLING_30:"DVOL 退出"};
 const SIGNAL_STATUS={ACCEPTED:"已接受",REJECTED:"已拒绝",RECEIVED:"处理中"};
-const REJECT_REASON={REJECT_TRADING_DISABLED:"交易开关已关闭或强平锁定",REJECT_EXISTING_OPTION_SHORT:"账户已有期权卖方仓位",REJECT_DVOL_BELOW_ENTRY:"DVOL 低于开仓门槛",REJECT_NO_VALID_LEGS:"没有符合要求的期权腿",REJECT_INSUFFICIENT_RISK_BUDGET:"账户风险预算不足",REJECT_BAD_PAYLOAD:"信号参数不合法",REJECT_DUPLICATE_SIGNAL:"重复信号",bad_strategy:"策略名称不匹配",bad_spread_type:"价差类型不合法",bad_tier_or_pct:"DVOL 档位或百分比参数不合法",unknown_event:"未知事件",trading_disabled:"交易开关已关闭"};
+const REJECT_REASON={REVERSE_OPEN_SKIPPED:"反向信号平仓后，新开仓因交易暂停被跳过",REJECT_TRADING_DISABLED:"交易开关已关闭或强平锁定",REJECT_EXISTING_OPTION_SHORT:"账户已有期权卖方仓位",REJECT_DVOL_BELOW_ENTRY:"DVOL 低于开仓门槛",REJECT_NO_VALID_LEGS:"没有符合要求的期权腿",REJECT_INSUFFICIENT_RISK_BUDGET:"账户风险预算不足",REJECT_BAD_PAYLOAD:"信号参数不合法",REJECT_DUPLICATE_SIGNAL:"重复信号",bad_strategy:"策略名称不匹配",bad_spread_type:"价差类型不合法",bad_tier_or_pct:"DVOL 档位或百分比参数不合法",unknown_event:"未知事件",trading_disabled:"交易开关已关闭"};
 function toggleSignalActivity(key){expandedSignalKey=expandedSignalKey===key?null:key;if(model)renderSignals(model.signals)}
 function signalActivityCard(item){
   const key=String(item.key||`${item.kind||"activity"}:${item.received_at||0}`),expanded=expandedSignalKey===key;
@@ -415,19 +460,6 @@ function signalActivityCard(item){
   const details=expanded?`<div class="activity-detail"><div class="activity-detail-grid"><div><div class="activity-detail-label">策略 strategy</div><div class="activity-detail-value mono">${esc(item.strategy||"—")}</div></div><div><div class="activity-detail-label">Alert tv_id</div><div class="activity-detail-value mono">${esc(tvId)}</div></div><div><div class="activity-detail-label">事件 signal_id</div><div class="activity-detail-value mono" style="word-break:break-all">${esc(item.signal_id||"—")}</div></div><div><div class="activity-detail-label">事件</div><div class="activity-detail-value">${esc(item.event||eventLabel)}</div></div><div><div class="activity-detail-label">系统状态</div><div class="activity-detail-value">${esc(item.status||"—")}</div></div><div><div class="activity-detail-label">接收时间</div><div class="activity-detail-value number">${time(item.received_at)}</div></div></div>${reason}<pre>${esc(JSON.stringify(safePayload,null,2))}</pre></div>`:"";
   return `<article class="activity-item ${activityClass}" data-key="${esc(key)}"><button type="button" class="activity-summary" aria-expanded="${expanded}" onclick="toggleSignalActivity(this.closest('article').dataset.key)"><div><div class="activity-title">${esc(title)}</div><div class="activity-subtitle signal-id mono">${esc(subtitle)}</div></div><div class="activity-time number">${time(item.received_at)}</div><div class="activity-badges"><span class="source-pill ${sourceClass}">${esc(eventLabel)}</span>${statusBadge}</div><span class="activity-chevron">⌄</span></button>${details}</article>`;
 }
-function legacyStrategyCard(item,activities,serverTs){
-  const name=item.strategy||"未命名策略";
-  const initials=name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TV";
-  const heartbeatAge=item.last_heartbeat_at?Number(serverTs||Date.now())-Number(item.last_heartbeat_at):Infinity;
-  const online=heartbeatAge<=HEARTBEAT_STALE_MS;
-  const hasPosition=Number(item.active_trades||0)>0;
-  const needsAttention=Number(item.rejected||0)>0||Number(item.pending||0)>0;
-  const stateClass=hasPosition||online?"live":needsAttention?"bad":"";
-  const stateLabel=hasPosition?`${item.active_trades} 个活跃仓位`:online?"近期在线":needsAttention?"有异常记录":"等待新活动";
-  const latest=(activities||[]).find(activity=>(activity.strategy||"")===item.strategy);
-  const latestLabel=!latest?"尚无活动":latest.kind==="HEARTBEAT"?"连接回报":latest.kind==="OPEN_SIGNAL"?"开仓信号":"退出信号";
-  return `<article class="strategy-card"><div class="strategy-card-head"><div class="strategy-avatar">${esc(initials)}</div><div><div class="strategy-name">${esc(name)}</div><div class="strategy-account">${esc(item.account_name||"默认 Deribit 账户")} · TradingView</div></div><span class="tag ${stateClass}"><i class="strategy-live-dot ${stateClass}"></i>${esc(stateLabel)}</span></div><div class="strategy-stats"><div class="strategy-stat"><b>${item.heartbeats||0}</b><span>连接回报</span></div><div class="strategy-stat"><b>${item.open_signals||0}</b><span>开仓信号</span></div><div class="strategy-stat"><b>${item.exit_signals||0}</b><span>退出信号</span></div><div class="strategy-stat"><b class="positive">${item.accepted||0}</b><span>系统接受</span></div><div class="strategy-stat"><b class="${item.rejected?"negative":""}">${item.rejected||0}</b><span>系统拒绝</span></div><div class="strategy-stat"><b>${item.active_trades||0}</b><span>活跃仓位</span></div></div><div class="strategy-last"><span>最近活动 · <strong>${esc(latestLabel)}</strong></span><span class="number">${time(item.last_activity_at)}</span></div></article>`;
-}
 function connectionAgeLabel(timestamp,serverTs){
   if(!timestamp)return"尚未收到";
   const seconds=Math.max(0,Math.round((Number(serverTs||Date.now())-Number(timestamp))/1000));
@@ -438,83 +470,89 @@ function connectionAgeLabel(timestamp,serverTs){
   if(hours<48)return`${hours} 小时前`;
   return`${Math.round(hours/24)} 天前`;
 }
-function toggleStrategyCard(name){
-  expandedStrategyName=expandedStrategyName===name?null:name;
-  if(model?.signals)renderStrategyCenter(model.signals);
-}
-function strategyConnectionDetails(item,activities,serverTs,stateClass,stateLabel){
-  const reports=(activities||[]).filter(activity=>activity.kind==="HEARTBEAT"&&(activity.strategy||"")===item.strategy).slice(0,6);
-  const latest=reports[0]||null;
-  const snapshot=latest?.payload||{};
-  const age=connectionAgeLabel(item.last_heartbeat_at,serverTs);
-  const price=snapshot.btc_price==null?"未上报":money(snapshot.btc_price);
-  const barTime=snapshot.bar_ts?time(snapshot.bar_ts):"未上报";
-  const fields=Object.keys(snapshot).filter(key=>!["passphrase","received_at"].includes(key)).length;
-  const rows=reports.map(report=>{
-    const payload=report.payload||{};
-    return `<div class="connection-record"><i class="connection-record-dot"></i><div class="connection-record-main"><strong>连接回报已接收</strong><span>${time(report.received_at)} · ${connectionAgeLabel(report.received_at,serverTs)}</span></div><span class="connection-record-meta">数据时间 ${payload.bar_ts?time(payload.bar_ts):"未提供"}</span><span class="connection-record-price">${payload.btc_price==null?"—":money(payload.btc_price)}</span></div>`;
-  }).join("");
-  const healthCopy=latest?"Webhook 校验通过，TradingView 策略仍在按周期上报":"Webhook 接收器已就绪，但这套策略还没有发送 STATUS 连接回报";
-  return `<div class="strategy-connection-details"><div class="connection-health ${stateClass}"><div class="connection-health-icon">${latest?"↗":"!"}</div><div><div class="connection-health-title">${esc(stateLabel)}</div><div class="connection-health-copy">${esc(healthCopy)}</div></div><span class="connection-age ${stateClass==="bad"?"negative":stateClass==="busy"?"warning":"positive"}">${esc(age)}</span></div><div class="connection-summary-grid"><div class="connection-summary-item"><span>最后接收</span><strong>${time(item.last_heartbeat_at)}</strong></div><div class="connection-summary-item"><span>TradingView 数据时间</span><strong>${barTime}</strong></div><div class="connection-summary-item"><span>最新 BTC 价格</span><strong>${price}</strong></div><div class="connection-summary-item"><span>上报字段 / 累计回报</span><strong>${fields} / ${item.heartbeats||0}</strong></div></div><div class="connection-history-head"><strong>最近连接记录</strong><span>最多显示 6 条</span></div><div class="connection-history">${rows||`<div class="connection-empty">尚未收到这套策略的连接回报。请确认 Pine 中已开启 STATUS 上报，并重新创建 Alert。</div>`}</div><div class="connection-note"><b>说明：</b>连接回报只证明 TradingView → Webhook 链路正常，不会触发开仓或平仓。</div></div>`;
-}
-function strategyCard(item,activities,serverTs){
-  const name=item.strategy||"未命名策略";
-  const initials=name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TV";
-  const heartbeatAge=item.last_heartbeat_at?Number(serverTs||Date.now())-Number(item.last_heartbeat_at):Infinity;
-  const online=heartbeatAge<=HEARTBEAT_STALE_MS;
-  const delayed=!online&&heartbeatAge<=HEARTBEAT_STALE_MS*2;
-  const needsAttention=Number(item.rejected||0)>0||Number(item.pending||0)>0;
-  const stateClass=online?"live":delayed?"busy":item.last_heartbeat_at||needsAttention?"bad":"";
-  const stateLabel=online?"连接正常":delayed?"连接延迟":item.last_heartbeat_at?"连接已超时":needsAttention?"有异常记录":"等待连接";
-  const latest=(activities||[]).find(activity=>(activity.strategy||"")===item.strategy);
-  const latestLabel=!latest?"尚无活动":latest.kind==="HEARTBEAT"?"连接回报":latest.kind==="OPEN_SIGNAL"?"开仓信号":"退出信号";
-  const expanded=expandedStrategyName===name;
-  const details=expanded?strategyConnectionDetails(item,activities,serverTs,stateClass,stateLabel):"";
-  return `<article class="strategy-card ${expanded?"open":""}" data-strategy="${esc(name)}"><button type="button" class="strategy-card-toggle" aria-expanded="${expanded}" onclick="toggleStrategyCard(this.closest('article').dataset.strategy)"><div class="strategy-card-head"><div class="strategy-avatar">${esc(initials)}</div><div><div class="strategy-name">${esc(name)}</div><div class="strategy-account">${esc(item.account_name||"默认 Deribit 账户")} · TradingView</div></div><span class="tag ${stateClass}"><i class="strategy-live-dot ${stateClass}"></i>${esc(stateLabel)}</span></div><div class="strategy-stats"><div class="strategy-stat"><b>${item.heartbeats||0}</b><span>连接回报</span></div><div class="strategy-stat"><b>${item.open_signals||0}</b><span>开仓信号</span></div><div class="strategy-stat"><b>${item.exit_signals||0}</b><span>退出信号</span></div><div class="strategy-stat"><b class="positive">${item.accepted||0}</b><span>系统接受</span></div><div class="strategy-stat"><b class="${item.rejected?"negative":""}">${item.rejected||0}</b><span>系统拒绝</span></div><div class="strategy-stat"><b>${item.active_trades||0}</b><span>活跃仓位</span></div></div><div class="strategy-last"><span>最近活动 · <strong>${esc(latestLabel)}</strong></span><span class="strategy-card-chevron">${expanded?"收起连接详情":"查看连接详情"}</span></div></button>${details}</article>`;
-}
 function strategyConnectionState(item,serverTs){
-  const age=item.last_heartbeat_at?Number(serverTs||Date.now())-Number(item.last_heartbeat_at):Infinity;
-  if(age<=HEARTBEAT_STALE_MS)return{className:"live",label:"连接正常"};
-  if(age<=HEARTBEAT_STALE_MS*2)return{className:"busy",label:"连接延迟"};
-  if(item.last_heartbeat_at)return{className:"bad",label:"连接已超时"};
-  return{className:"",label:"等待连接"};
+  if(Number(item.active_trades||0)>0)return{className:"live",label:"持仓中"};
+  if(Number(item.signal_total||0)>0)return{className:"live",label:"已接入"};
+  if(Number(item.heartbeats||0)>0)return{className:"",label:"旧版记录"};
+  return{className:"",label:"尚无交易信号"};
 }
-function modalStrategyCard(item,activities,serverTs){
+function strategyDirectoryCard(item,activities,serverTs){
   const name=item.strategy||"未命名策略";
   const initials=name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TV";
   const state=strategyConnectionState(item,serverTs);
   const latest=(activities||[]).find(activity=>(activity.strategy||"")===item.strategy);
-  const latestLabel=!latest?"尚无活动":latest.kind==="HEARTBEAT"?"连接回报":latest.kind==="OPEN_SIGNAL"?"开仓信号":"退出信号";
-  return `<article class="strategy-card" data-strategy="${esc(name)}"><button type="button" class="strategy-card-toggle" aria-haspopup="dialog" onclick="openStrategyModal(this.closest('article').dataset.strategy)"><div class="strategy-card-head"><div class="strategy-avatar">${esc(initials)}</div><div><div class="strategy-name">${esc(name)}</div><div class="strategy-account">${esc(item.account_name||"默认 Deribit 账户")} · TradingView</div></div><span class="tag ${state.className}"><i class="strategy-live-dot ${state.className}"></i>${esc(state.label)}</span></div><div class="strategy-stats"><div class="strategy-stat"><b>${item.heartbeats||0}</b><span>连接回报</span></div><div class="strategy-stat"><b>${item.open_signals||0}</b><span>开仓信号</span></div><div class="strategy-stat"><b>${item.exit_signals||0}</b><span>退出信号</span></div><div class="strategy-stat"><b class="positive">${item.accepted||0}</b><span>系统接受</span></div><div class="strategy-stat"><b class="${item.rejected?"negative":""}">${item.rejected||0}</b><span>系统拒绝</span></div><div class="strategy-stat"><b>${item.active_trades||0}</b><span>活跃仓位</span></div></div><div class="strategy-last"><span>最近活动 · <strong>${esc(latestLabel)}</strong></span><span class="strategy-card-chevron">打开信号详情</span></div></button></article>`;
+  const selected=selectedStrategyName===name;
+  const latestLabel=!latest?"无活动":latest.kind==="HEARTBEAT"?"旧版回报":latest.kind==="OPEN_SIGNAL"?"开仓":latest.kind==="EXIT_SIGNAL"?"退出":"活动";
+  const canDelete=Number(item.active_trades||0)===0;
+  return `<article class="strategy-source-card ${selected?"selected":""}" data-strategy="${esc(name)}"><button type="button" class="strategy-source-select" onclick="selectStrategy(this.closest('article').dataset.strategy)"><span class="strategy-source-avatar">${esc(initials)}</span><span style="min-width:0"><span class="strategy-source-name">${esc(name)}</span><span class="strategy-source-meta"><span>${item.signal_total||0} 条信号</span><span class="${item.rejected?"negative":""}">${item.rejected||0} 次拒绝</span><span>${esc(latestLabel)}</span></span></span></button><button type="button" class="strategy-source-delete" aria-label="删除 ${esc(name)}" title="${canDelete?"删除旧策略及其记录":"持仓中，不能删除"}" ${canDelete?"":"disabled"} onclick="deleteStrategyRecords(this.closest('article').dataset.strategy)">×</button></article>`;
 }
-function openStrategyModal(name){
+function strategyActivities(data,name){
+  if(strategyActivityCache.has(name))return strategyActivityCache.get(name);
+  return (data?.items||[]).filter(item=>(item.strategy||"未命名策略")===name);
+}
+async function loadStrategyActivities(name,force=false){
+  if(!name||strategyActivityLoading.has(name)||strategyActivityCache.has(name)&&!force)return;
+  strategyActivityLoading.add(name);
+  if(selectedStrategyName===name)renderStrategyInspector(model?.signals);
+  try{
+    const result=await api(`/api/signals?limit=500&strategy=${encodeURIComponent(name)}`);
+    strategyActivityCache.set(name,result.items||[]);
+    if(selectedStrategyName===name)renderStrategyInspector(model?.signals);
+  }catch(error){
+    if(selectedStrategyName===name)toast(`读取“${name}”的历史记录失败：${error.message}`,"bad");
+  }finally{
+    strategyActivityLoading.delete(name);
+    if(selectedStrategyName===name)renderStrategyInspector(model?.signals);
+  }
+}
+function selectStrategy(name){
   selectedStrategyName=name;
   strategyModalFilter="ALL";
   expandedStrategyActivityKeys.clear();
-  renderStrategyModal(model?.signals);
-  $("strategyModal").classList.add("open");
-  document.body.style.overflow="hidden";
+  renderStrategyCenter(model?.signals||{});
+  void loadStrategyActivities(name);
+}
+function openStrategyModal(name){
+  selectStrategy(name);
 }
 function closeStrategyModal(){
-  $("strategyModal").classList.remove("open");
-  selectedStrategyName=null;
-  expandedStrategyActivityKeys.clear();
+  $("strategyModal")?.classList.remove("open");
   document.body.style.overflow="";
 }
 function setStrategyModalFilter(filter){
   strategyModalFilter=filter;
-  renderStrategyModal(model?.signals);
+  renderStrategyInspector(model?.signals);
 }
 function toggleStrategyActivity(key){
-  const feed=document.querySelector(".strategy-modal-feed");
+  const feed=document.querySelector(".strategy-inspector-feed");
   const scrollTop=feed?.scrollTop||0;
   if(expandedStrategyActivityKeys.has(key))expandedStrategyActivityKeys.delete(key);
   else expandedStrategyActivityKeys.add(key);
-  renderStrategyModal(model?.signals);
+  renderStrategyInspector(model?.signals);
   requestAnimationFrame(()=>{
-    const next=document.querySelector(".strategy-modal-feed");
+    const next=document.querySelector(".strategy-inspector-feed");
     if(next)next.scrollTop=scrollTop;
   });
+}
+async function deleteStrategyRecords(name){
+  const strategy=(model?.signals?.strategies||[]).find(item=>(item.strategy||"未命名策略")===name);
+  if(!strategy)return;
+  if(Number(strategy.active_trades||0)>0){
+    toast("该策略仍有活跃仓位，完成平仓后才能删除","bad");
+    return;
+  }
+  const affected=`${strategy.signal_total||0} 条交易信号、${strategy.heartbeats||0} 条旧版回报以及关联的交易和事件记录`;
+  if(!confirm(`永久删除策略“${name}”？\n\n将删除：${affected}。\n共享 Webhook 地址不会被删除，此操作不可撤销。`))return;
+  try{
+    const result=await api(`/api/strategies?strategy=${encodeURIComponent(name)}`,{method:"DELETE"});
+    strategyActivityCache.delete(name);
+    selectedStrategyName=null;
+    expandedStrategyActivityKeys.clear();
+    toast(`已删除 ${result.strategy}：${result.signals} 条信号、${result.trades} 笔交易`);
+    await refresh();
+  }catch(error){
+    toast(error.message.includes("409")?"该策略仍有关联仓位，暂时不能删除":error.message,"bad");
+  }
 }
 function payloadDisplayValue(value){
   if(value===null)return "null";
@@ -566,15 +604,37 @@ function renderStrategyModal(data){
   const strategy=(data.strategies||[]).find(item=>(item.strategy||"未命名策略")===selectedStrategyName);
   if(!strategy){closeStrategyModal();return}
   const state=strategyConnectionState(strategy,data.server_ts);
-  const all=(data.items||[]).filter(item=>(item.strategy||"未命名策略")===selectedStrategyName);
+  const all=strategyActivities(data,selectedStrategyName);
   const filtered=all.filter(item=>strategyModalFilter==="ALL"||strategyModalFilter==="HEARTBEAT"&&item.kind==="HEARTBEAT"||strategyModalFilter==="TRADE"&&item.kind!=="HEARTBEAT");
   const initials=selectedStrategyName.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TV";
   const rows=filtered.map(item=>strategyModalActivityRow(item,data.server_ts)).join("");
-  $("strategyModalContent").innerHTML=`<header class="strategy-modal-head"><div class="strategy-avatar">${esc(initials)}</div><div><h2 id="strategyModalTitle">${esc(selectedStrategyName)}</h2><div class="strategy-modal-subtitle">${esc(strategy.account_name||"默认 Deribit 账户")} · TradingView 策略信号明细</div></div><div style="display:flex;align-items:center;gap:9px"><span class="tag ${state.className}"><i class="strategy-live-dot ${state.className}"></i>${esc(state.label)}</span><button type="button" class="strategy-modal-close" aria-label="关闭策略详情" onclick="closeStrategyModal()">×</button></div></header><div class="strategy-modal-summary"><div class="strategy-modal-metric"><span>连接回报</span><strong>${strategy.heartbeats||0}</strong></div><div class="strategy-modal-metric"><span>开仓 / 退出</span><strong>${strategy.open_signals||0} / ${strategy.exit_signals||0}</strong></div><div class="strategy-modal-metric"><span>接受 / 拒绝</span><strong>${strategy.accepted||0} / ${strategy.rejected||0}</strong></div><div class="strategy-modal-metric"><span>活跃仓位</span><strong>${strategy.active_trades||0}</strong></div><div class="strategy-modal-metric"><span>最后连接</span><strong>${connectionAgeLabel(strategy.last_heartbeat_at,data.server_ts)}</strong></div></div><main class="strategy-modal-main"><div class="strategy-modal-toolbar"><button class="strategy-modal-filter ${strategyModalFilter==="ALL"?"active":""}" onclick="setStrategyModalFilter('ALL')">全部活动</button><button class="strategy-modal-filter ${strategyModalFilter==="HEARTBEAT"?"active":""}" onclick="setStrategyModalFilter('HEARTBEAT')">连接回报</button><button class="strategy-modal-filter ${strategyModalFilter==="TRADE"?"active":""}" onclick="setStrategyModalFilter('TRADE')">交易信号</button><span class="strategy-modal-count">当前显示 ${filtered.length} / ${all.length} 条</span></div><div class="strategy-modal-feed"><div class="strategy-feed-list">${rows||`<div class="strategy-modal-empty"><div><strong>这个分类暂时没有记录</strong><span>收到新的 TradingView 信号后会自动出现在这里。</span></div></div>`}</div><div class="strategy-modal-note">列表按接收时间倒序排列 · 可以使用鼠标滚轮或右侧滚动条上下查看</div></div></main>`;
+  $("strategyModalContent").innerHTML=`<header class="strategy-modal-head"><div class="strategy-avatar">${esc(initials)}</div><div><h2 id="strategyModalTitle">${esc(selectedStrategyName)}</h2><div class="strategy-modal-subtitle">默认 Deribit Testnet · TradingView 策略信号明细</div></div><div style="display:flex;align-items:center;gap:9px"><span class="tag ${state.className}"><i class="strategy-live-dot ${state.className}"></i>${esc(state.label)}</span><button type="button" class="strategy-modal-close" aria-label="关闭策略详情" onclick="closeStrategyModal()">×</button></div></header><div class="strategy-modal-summary"><div class="strategy-modal-metric"><span>累计交易信号</span><strong>${strategy.signal_total||0}</strong></div><div class="strategy-modal-metric"><span>开仓 / 退出</span><strong>${strategy.open_signals||0} / ${strategy.exit_signals||0}</strong></div><div class="strategy-modal-metric"><span>接受 / 拒绝</span><strong>${strategy.accepted||0} / ${strategy.rejected||0}</strong></div><div class="strategy-modal-metric"><span>活跃仓位</span><strong>${strategy.active_trades||0}</strong></div><div class="strategy-modal-metric"><span>最近活动</span><strong>${connectionAgeLabel(strategy.last_activity_at,data.server_ts)}</strong></div></div><main class="strategy-modal-main"><div class="strategy-modal-toolbar"><button class="strategy-modal-filter ${strategyModalFilter==="ALL"?"active":""}" onclick="setStrategyModalFilter('ALL')">全部活动</button><button class="strategy-modal-filter ${strategyModalFilter==="HEARTBEAT"?"active":""}" onclick="setStrategyModalFilter('HEARTBEAT')">旧版回报</button><button class="strategy-modal-filter ${strategyModalFilter==="TRADE"?"active":""}" onclick="setStrategyModalFilter('TRADE')">交易信号</button><span class="strategy-modal-count">当前显示 ${filtered.length} / ${all.length} 条</span></div><div class="strategy-modal-feed"><div class="strategy-feed-list">${rows||`<div class="strategy-modal-empty"><div><strong>这个分类暂时没有记录</strong><span>收到新的 TradingView 信号后会自动出现在这里。</span></div></div>`}</div><div class="strategy-modal-note">列表按接收时间倒序排列 · 可以使用鼠标滚轮或右侧滚动条上下查看</div></div></main>`;
+}
+function renderStrategyInspector(data){
+  const target=$("strategyInspector");
+  if(!target)return;
+  const strategy=(data?.strategies||[]).find(item=>(item.strategy||"未命名策略")===selectedStrategyName);
+  if(!strategy){
+    target.className="strategy-inspector-empty";
+    target.innerHTML=`<div><div class="empty-orbit"></div><strong>请选择一个策略来源</strong><span>详细状态和活动记录会显示在这里</span></div>`;
+    return;
+  }
+  const name=strategy.strategy||"未命名策略";
+  const state=strategyConnectionState(strategy,data.server_ts);
+  const all=strategyActivities(data,name);
+  const filtered=all.filter(item=>strategyModalFilter==="ALL"||strategyModalFilter==="HEARTBEAT"&&item.kind==="HEARTBEAT"||strategyModalFilter==="TRADE"&&item.kind!=="HEARTBEAT");
+  const rows=filtered.map(item=>strategyModalActivityRow(item,data.server_ts)).join("");
+  const loading=strategyActivityLoading.has(name)&&!strategyActivityCache.has(name);
+  const initials=name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TV";
+  const processed=Number(strategy.accepted||0)+Number(strategy.rejected||0);
+  const success=processed?Math.round(Number(strategy.accepted||0)/processed*100):0;
+  const active=Number(strategy.active_trades||0)>0;
+  target.className="";
+  target.innerHTML=`<header class="strategy-inspector-head"><div class="strategy-avatar">${esc(initials)}</div><div><div class="strategy-inspector-title">${esc(name)}</div><div class="strategy-inspector-subtitle">默认 Deribit Testnet · 最近活动 ${connectionAgeLabel(strategy.last_activity_at,data.server_ts)}</div></div><div class="strategy-inspector-actions"><span class="tag ${state.className}"><i class="strategy-live-dot ${state.className}"></i>${esc(state.label)}</span><button class="strategy-delete-btn" data-strategy="${esc(name)}" ${active?"disabled":""} title="${active?"持仓中，完成平仓后才能删除":"删除策略来源及全部关联记录"}" onclick="deleteStrategyRecords(this.dataset.strategy)">${active?"持仓中不可删除":"删除旧策略记录"}</button></div></header><section class="strategy-inspector-kpis"><div class="strategy-inspector-kpi"><span>活跃仓位</span><strong class="${active?"positive":""}">${strategy.active_trades||0}</strong></div><div class="strategy-inspector-kpi"><span>开仓 / 退出</span><strong>${strategy.open_signals||0} / ${strategy.exit_signals||0}</strong></div><div class="strategy-inspector-kpi"><span>系统接受</span><strong class="positive">${strategy.accepted||0}</strong></div><div class="strategy-inspector-kpi"><span>系统拒绝</span><strong class="${strategy.rejected?"negative":""}">${strategy.rejected||0}</strong></div><div class="strategy-inspector-kpi"><span>处理成功率</span><strong>${processed?success+"%":"—"}</strong><div class="strategy-success-bar"><i style="width:${success}%"></i></div></div></section><div class="strategy-inspector-toolbar"><button class="strategy-modal-filter ${strategyModalFilter==="ALL"?"active":""}" onclick="setStrategyModalFilter('ALL')">全部 ${all.length}</button><button class="strategy-modal-filter ${strategyModalFilter==="TRADE"?"active":""}" onclick="setStrategyModalFilter('TRADE')">交易信号 ${strategy.signal_total||0}</button><button class="strategy-modal-filter ${strategyModalFilter==="HEARTBEAT"?"active":""}" onclick="setStrategyModalFilter('HEARTBEAT')">旧版回报 ${strategy.heartbeats||0}</button><span class="strategy-delete-note">点击记录可查看脱敏后的原始 JSON</span></div><div class="strategy-modal-feed strategy-inspector-feed"><div class="strategy-feed-list">${rows||`<div class="strategy-modal-empty"><div><strong>${loading?"正在读取完整历史记录":"这个分类没有记录"}</strong><span>${loading?"正在按当前策略单独加载，不受全站 100 条限制。":"收到新的 TradingView 信号后会自动显示。"}</span></div></div>`}</div></div>`;
 }
 function renderStrategyCenter(data){
   const strategies=data.strategies||[],items=data.items||[],sum=data.summary||{};
-  const online=strategies.filter(item=>item.last_heartbeat_at&&Number(data.server_ts||Date.now())-Number(item.last_heartbeat_at)<=HEARTBEAT_STALE_MS).length;
+  const online=strategies.filter(item=>Number(item.signal_total||0)>0).length;
   $("strategyObserved").textContent=strategies.length;
   $("strategyOnline").textContent=online;
   $("strategyActions").textContent=`${sum.open_signals||0} / ${sum.exit_signals||0}`;
@@ -582,14 +642,17 @@ function renderStrategyCenter(data){
   $("strategyAttention").className=`metric-value ${sum.rejected?"negative":sum.pending?"warning":""}`;
   $("strategyHealthDot").className=`monitor-dot ${!data.configured?"bad":strategies.length?"live":""}`;
   $("strategyHealthTitle").textContent=!data.configured?"Webhook 未配置":strategies.length?`${strategies.length} 个策略已接入`:"等待首个 TradingView 策略";
-  $("strategyHealthCopy").textContent=strategies.length?`${online} 个策略近期在线 · 自动发现已开启`:"策略首次发送连接回报或信号后自动出现";
+  $("strategyHealthCopy").textContent=strategies.length?`${online} 个策略已有交易信号 · 自动发现已开启`:"策略首次发送交易信号后自动出现";
   $("strategyCountBadge").textContent=`${strategies.length} 个策略`;
   $("strategyCountBadge").className=`tag ${strategies.length?"live":""}`;
-  $("strategyRoster").innerHTML=strategies.length?strategies.map(item=>modalStrategyCard(item,items,data.server_ts)).join(""):`<div class="strategy-empty"><div><div class="empty-orbit"></div><strong>尚未发现 TradingView 策略</strong><span>无需在后台手工创建。配置 Alert 并发送首个连接回报或信号后，策略会自动出现在这里。</span><br><button class="btn btn-primary" onclick="navigateTo('/tradingview')">前往 TV 接入</button></div></div>`;
-  const real=items.filter(item=>item.kind!=="HEARTBEAT").slice(0,8);
-  $("strategySignalBadge").textContent=`${real.length} 条`;
-  $("strategySignalList").innerHTML=real.length?real.map(signalActivityCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>暂时没有可执行信号</strong><span>连接回报不会触发交易；真实开仓或退出信号会显示在这里</span></div></div>`;
-  if($("strategyModal").classList.contains("open"))renderStrategyModal(data);
+  if(strategies.length&&!strategies.some(item=>(item.strategy||"未命名策略")===selectedStrategyName)){
+    selectedStrategyName=(strategies.find(item=>Number(item.active_trades||0)>0)||strategies[0]).strategy||"未命名策略";
+    strategyModalFilter="ALL";
+    expandedStrategyActivityKeys.clear();
+  }
+  if(!strategies.length)selectedStrategyName=null;
+  $("strategyRoster").innerHTML=strategies.length?strategies.map(item=>strategyDirectoryCard(item,items,data.server_ts)).join(""):`<div class="strategy-source-empty"><strong>尚未发现策略来源</strong><br>发送首个交易信号后会自动出现</div>`;
+  renderStrategyInspector(data);
 }
 function renderSignals(data){const items=data.items||[],sum=data.summary||{};$("sConfigured").textContent=data.configured?"接收器已就绪":"未配置口令";$("sConfigured").className=`metric-value small ${data.configured?"positive":"negative"}`;$("sLastTime").textContent=data.last_received_at?time(data.last_received_at):"尚未收到";$("sTvCount").textContent=`${sum.open_signals||0} / ${sum.total||0}`;$("sAccepted").textContent=sum.accepted||0;$("sRejected").textContent=sum.rejected||0;$("sRejected").className=`metric-value ${sum.rejected?"negative":""}`;$("sPending").textContent=sum.pending||0;$("sPending").className=`metric-value ${sum.pending?"warning":""}`;const last=data.last_received_at?time(data.last_received_at):null,url=location.origin+(data.webhook_path||"/webhook/signal");$("overviewSignalDot").className=`monitor-dot ${data.configured?"live":"bad"}`;$("overviewSignalState").textContent=data.configured?"Webhook 已就绪，持续监听 TradingView":"Webhook 未配置，暂时无法接收";$("overviewLastSignal").textContent=last?`最近活动 ${last}`:"等待首个连接回报或信号";$("webhookUrl").textContent=url;$("webhookBadge").textContent=data.configured?"已配置":"缺少口令";$("webhookBadge").className=`tag ${data.configured?"live":"bad"}`;$("signalHealthRing").style.setProperty("--value",data.configured?100:35);$("signalHealthRing").style.setProperty("--ring",data.configured?"var(--cyan)":"var(--red)");$("signalHealthTitle").textContent=last?"TradingView 链路已有活动":data.configured?"Webhook 正在监听":"Webhook 未配置";$("signalHealthCopy").textContent=last?`最近接收于 ${last}`:data.configured?"等待首个 TradingView 连接回报或信号":"请配置 WEBHOOK_PASSPHRASE";$("tvSignalBadge").textContent=`${sum.heartbeats||0} 回报 · ${sum.signal_total||0} 信号`;$("tvSignals").innerHTML=items.length?items.map(signalActivityCard).join(""):`<div class="empty"><div><div class="empty-orbit"></div><strong>正在实时监听 TradingView</strong><span>尚未收到 TradingView 连接回报或信号</span></div></div>`;renderStrategyCenter(data);renderTvHub(data)}
 const COND_ROWS=[{key:"config",name:"档位配置",hint:"L1 < L2 < L3 递增"},{key:"dvol_tier",name:"DVOL 档位",hint:"档位 ≠ 0（低于 L1 不开仓）"},{key:"hv",name:"HV 分位 (2h)",hint:"≥ 分位下限"},{key:"cci",name:"CCI (2h)",hint:"|CCI| < 上限（避开单边趋势）"},{key:"shape",name:"布林触发形态",hint:"破轨 + 反向收线"}];
@@ -598,7 +661,7 @@ const HEARTBEAT_STALE_MS=150*60*1000;
 const pct1=x=>x==null?"—":num(x,1)+"%";
 const NA_CELL={ok:null,value:"—",note:""};
 function condSrc(cell,dim){const cls=cell.ok==null?"na":cell.ok?"ok":"no";return `<div class="cond-src${dim?" dim":""}"><div class="cond-val ${cls}">${esc(cell.value)}</div>${cell.note?`<div class="cond-note">${esc(cell.note)}</div>`:""}</div>`}
-function condBackend(key,b){if(!b)return{ok:null,value:"—",note:"行情不可用"};const c=b.checks[key];switch(key){case"config":return{ok:c.ok,value:c.levels.map(v=>num(v*100,0)+"%").join(" / "),note:"L1 / L2 / L3"};case"dvol_tier":return{ok:c.ok,value:c.percentile==null?"样本不足":pct1(c.percentile*100),note:`${c.tier<0?"档位待定":"档位 L"+c.tier} · ${c.samples}/${c.window_bars} 根`};case"hv":return{ok:c.ok,value:pct1(c.value),note:`需 ≥ ${pct1(c.threshold)}`};case"cci":return{ok:c.ok,value:c.value==null?"—":num(c.value,1),note:`需 < ${num(c.threshold,0)}`};default:return{ok:c.ok,value:c.put?"PUT 成立":c.call?"CALL 成立":"未成立",note:c.lower==null?"":`轨道 ${num(c.lower,0)} ~ ${num(c.upper,0)}`}}}
+function condBackend(key,b){if(!b)return{ok:null,value:"—",note:"只读诊断·行情不可用"};const c=b.checks[key];switch(key){case"config":return{ok:c.ok,value:c.levels.map(v=>num(v*100,0)+"%").join(" / "),note:"只读诊断 · L1 / L2 / L3"};case"dvol_tier":return{ok:c.ok,value:c.percentile==null?"样本不足":pct1(c.percentile*100),note:`只读诊断 · ${c.tier<0?"档位待定":"档位 L"+c.tier} · ${c.samples}/${c.window_bars} 根`};case"hv":return{ok:c.ok,value:pct1(c.value),note:`只读诊断 · 需 ≥ ${pct1(c.threshold)}`};case"cci":return{ok:c.ok,value:c.value==null?"—":num(c.value,1),note:`只读诊断 · 需 < ${num(c.threshold,0)}`};default:return{ok:c.ok,value:c.put?"PUT 成立":c.call?"CALL 成立":"未成立",note:c.lower==null?"只读诊断":`只读诊断 · 轨道 ${num(c.lower,0)} ~ ${num(c.upper,0)}`}}}
 function condPine(key,p){if(!p)return NA_CELL;const noPct=p.dvol_percentile==null||p.dvol_percentile<0;switch(key){case"config":return{ok:p.cfg_ok,value:p.cfg_ok?"递增":"配置错误",note:"L1 / L2 / L3"};case"dvol_tier":{const unavailable=p.dvol_tier==null||p.dvol_tier<0;
  return{ok:unavailable?false:p.tier_ok,value:noPct?"样本不足":pct1(p.dvol_percentile*100),note:`${unavailable?"TradingView 样本不足":"档位 L"+p.dvol_tier} · ${p.dvol_samples??"—"} 根`}}case"hv":return{ok:p.hv_ok,value:pct1(p.hv_percentile==null?null:p.hv_percentile*100),note:"TradingView 口径"};case"cci":return{ok:p.cci_ok,value:p.cci==null?"—":num(p.cci,1),note:"TradingView 口径"};default:return{ok:p.put_shape||p.call_shape,value:p.put_shape?"PUT 成立":p.call_shape?"CALL 成立":"未成立",note:p.boll_lower==null?"":`轨道 ${num(p.boll_lower,0)} ~ ${num(p.boll_upper,0)}`}}}
 function mbarHtml(valPct,thrPct,failSide,cls,ticks){
@@ -882,8 +945,72 @@ function buildSignalJourney(data,signals,trades){
     tv,delivery,safety,execution,
   };
 }
-function renderPerformance(data){const s=data.summary;for(const [id,v] of [["pNet",s.tracked_net_pnl_btc],["pRealized",s.realized_pnl_btc],["pUnrealized",s.unrealized_pnl_btc],["pToday",s.today_realized_btc]]){const el=$(id);el.textContent=`${signed(v,6)} BTC`;el.className=`metric-value ${tone(v)}`}$("pPeriods").textContent=`${signed(s.last_7d_realized_btc,5)} / ${signed(s.last_30d_realized_btc,5)} BTC`;$("pPeriods").className=`metric-value small ${tone(s.last_30d_realized_btc)}`;$("pWinRate").textContent=`${num(s.win_rate*100,1)}%`;$("pWinNote").textContent=`${s.wins} 胜 · ${s.losses} 负 · ${s.closed_trades} 笔结束`;$("pFeeBadge").textContent=`对冲手续费 ${num(s.hedge_fees_btc,6)} BTC`;$("pTradeBadge").textContent=`${data.trades.length} 笔`;renderPnlChart(data.daily);$("pnlTradesTable").innerHTML=`<thead><tr><th>交易</th><th>策略 / Alert / 信号</th><th>类型</th><th>状态</th><th>开仓</th><th>平仓</th><th>已实现</th><th>未实现</th><th>合计</th></tr></thead><tbody>${data.trades.length?data.trades.map(t=>{const total=Number(t.realized_pnl_btc)+Number(t.unrealized_pnl_btc);return `<tr><td class="number">#${t.id}</td><td>${tradeIdentity(t,false)}</td><td>${t.spread_type==="CALL_CREDIT"?"CALL":"PUT"}</td><td>${stateTag(t.state)}</td><td class="number">${time(t.opened_at)}</td><td class="number">${time(t.closed_at)}</td><td class="number ${tone(t.realized_pnl_btc)}">${signed(t.realized_pnl_btc,6)}</td><td class="number ${tone(t.unrealized_pnl_btc)}">${signed(t.unrealized_pnl_btc,6)}</td><td class="number ${tone(total)}">${signed(total,6)} BTC</td></tr>`}).join(""):`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">暂无策略交易收益记录</td></tr>`}</tbody>`}
-function renderPnlChart(rows){const chart=$("pnlChart");if(!rows.length){chart.innerHTML=`<div class="empty" style="width:100%;min-height:180px"><div><strong>近 30 日暂无已实现收益</strong><span>交易平仓后会在这里形成收益柱状图</span></div></div>`;return}const byDay=Object.fromEntries(rows.map(r=>[r.day,Number(r.realized_pnl_btc)])),pad=n=>String(n).padStart(2,"0"),recent=Array.from({length:30},(_,i)=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(29-i));const day=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;return {day,realized_pnl_btc:byDay[day]||0}}),max=Math.max(...recent.map(r=>Math.abs(Number(r.realized_pnl_btc))),1e-9);chart.innerHTML=recent.map((r,i)=>{const v=Number(r.realized_pnl_btc),h=v===0?0:Math.max(2,Math.abs(v)/max*45),style=v>=0?`bottom:50%;height:${h}%`:`top:50%;height:${h}%`;return `<div class="chart-col" title="${esc(r.day)} · ${signed(v,6)} BTC"><div class="chart-track"><i class="chart-bar ${v===0?"zero":v<0?"neg":""}" style="${style}"></i></div><div class="chart-label">${i%5===0||i===recent.length-1?esc(r.day.slice(5)):""}</div></div>`}).join("")}
+function renderPerformance(data){
+  const s=data.summary;
+  for(const [id,v] of [["pNet",s.tracked_net_pnl_btc],["pRealized",s.realized_pnl_btc],["pUnrealized",s.unrealized_pnl_btc],["pToday",s.today_realized_btc]]){
+    const el=$(id);el.textContent=`${signed(v,6)} BTC`;el.className=`metric-value ${tone(v)}`;
+  }
+  $("pPeriods").textContent=`${signed(s.last_7d_realized_btc,5)} / ${signed(s.last_30d_realized_btc,5)} BTC`;
+  $("pPeriods").className=`metric-value small ${tone(s.last_30d_realized_btc)}`;
+  $("pWinRate").textContent=`${num(s.win_rate*100,1)}%`;
+  $("pWinNote").textContent=`${s.wins} 胜 · ${s.losses} 负 · ${s.closed_trades} 笔结束`;
+  $("pFeeBadge").textContent=`对冲手续费 ${num(s.hedge_fees_btc,6)} BTC`;
+  $("pTradeBadge").textContent=`${data.trades.length} 笔`;
+  renderPnlCurve(data.curve||[]);
+  $("pnlTradesTable").innerHTML=`<thead><tr><th>交易</th><th>策略 / Alert / 信号</th><th>类型</th><th>状态</th><th>成交方式</th><th>开仓</th><th>平仓</th><th>已实现</th><th>未实现</th><th>合计</th></tr></thead><tbody>${data.trades.length?data.trades.map(t=>{const total=Number(t.realized_pnl_btc)+Number(t.unrealized_pnl_btc);return `<tr><td class="number">#${t.id}</td><td>${tradeIdentity(t,false)}</td><td>${t.spread_type==="CALL_CREDIT"?"CALL":"PUT"}</td><td>${stateTag(t.state)}</td><td>${tradeLiquidity(t)}</td><td class="number">${time(t.opened_at)}</td><td class="number">${time(t.closed_at)}</td><td class="number ${tone(t.realized_pnl_btc)}">${signed(t.realized_pnl_btc,6)}</td><td class="number ${tone(t.unrealized_pnl_btc)}">${signed(t.unrealized_pnl_btc,6)}</td><td class="number ${tone(total)}">${signed(total,6)} BTC</td></tr>`}).join(""):`<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px">暂无策略交易收益记录</td></tr>`}</tbody>`;
+}
+function setCurveRange(range){
+  curveRange=range;
+  document.querySelectorAll(".curve-range").forEach(button=>button.classList.toggle("active",button.dataset.range===range));
+  if(model?.performance)renderPnlCurve(model.performance.curve||[]);
+}
+function curveRowsForRange(rows){
+  if(curveRange==="ALL")return rows;
+  const cutoff=Date.now()-Number(curveRange)*86400*1000;
+  return rows.filter(row=>Number(row.closed_at)>=cutoff);
+}
+function renderPnlCurve(allRows){
+  const canvas=$("pnlCurveCanvas"),stage=$("curveStage"),tooltip=$("curveTooltip");
+  if(!canvas||!stage)return;
+  const rows=curveRowsForRange(allRows),ctx=canvas.getContext("2d"),width=Math.max(320,stage.clientWidth-28),height=Math.max(230,stage.clientHeight-20),dpr=Math.max(1,window.devicePixelRatio||1);
+  canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);canvas.style.width=`${width}px`;canvas.style.height=`${height}px`;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+  if(!rows.length){
+    curveCanvasState=null;tooltip.classList.remove("show");
+    for(const id of ["pCurveNet","pCurvePeak","pCurveDrawdown"]){$(id).textContent="—";$(id).className="";}
+    ctx.fillStyle="#718396";ctx.font='12px "Microsoft YaHei",sans-serif';ctx.textAlign="center";ctx.fillText(curveRange==="ALL"?"完成第一笔平仓后，这里会开始形成累计收益曲线":"所选时间范围内没有已完成的平仓",width/2,height/2);
+    return;
+  }
+  const visibleValues=rows.map(row=>Number(row.cumulative_realized_pnl_btc)),last=visibleValues.at(-1),peak=Math.max(0,...visibleValues);
+  let runningPeak=Number(rows[0].cumulative_realized_pnl_btc)-Number(rows[0].realized_pnl_btc),maxDrawdown=0;
+  for(const value of visibleValues){runningPeak=Math.max(runningPeak,value);maxDrawdown=Math.max(maxDrawdown,runningPeak-value)}
+  $("pCurveNet").textContent=`${signed(last,6)} BTC`;$("pCurveNet").className=tone(last);
+  $("pCurvePeak").textContent=`${signed(peak,6)} BTC`;$("pCurvePeak").className=tone(peak);
+  $("pCurveDrawdown").textContent=maxDrawdown?`-${num(maxDrawdown,6)} BTC`:"0.000000 BTC";$("pCurveDrawdown").className=maxDrawdown?"negative":"";
+  const first=rows[0],baselineValue=Number(first.cumulative_realized_pnl_btc)-Number(first.realized_pnl_btc),span=Math.max(86400*1000,Number(rows.at(-1).closed_at)-Number(first.closed_at));
+  const points=[{closed_at:Number(first.closed_at)-Math.max(3600000,span*.06),cumulative_realized_pnl_btc:baselineValue,baseline:true},...rows];
+  const pad={left:68,right:22,top:18,bottom:38},plotW=width-pad.left-pad.right,plotH=height-pad.top-pad.bottom,minTs=Number(points[0].closed_at),maxTs=Math.max(Number(points.at(-1).closed_at),minTs+3600000);
+  let minV=Math.min(0,...points.map(p=>Number(p.cumulative_realized_pnl_btc))),maxV=Math.max(0,...points.map(p=>Number(p.cumulative_realized_pnl_btc))),range=maxV-minV;
+  if(range<1e-8){range=1e-4;minV-=range/2;maxV+=range/2}else{minV-=range*.14;maxV+=range*.14}
+  const xOf=ts=>pad.left+(Number(ts)-minTs)/(maxTs-minTs)*plotW,yOf=value=>pad.top+(maxV-Number(value))/(maxV-minV)*plotH;
+  ctx.font='10px "SFMono-Regular",Consolas,monospace';ctx.textAlign="right";ctx.textBaseline="middle";
+  for(let i=0;i<5;i++){const value=maxV-(maxV-minV)*i/4,y=pad.top+plotH*i/4;ctx.strokeStyle="rgba(255,255,255,.065)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(width-pad.right,y);ctx.stroke();ctx.fillStyle="#65788b";ctx.fillText(value.toFixed(5),pad.left-9,y)}
+  if(minV<0&&maxV>0){const zeroY=yOf(0);ctx.strokeStyle="rgba(255,255,255,.18)";ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.left,zeroY);ctx.lineTo(width-pad.right,zeroY);ctx.stroke();ctx.setLineDash([])}
+  ctx.textAlign="center";ctx.textBaseline="top";for(let i=0;i<4;i++){const ts=minTs+(maxTs-minTs)*i/3,x=pad.left+plotW*i/3;ctx.fillStyle="#65788b";ctx.fillText(new Date(ts).toLocaleDateString("zh-CN",{month:"2-digit",day:"2-digit"}),x,height-pad.bottom+12)}
+  const screenPoints=points.map(point=>({...point,x:xOf(point.closed_at),y:yOf(point.cumulative_realized_pnl_btc)})),zeroY=yOf(0),gradient=ctx.createLinearGradient(0,pad.top,0,pad.top+plotH);gradient.addColorStop(0,"rgba(70,215,195,.22)");gradient.addColorStop(1,"rgba(70,215,195,.01)");
+  ctx.beginPath();ctx.moveTo(screenPoints[0].x,zeroY);for(const point of screenPoints)ctx.lineTo(point.x,point.y);ctx.lineTo(screenPoints.at(-1).x,zeroY);ctx.closePath();ctx.fillStyle=gradient;ctx.fill();
+  ctx.beginPath();screenPoints.forEach((point,index)=>index?ctx.lineTo(point.x,point.y):ctx.moveTo(point.x,point.y));ctx.strokeStyle="#46d7c3";ctx.lineWidth=2.3;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();
+  for(const point of screenPoints.slice(1)){ctx.beginPath();ctx.arc(point.x,point.y,4.2,0,Math.PI*2);ctx.fillStyle=Number(point.realized_pnl_btc)>=0?"#54d69a":"#ff6577";ctx.fill();ctx.strokeStyle="#071019";ctx.lineWidth=2;ctx.stroke()}
+  curveCanvasState={points:screenPoints.slice(1),width,height};
+  canvas.onmousemove=event=>{
+    if(!curveCanvasState?.points.length)return;
+    const point=curveCanvasState.points.reduce((best,item)=>Math.abs(item.x-event.offsetX)<Math.abs(best.x-event.offsetX)?item:best);
+    if(Math.abs(point.x-event.offsetX)>36){tooltip.classList.remove("show");return}
+    tooltip.innerHTML=`<strong>${esc(point.strategy||"未命名策略")} · #${point.trade_id}</strong><div>${time(point.closed_at)} · ${point.spread_type==="CALL_CREDIT"?"CALL":"PUT"}</div><div class="curve-tooltip-row"><span>单笔收益</span><b class="${tone(point.realized_pnl_btc)}">${signed(point.realized_pnl_btc,6)} BTC</b></div><div class="curve-tooltip-row"><span>累计收益</span><b class="${tone(point.cumulative_realized_pnl_btc)}">${signed(point.cumulative_realized_pnl_btc,6)} BTC</b></div>`;
+    tooltip.style.left=`${Math.max(95,Math.min(stage.clientWidth-95,point.x+14))}px`;tooltip.style.top=`${Math.max(80,point.y+8)}px`;tooltip.classList.add("show");
+  };
+  canvas.onmouseleave=()=>tooltip.classList.remove("show");
+}
+window.addEventListener("resize",()=>{clearTimeout(curveRenderTimer);curveRenderTimer=setTimeout(()=>{if(model?.performance)renderPnlCurve(model.performance.curve||[])},120)});
 async function copyText(text){
   try{
     if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);return true}
@@ -893,49 +1020,32 @@ async function copyText(text){
 }
 async function copyWebhook(){const ok=await copyText($("webhookUrl").textContent);toast(ok?"Webhook 地址已复制":"复制失败，请手动选择地址",ok?"ok":"bad")}
 function buildTvAlertTemplate(){
-  const account=$("tvAccountName").value.trim()||tvSetup?.account_name||"account_1";
   const secret=$("tvPassphrase").value;
   const strategy=$("tvStrategyName").value.trim()||tvSetup?.strategy||"BTC_OPTION_SELLER_V2";
   const alertId=ensureTvAlertId();
   return `{
-  "schema_version": "1",
+  "schema_version": "2",
   "passphrase": ${JSON.stringify(secret||"请填写WEBHOOK_PASSPHRASE")},
-  "accountName": ${JSON.stringify(account)},
-  "strategy": ${JSON.stringify(strategy)},
-  "tv_id": ${alertId},
-  "order_id": "{{strategy.order.id}}",
-  "bar_time": "{{time}}",
-  "action": "{{strategy.order.alert_message}}",
-  "side": "{{strategy.order.action}}",
-  "marketPosition": "{{strategy.market_position}}",
-  "prevMarketPosition": "{{strategy.prev_market_position}}",
+  "source_id": ${JSON.stringify(String(alertId))},
+  "source_name": ${JSON.stringify(strategy)},
+  "signal_code": "{{strategy.order.id}}",
+  "explicit_action": "{{strategy.order.alert_message}}",
+  "previous_position": "{{strategy.prev_market_position}}",
+  "market_position": "{{strategy.market_position}}",
   "symbol": "{{ticker}}",
-  "exchange": "{{exchange}}",
-  "period": "{{interval}}",
-  "price": "{{close}}",
-  "timestamp": "{{timenow}}",
-  "size": "{{strategy.order.contracts}}",
-  "positionSize": "{{strategy.position_size}}",
-  "qtyType": "fixed",
-  "sell_delta": "{{plot_2}}",
-  "dte_min": "{{plot_3}}",
-  "dte_max": "{{plot_4}}",
-  "dvol_tier": "{{plot_5}}",
-  "group_split_count": "{{plot_6}}",
-  "delta_account_risk_pct": "{{plot_7}}",
-  "delta_trigger_pct": "{{plot_8}}",
-  "call_hedge_release_pct": "{{plot_9}}",
-  "put_hedge_release_pct": "{{plot_10}}",
-  "reason": "{{strategy.order.comment}}"
+  "timeframe": "{{interval}}",
+  "bar_time": "{{time}}",
+  "event_time": "{{timenow}}"
 }`;
 }
 function generateTvId(){
+  if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();
   if(globalThis.crypto?.getRandomValues){
-    const value=new Uint32Array(1);
+    const value=new Uint32Array(2);
     globalThis.crypto.getRandomValues(value);
-    return value[0]%2147483647+1;
+    return `tv-${Date.now().toString(36)}-${value[0].toString(36)}${value[1].toString(36)}`;
   }
-  return Math.floor(Math.random()*2147483647)+1;
+  return `tv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 function ensureTvAlertId(){
   if(!tvAlertId)tvAlertId=generateTvId();
@@ -943,20 +1053,19 @@ function ensureTvAlertId(){
   if(field)field.value=String(tvAlertId);
   return tvAlertId;
 }
-function regenerateTvId(showToast=true){
+function beginNewTvSetup(showToast=false){
   tvAlertId=generateTvId();
   $("tvAlertId").value=String(tvAlertId);
   updateTvTemplate();
-  if(showToast)toast(`已为新警报生成 tv_id：${tvAlertId}`);
+  if(showToast)toast("已自动生成新的信号来源 ID");
 }
 function updateTvTemplate(){tvAlertTemplate=buildTvAlertTemplate();$("tvAlertMessage").textContent=tvAlertTemplate}
 function syncTvSetup(){
   if(!tvSetup)return;
-  if(!$("tvAccountName").value)$("tvAccountName").value=tvSetup.account_name||"account_1";
   if(!$("tvStrategyName").value)$("tvStrategyName").value=tvSetup.strategy||"BTC_OPTION_SELLER_V2";
   $("tvPassphrase").value=tvSetup.passphrase||"";
   $("tvSetupWebhook").textContent=location.origin+(tvSetup.webhook_path||"/webhook/signal");
-  $("tvSetupCondition").textContent=tvSetup.condition||"策略 → 订单成交和 alert() 函数调用";
+  $("tvSetupCondition").textContent="策略 → 订单成交";
   updateTvTemplate();
 }
 function renderTvHub(data){
@@ -977,13 +1086,13 @@ function clearTvSecret(showToast=true){$("tvPassphrase").value="";updateTvTempla
 async function copyTvSecret(){const secret=$("tvPassphrase").value;if(!secret){toast("服务器尚未配置 Webhook 口令","bad");return}const ok=await copyText(secret);toast(ok?"Webhook 口令已复制":"复制失败，请手动选择口令",ok?"ok":"bad")}
 async function copyTvWebhook(){const ok=await copyText($("tvSetupWebhook").textContent);toast(ok?"TradingView Webhook 地址已复制":"复制失败，请手动选择地址",ok?"ok":"bad")}
 async function copyTvMessage(){
-  if(!$("tvAccountName").value.trim()){toast("请先填写 Deribit 账户名称","bad");return}
   if(!$("tvPassphrase").value){toast("请先填写 WEBHOOK_PASSPHRASE","bad");$("tvPassphrase").focus();return}
   const ok=await copyText(tvAlertTemplate);toast(ok?"TradingView Alert JSON 已复制":"复制失败，请在代码框中手动复制",ok?"ok":"bad")
 }
-function currentPage(){return location.pathname==="/tradingview"?"tradingview":location.pathname==="/signals"?"active-signals":location.pathname==="/signal-log"?"signal-log":location.pathname==="/returns"?"position-log":"positions"}
-function renderRoute(){const page=currentPage();document.querySelectorAll(".page-view").forEach(x=>x.classList.toggle("active",x.id===`page-${page}`));document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));const titles={positions:"仓位",tradingview:"TradingView 接入","active-signals":"策略信号","signal-log":"信号日志","position-log":"仓位日志"};document.title=`BTC 期权卖方系统 · ${titles[page]}`}
-function navigateTo(path){if(location.pathname!==path)history.pushState({},"",path);renderRoute();window.scrollTo({top:0,behavior:"smooth"})}
+function currentPage(){return location.pathname==="/tradingview"?"tradingview":location.pathname==="/signals"?"active-signals":location.pathname==="/signal-log"?"signal-log":"positions"}
+function renderRoute(){const page=currentPage(),portfolioView=location.pathname==="/returns"?"history":"current";document.querySelectorAll(".page-view").forEach(x=>x.classList.toggle("active",x.id===`page-${page}`));document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));$("portfolioCurrent")?.classList.toggle("active",portfolioView==="current");$("positionHistory")?.classList.toggle("active",portfolioView==="history");$("portfolioCurrentTab")?.classList.toggle("active",portfolioView==="current");$("portfolioHistoryTab")?.classList.toggle("active",portfolioView==="history");if(page==="positions"&&portfolioView==="history"&&model?.performance)requestAnimationFrame(()=>renderPnlCurve(model.performance.curve||[]));const titles={positions:portfolioView==="history"?"仓位 · 历史与收益":"仓位 · 当前仓位",tradingview:"TradingView 接入","active-signals":"策略信号","signal-log":"信号日志"};document.title=`BTC 期权卖方系统 · ${titles[page]}`}
+function setPortfolioView(view){navigateTo(view==="history"?"/returns":"/")}
+function navigateTo(path){const enteringSetup=path==="/tradingview"&&location.pathname!=="/tradingview";if(location.pathname!==path)history.pushState({},"",path);if(enteringSetup)beginNewTvSetup();renderRoute();window.scrollTo({top:0,behavior:"smooth"})}
 function enhanceMobileTables(){document.querySelectorAll(".data-table").forEach(table=>{const labels=[...table.querySelectorAll("thead th")].map(th=>th.textContent.trim());table.querySelectorAll("tbody tr").forEach(row=>[...row.cells].forEach((cell,index)=>{cell.dataset.label=labels[index]||""}))})}
 async function refresh(manual=false){if(refreshing)return;refreshing=true;try{const [status,acc,events,trades,hedges,signals,performance,setup]=await Promise.all([api("/status"),api("/account"),api("/events?limit=100"),api("/trades?limit=50"),api("/hedge_stats?days=14"),api("/api/signals?limit=100"),api("/api/performance"),api("/api/tradingview_setup")]);tvSetup=setup;syncTvSetup();model={status,acc,events,trades,hedges,signals,performance,setup};renderStatus(status,acc);renderMetrics(status,acc);renderGlobalMetrics(status,acc,trades,signals,performance);renderPositions(acc);renderEvents(events);renderTrades(trades);renderHedges(hedges);renderSignals(signals);renderPerformance(performance);enhanceMobileTables();$("errorBanner").style.display="none";if(manual)toast("数据已刷新")}catch(e){$("errorBanner").textContent=`后端连接异常：${e.message}`;$("errorBanner").style.display="block";$("connectionText").textContent="策略引擎不可达";if(manual)toast(e.message,"bad")}finally{refreshing=false}}
 function showTab(name){document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===name));document.querySelectorAll(".tab-view").forEach(x=>x.classList.toggle("active",x.id===`tab-${name}`))}
@@ -991,8 +1100,7 @@ function setEventFilter(level){eventLevel=level;document.querySelectorAll(".filt
 async function toggleTrading(){const current=model?.status?.trading_enabled;if(current&&!confirm("暂停接收新的开仓信号？现有仓位仍会继续管理。"))return;try{await api(`/control/trading?enabled=${!current}`,{method:"POST"});toast(current?"新开仓已暂停":"新开仓已启用");await refresh()}catch(e){toast(e.message,"bad")}}
 async function closeGroup(id,index,qty){if(!confirm(`确认独立平掉子组 G${String(index).padStart(2,"0")}（剩余 ${num(qty,1)} 张）？\n该操作会同时平掉本组买卖两腿。`))return;try{await api(`/control/close_group?group_id=${id}`,{method:"POST"});toast(`子组 G${String(index).padStart(2,"0")} 已进入平仓队列`);setTimeout(refresh,1200)}catch(e){toast(e.message,"bad")}}
 function openForceDialog(){$("forceModal").classList.add("open")}function closeForceDialog(){$("forceModal").classList.remove("open")}
-async function confirmForceClose(){try{await api("/control/force_close?reason=ui_manual",{method:"POST"});closeForceDialog();toast("全账户强平已进入最高优先级队列");setTimeout(refresh,1000)}catch(e){toast(e.message,"bad")}}
-async function clearForceClose(){if(!confirm("仅在已经核对 Deribit 账户清仓后解除。确认继续？"))return;try{await api("/control/clear_force_close",{method:"POST"});toast("强平锁定已解除");await refresh()}catch(e){toast(e.message,"bad")}}
+async function confirmForceClose(){try{await api("/control/force_close?reason=ui_manual",{method:"POST"});closeForceDialog();toast("正在清仓；失败会显示错误，新开仓保持暂停");setTimeout(refresh,1000)}catch(e){toast(e.message,"bad")}}
 function toggleMobileMenu(){$("mobileMenu").classList.toggle("open")}
 const JOURNEY_STEPS=[
   null,
@@ -1135,7 +1243,7 @@ function renderStep2(journey){
   const tone={received:"pass",timeout:"timeout",waiting:"wait",not_expected:"idle"}[d.state]||"idle";
   let body;
   if(d.state==="received")body=`<div class="journey-result pass"><div class="journey-result-title">已收到开仓申请</div><div class="journey-result-copy">${esc(d.reason)}</div>${signalMetaGrid(d.signal)}</div>`;
-  else if(d.state==="timeout")body=`<div class="journey-result failed"><div class="journey-result-title">开仓申请到达超时</div><div class="journey-result-copy">${esc(d.reason)}。请按下面清单排查 TradingView 与 Webhook。</div><ul class="journey-checklist"><li>确认 TradingView Alert 仍为启用状态</li><li>确认条件选择“订单成交和 alert() 函数调用”</li><li>确认 Webhook 地址与当前系统一致</li><li>查看 TradingView 日志是否显示 Webhook 成功发送</li></ul></div>`;
+  else if(d.state==="timeout")body=`<div class="journey-result failed"><div class="journey-result-title">开仓申请到达超时</div><div class="journey-result-copy">${esc(d.reason)}。请按下面清单排查 TradingView 与 Webhook。</div><ul class="journey-checklist"><li>确认 TradingView Alert 仍为启用状态</li><li>确认条件选择当前策略的“订单成交”</li><li>确认 Webhook 地址与当前系统一致</li><li>查看 TradingView 日志是否显示 Webhook 成功发送</li></ul></div>`;
   else if(d.state==="waiting")body=`<div class="journey-result processing"><div class="journey-result-title">等待开仓申请到达</div><div class="journey-result-copy">${esc(d.reason)}。收盘后约有 2 分钟宽限，请稍候。</div></div>`;
   else body=`<div class="journey-note">${esc(d.reason)}。只有市场条件全部满足后，TradingView 才会发出开仓申请；连接回报和 STATUS 记录不算开仓申请。</div>`;
   const status={received:"申请已送达",timeout:"送达超时",waiting:"等待送达",not_expected:"尚未到发送时机"}[d.state]||"未开始";

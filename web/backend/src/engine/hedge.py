@@ -80,7 +80,193 @@ def effective_trigger(ctx: Ctx, equity_btc: float, index_price: float,
     return eff
 
 
-async def scan_hedge(ctx: Ctx, parent: dict, bar_close: float, bar_ts: int) -> None:
+def delta_view_from_positions(ctx: Ctx, summary, opts: list, futs: list,
+                              index_price: float) -> DeltaView:
+    """用扫描器已取得的账户数据构造 DeltaView，避免同一轮重复请求 Deribit。"""
+    option_delta = sum(p.delta for p in opts)
+    futures_delta = next(
+        (p.delta_btc for p in futs
+         if p.instrument == ctx.cfg.hedge.perp_instrument),
+        0.0,
+    )
+    return DeltaView(
+        option_delta=option_delta,
+        futures_delta=futures_delta,
+        net_delta=option_delta + futures_delta,
+        equity_btc=summary.equity_btc,
+        index_price=index_price,
+    )
+
+
+def snapshot_payload(view: DeltaView, bar_close: float, bar_ts: int,
+                     observed_at: int) -> dict:
+    """转成可序列化的只读诊断快照。"""
+    return {
+        "option_delta": view.option_delta,
+        "futures_delta": view.futures_delta,
+        "net_delta": view.net_delta,
+        "equity_btc": view.equity_btc,
+        "index_price": view.index_price,
+        "bar_close": bar_close,
+        "bar_ts": bar_ts,
+        "observed_at": observed_at,
+    }
+
+
+def hedge_diagnostic(ctx: Ctx, parent: dict, hedge: dict | None,
+                     snapshot: dict | None, params: TradeHedgeParams) -> dict:
+    """解释当前是否会下对冲单；只读，不改变交易状态。"""
+    state = (hedge or {}).get("state") or "HEDGE_INACTIVE"
+    bep = ctx.cfg.debug.bep_override or parent.get("bep_price")
+    base = {
+        "state": state,
+        "reason_code": "WAITING_FOR_SCAN",
+        "reason": "等待下一轮完整 3 分钟扫描，暂时没有足够数据判断。",
+        "next_action": "保持观察；扫描完成后自动更新。",
+        "bep": bep,
+        "release_line": None,
+        "bar_close": None,
+        "bar_ts": None,
+        "observed_at": None,
+        "index_price": None,
+        "option_delta": None,
+        "futures_delta": None,
+        "net_delta": None,
+        "effective_trigger": None,
+        "target_futures_delta": None,
+        "adjustment_usd": None,
+        "managed_futures_usd": float((hedge or {}).get("futures_usd") or 0.0),
+    }
+    if not bep:
+        base.update(
+            reason_code="MISSING_BEP",
+            reason="开仓尚未形成有效 BEP，不能启用条件式 Delta 对冲。",
+            next_action="等待期权双腿成交并计算 BEP。",
+        )
+        return base
+    base["release_line"] = bep_mod.release_line(
+        parent["spread_type"], bep,
+        params.call_release_pct, params.put_release_pct)
+    if not snapshot:
+        return base
+
+    bar_close = float(snapshot["bar_close"])
+    option_delta = float(snapshot["option_delta"])
+    futures_delta = float(snapshot["futures_delta"])
+    net_delta = float(snapshot["net_delta"])
+    index_price = float(snapshot["index_price"])
+    eff = effective_trigger(
+        ctx, float(snapshot["equity_btc"]), index_price,
+        params.account_risk_pct, params.trigger_pct)
+    order_btc = -option_delta - futures_delta
+    order_usd = round(
+        order_btc * index_price / ctx.cfg.hedge.perp_contract_usd
+    ) * ctx.cfg.hedge.perp_contract_usd
+    base.update(
+        bar_close=bar_close,
+        bar_ts=snapshot.get("bar_ts"),
+        observed_at=snapshot.get("observed_at"),
+        index_price=index_price,
+        option_delta=option_delta,
+        futures_delta=futures_delta,
+        net_delta=net_delta,
+        effective_trigger=eff,
+        target_futures_delta=-option_delta,
+        adjustment_usd=order_usd,
+    )
+
+    if ctx.hedge_frozen:
+        base.update(
+            reason_code="HEDGE_FROZEN",
+            reason="平仓或强平流程正在占用执行通道，对冲调整已冻结。",
+            next_action="等待平仓流程完成，不会另外增加永续仓位。",
+        )
+        return base
+    if state == "HEDGE_REBALANCING":
+        base.update(
+            reason_code="REBALANCING",
+            reason="对冲调整命令正在执行。",
+            next_action=f"目标调整 {order_usd:+.0f} USD，成交后重新核对净 Delta。",
+        )
+        return base
+    if state == "HEDGE_RELEASE_PENDING":
+        base.update(
+            reason_code="RELEASE_PENDING",
+            reason="价格已回到对冲撤销区，正在等待下一根完整 3 分钟 K 线确认。",
+            next_action="确认仍在撤销区后，归零本策略建立的永续对冲。",
+        )
+        return base
+    if state == "HEDGE_CLOSING":
+        base.update(
+            reason_code="HEDGE_CLOSING",
+            reason="本策略建立的永续对冲正在归零。",
+            next_action="核对剩余归属仓位，未完成时自动重试。",
+        )
+        return base
+
+    touched = bep_mod.bep_touched(parent["spread_type"], bar_close, bep)
+    if state == "HEDGE_INACTIVE" and not touched:
+        direction = "跌至或低于" if parent["spread_type"] == "PUT_CREDIT" else "涨至或高于"
+        distance = (
+            bar_close - bep if parent["spread_type"] == "PUT_CREDIT"
+            else bep - bar_close
+        )
+        base.update(
+            reason_code="WAITING_FOR_BEP",
+            reason=(
+                f"尚未触及 BEP：最近完整 3 分钟收盘价 {bar_close:,.1f}，"
+                f"需{direction} {bep:,.1f}。"
+            ),
+            next_action=f"距离激活线约 {max(0.0, distance):,.1f} USD；当前不下对冲单。",
+        )
+        return base
+    if state == "HEDGE_INACTIVE":
+        base.update(
+            reason_code="ACTIVATION_PENDING",
+            reason="最近完整 3 分钟收盘价已触及 BEP，正在等待状态激活。",
+            next_action="进入对冲状态后立即按最新 Delta 复算目标仓位。",
+        )
+        return base
+    if abs(net_delta) < eff:
+        base.update(
+            reason_code="BELOW_DELTA_TRIGGER",
+            reason=(
+                f"对冲已激活，但净 Delta {net_delta:+.5f} BTC "
+                f"小于调仓阈值 {eff:.5f} BTC。"
+            ),
+            next_action="保持现有永续仓位，避免小额频繁交易。",
+        )
+        return base
+    if abs(order_btc) < eff:
+        base.update(
+            reason_code="BELOW_ADJUSTMENT_TRIGGER",
+            reason=(
+                f"净 Delta 已检查，但目标与当前永续的差额 "
+                f"{order_btc:+.5f} BTC 小于阈值 {eff:.5f} BTC。"
+            ),
+            next_action="保持现有永续仓位。",
+        )
+        return base
+    if abs(order_usd) < ctx.cfg.hedge.perp_contract_usd - 1e-9:
+        base.update(
+            reason_code="BELOW_MIN_ORDER",
+            reason="所需调整不足一个 BTC-PERPETUAL 最小合约单位。",
+            next_action="等待 Delta 扩大到至少 10 USD 等值后再调整。",
+        )
+        return base
+    base.update(
+        reason_code="REBALANCE_REQUIRED",
+        reason=(
+            f"已触及 BEP 且净 Delta {net_delta:+.5f} BTC 超过阈值 "
+            f"{eff:.5f} BTC。"
+        ),
+        next_action=f"应调整 BTC-PERPETUAL {order_usd:+.0f} USD，使衍生品净 Delta 接近 0。",
+    )
+    return base
+
+
+async def scan_hedge(ctx: Ctx, parent: dict, bar_close: float, bar_ts: int,
+                     view: DeltaView | None = None) -> None:
     """扫描第 6~11 步：BEP 激活 / 撤销线 / Delta 管线 → 入队对冲命令。"""
     repo, cfg = ctx.repo, ctx.cfg
     pid = parent["id"]
@@ -132,7 +318,7 @@ async def scan_hedge(ctx: Ctx, parent: dict, bar_close: float, bar_ts: int) -> N
         return   # 有动作在途，等待其完成
 
     # 8~11. Delta 管线（仅 HEDGE_ACTIVE）
-    view = await snapshot_delta(ctx)
+    view = view or await snapshot_delta(ctx)
     eff = effective_trigger(ctx, view.equity_btc, view.index_price,
                             params.account_risk_pct, params.trigger_pct)
     if abs(view.net_delta) < eff:

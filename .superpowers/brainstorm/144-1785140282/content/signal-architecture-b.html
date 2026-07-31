@@ -1,0 +1,103 @@
+<style>
+  .arch-wrap{max-width:1180px;margin:0 auto}
+  .arch-grid{display:grid;grid-template-columns:1.05fr 46px 1.15fr 46px 1.05fr 46px 1.15fr;align-items:stretch;gap:0;margin:24px 0}
+  .node{border:1px solid var(--border);border-radius:12px;padding:16px;background:color-mix(in srgb,var(--background) 96%,var(--foreground) 4%);min-height:280px}
+  .node h3{margin:5px 0 7px;font-size:16px}
+  .node .owner{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted-foreground)}
+  .arrow{display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);font-size:24px}
+  .kv{display:grid;gap:6px;margin:14px 0}
+  .kv div{display:flex;justify-content:space-between;gap:8px;padding:6px 8px;background:var(--accent);border-radius:7px;font-size:11px}
+  .kv span{color:var(--muted-foreground)}
+  .kv b{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;text-align:right}
+  .rule{font-size:11px;line-height:1.55;padding:8px 0;border-bottom:1px solid color-mix(in srgb,var(--border) 65%,transparent)}
+  .rule:last-child{border-bottom:0}
+  .rule code{display:inline-block;min-width:98px}
+  .caption{font-size:11px;color:var(--muted-foreground);line-height:1.55}
+  .profile{border-left:3px solid var(--primary);padding-left:10px;margin:12px 0}
+  .profile strong{display:block;font-size:12px;margin-bottom:4px}
+  .profile span{font-size:10px;color:var(--muted-foreground)}
+  .guard{font-size:10px;padding:7px;border-radius:7px;background:var(--accent);margin-top:10px}
+  .bottom-flow{display:grid;grid-template-columns:1fr 44px 1fr 44px 1fr;align-items:center;margin:12px auto 26px;max-width:850px}
+  .bottom-node{text-align:center;padding:12px;border-top:2px solid var(--border);font-size:12px}
+  .decision{max-width:760px;margin:12px auto 0}
+  @media(max-width:900px){.arch-grid{grid-template-columns:1fr}.arrow{transform:rotate(90deg);height:42px}.node{min-height:auto}.bottom-flow{grid-template-columns:1fr}.bottom-flow .arrow{height:34px}}
+</style>
+
+<div class="arch-wrap">
+  <h2>方案 B：策略意图与执行参数彻底分开</h2>
+  <p class="subtitle">任何 TradingView 策略都进入同一个通用入口。换指标、换信号码或换周期，不改 Deribit 下单代码。</p>
+
+  <div class="arch-grid">
+    <section class="node">
+      <div class="owner">TradingView · 决定意图</div>
+      <h3>极简原始信号</h3>
+      <div class="kv">
+        <div><span>来源名称</span><b>MACD Strategy</b></div>
+        <div><span>信号码</span><b>MacdSE</b></div>
+        <div><span>前一仓位</span><b>long</b></div>
+        <div><span>目标仓位</span><b>short</b></div>
+        <div><span>时间 / 标的</span><b>1m · BTCUSDT</b></div>
+      </div>
+      <p class="caption">来源名称只设置一次；信号码、仓位、周期、标的均来自 TradingView 占位符。</p>
+    </section>
+
+    <div class="arrow">→</div>
+
+    <section class="node">
+      <div class="owner">Signal adapter · 只做翻译</div>
+      <h3>统一动作协议</h3>
+      <div class="rule"><code>flat → long</code> OPEN_LONG</div>
+      <div class="rule"><code>flat → short</code> OPEN_SHORT</div>
+      <div class="rule"><code>long → flat</code> CLOSE_LONG</div>
+      <div class="rule"><code>short → flat</code> CLOSE_SHORT</div>
+      <div class="rule"><code>long → short</code> REVERSE_SHORT</div>
+      <div class="rule"><code>short → long</code> REVERSE_LONG</div>
+      <div class="guard">只根据消息内容做确定性映射，不计算 MACD、DVOL 或任何行情条件。</div>
+    </section>
+
+    <div class="arrow">→</div>
+
+    <section class="node">
+      <div class="owner">Backend profile · 决定怎么执行</div>
+      <h3>执行配置</h3>
+      <div class="profile"><strong>TESTNET_DEFAULT</strong><span>仅允许 Deribit Testnet</span></div>
+      <div class="kv">
+        <div><span>LONG 动作</span><b>PUT_CREDIT</b></div>
+        <div><span>SHORT 动作</span><b>CALL_CREDIT</b></div>
+        <div><span>选腿 / 数量</span><b>后端配置</b></div>
+        <div><span>分组 / 对冲</span><b>后端配置</b></div>
+      </div>
+      <p class="caption">测试策略只绑定配置名。以后调整 Delta、DTE、数量，无需重建 TradingView Alert。</p>
+    </section>
+
+    <div class="arrow">→</div>
+
+    <section class="node">
+      <div class="owner">Execution engine · 安全落地</div>
+      <h3>Deribit 操作</h3>
+      <div class="rule"><code>OPEN</code> 校验 → 选腿 → 下单 → 确认</div>
+      <div class="rule"><code>CLOSE</code> 定位仓位 → 平腿 → 确认</div>
+      <div class="rule"><code>REVERSE</code> 平仓成功 → 再执行目标开仓</div>
+      <div class="guard">鉴权、幂等、Testnet 限制、已有仓位检查和失败中止始终由后端保障。</div>
+    </section>
+  </div>
+
+  <div class="bottom-flow">
+    <div class="bottom-node"><b>原始事件留档</b><br><span class="caption">看见 MacdLE / MacdSE</span></div>
+    <div class="arrow">→</div>
+    <div class="bottom-node"><b>标准动作留档</b><br><span class="caption">看见 OPEN / CLOSE / REVERSE</span></div>
+    <div class="arrow">→</div>
+    <div class="bottom-node"><b>执行结果留档</b><br><span class="caption">排队、成交、拒绝及原因</span></div>
+  </div>
+
+  <div class="options decision">
+    <div class="option" data-choice="architecture-approved" onclick="toggleSelect(this)">
+      <div class="letter">✓</div>
+      <div class="content"><h3>职责分界正确</h3><p>继续设计“策略信号”页面如何显示名称、信号码和执行结果。</p></div>
+    </div>
+    <div class="option" data-choice="architecture-change" onclick="toggleSelect(this)">
+      <div class="letter">↺</div>
+      <div class="content"><h3>需要调整</h3><p>点击后回到终端告诉我哪一段不符合预期。</p></div>
+    </div>
+  </div>
+</div>

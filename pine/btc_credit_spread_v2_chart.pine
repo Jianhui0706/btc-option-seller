@@ -1,0 +1,194 @@
+//@version=6
+// BTC 期权卖方策略 V2 · 图表周期版 — TradingView 唯一策略信号端
+//
+// 挂在需要的图表周期运行（推荐 3 分钟图）：
+//   BTC 当前图表周期 → 开仓信号（布林带 + 阳/阴线 + CCI + HV 分位）
+//   DVOL 12小时数据 → 开仓档位（730天窗口分位）与滚动退出（60天窗口30分位）
+// BTC 信号只在当前图表 K 线收盘时判断；DVOL security 取 [1] + lookahead_on，
+// 只使用已收盘的 12 小时 DVOL 数据。
+//
+// ⚠ 待确认口径（占位默认值，请按原策略核对）：布林带周期/倍数、HV 计算窗口与分位窗口。
+// 已与控制台生成的通用 Alert JSON V2 对齐。
+// Alert 条件只选择“订单成交”；消息使用管理页面生成的 JSON 模板。
+strategy("BTC期权卖方V2·图表周期版", overlay = true, pyramiding = 0,
+     process_orders_on_close = true, calc_on_every_tick = false)
+
+// ---------------------------------------------------------------- 参数（规范第四节）
+grpEntry = "DVOL 开仓档位"
+dvol_entry_level_1 = input.float(40.0, "dvol_entry_level_1 (%)", group = grpEntry, minval = 0, maxval = 100)
+dvol_entry_level_2 = input.float(60.0, "dvol_entry_level_2 (%)", group = grpEntry, minval = 0, maxval = 100)
+dvol_entry_level_3 = input.float(85.0, "dvol_entry_level_3 (%)", group = grpEntry, minval = 0, maxval = 100)
+dvol_entry_window_days = input.int(730, "dvol_entry_window_days", group = grpEntry, minval = 30)
+
+grpExit = "DVOL 平仓"
+dvol_exit_window_days = input.int(60, "dvol_exit_window_days", group = grpExit, minval = 10)
+dvol_exit_percentile = input.float(30.0, "dvol_exit_percentile (%)", group = grpExit, minval = 1, maxval = 99)
+
+grpSig = "开仓信号（跟随图表周期）"
+boll_len = input.int(20, "布林带周期 ⚠待核对", group = grpSig, minval = 2)
+boll_mult = input.float(2.0, "布林带标准差倍数 ⚠待核对", group = grpSig, minval = 0.1)
+// 规范第五节：abs(CCI20) < 101。未加限定词的 CCI 即标准指标，
+// 输入源为典型价 hlc3（Lambert 原始定义，也是 TV 内置 CCI 的默认）。
+// ⚠ 改成 close 会得到不同的值，阈值附近会一个放行一个拦截。
+cci_len = input.int(20, "CCI 周期（源=hlc3 典型价）", group = grpSig, minval = 2)
+cci_max = input.float(101.0, "abs(CCI) 上限", group = grpSig)
+hv_len = input.int(20, "HV 计算窗口(图表 bar 数) ⚠待核对", group = grpSig, minval = 5)
+hv_pctl_window = input.int(252, "HV 分位窗口(图表 bar 数) ⚠待核对", group = grpSig, minval = 20)
+hv_pctl_min = input.float(30.0, "HV 分位下限 (%)", group = grpSig)
+
+grpMisc = "TradingView 回测"
+// 仅用于 TradingView 策略回测；真实 Deribit 数量、Delta、DTE 与分组由后端风险配置统一决定。
+order_size = input.float(0.1, "TV 回测虚拟数量（后端忽略）",
+     group = grpMisc, minval = 0.1, step = 0.1)
+
+// ---------------------------------------------------------------- 参数有效性（规范第四.1节）
+cfgOk = dvol_entry_level_1 < dvol_entry_level_2 and dvol_entry_level_2 < dvol_entry_level_3
+// 配置错误：停止发送开仓信号 + 图面红色警示
+
+// ---------------------------------------------------------------- 当前图表周期数据
+secondsPerBar = timeframe.in_seconds()
+barsPerYear = na(secondsPerBar) or secondsPerBar <= 0
+     ? 365.0 * 12.0
+     : 365.0 * 24.0 * 60.0 * 60.0 / secondsPerBar
+
+f_hv() =>
+    // 年化历史波动率(%)：按当前图表周期自动换算一年 bar 数。
+    r = math.log(close / close[1])
+    ta.stdev(r, hv_len) * math.sqrt(barsPerYear) * 100
+
+f_pctl(src, len) =>
+    // 中位秩分位 0~100（与后端 percentile_rank 对齐）
+    less = 0
+    lessEq = 0
+    for i = 0 to len - 1
+        v = src[i]
+        if v < src
+            less += 1
+        if v <= src
+            lessEq += 1
+    100.0 * (less + lessEq) / (2 * len)
+
+signalClose = close
+signalOpen = open
+signalHigh = high
+signalLow = low
+bbBasis = ta.sma(close, boll_len)
+bbDeviation = boll_mult * ta.stdev(close, boll_len)
+bbUpper = bbBasis + bbDeviation
+bbLower = bbBasis - bbDeviation
+signalCci = ta.cci(hlc3, cci_len)
+signalHvPct = f_pctl(f_hv(), hv_pctl_window)
+signalTime = time
+
+// ---------------------------------------------------------------- 12小时 DVOL
+// 分位计算必须放在 12h security 内部。若在 3 分钟主图上逐根维护数组，
+// TradingView 通常只加载数万根 3m bar，无法覆盖 730 天，样本会永久不足。
+// security 内部会按 length 为 12h 序列预热所需历史。
+entryWinBars = dvol_entry_window_days * 2
+exitWinBars = dvol_exit_window_days * 2
+[dvol12, tDvol, dvolPct, dvolExitLevel, dvolSamples] = request.security(
+     "DERIBIT:DVOL", "720",
+     [close[1],
+      time[1],
+      ta.percentrank(close, entryWinBars)[1],
+      ta.percentile_linear_interpolation(close[2], exitWinBars, dvol_exit_percentile),
+      math.min(bar_index, entryWinBars)],
+     lookahead = barmerge.lookahead_on,
+     calc_bars_count = entryWinBars + 10)
+newDvolBar = not na(tDvol) and (na(tDvol[1]) or tDvol != tDvol[1])
+
+// 档位（规范第四.1节）：<L1 不开仓；L1~L2 → 1；L2~L3 → 2；>L3 → 3
+// TradingView 是唯一策略裁决者。样本不足时 tier=-1 并阻止开仓，
+// 后端不会再用另一套 DVOL 数据重新批准或否决这根 K 线。
+dvolReady = not na(dvolPct) and dvolSamples >= entryWinBars
+tier = (na(dvolPct) or not dvolReady) ? -1 :
+     dvolPct < dvol_entry_level_1 ? 0 :
+     dvolPct < dvol_entry_level_2 ? 1 : dvolPct < dvol_entry_level_3 ? 2 : 3
+
+// DVOL 滚动退出（规范第八节）：当前完成值 < 之前 exitWinBars 个值的 exit 分位
+dvolExitHit = newDvolBar and not na(dvolExitLevel) and dvol12 < dvolExitLevel
+
+// ---------------------------------------------------------------- 开仓条件（规范第五节，每根图表 K 线至多一枚）
+hvOk = not na(signalHvPct) and signalHvPct >= hv_pctl_min
+cciOk = not na(signalCci) and math.abs(signalCci) < cci_max
+tierOk = tier > 0         // 0=低于门槛，-1=样本不足；两者都不发送开仓订单
+
+// 触发形态与前四道门槛拆开，保持策略条件清晰可核对。
+putShape = not na(bbLower) and signalLow < bbLower and signalClose > signalOpen
+callShape = not na(bbUpper) and signalHigh > bbUpper and signalClose < signalOpen
+putSignal = cfgOk and tierOk and hvOk and cciOk and putShape
+callSignal = cfgOk and tierOk and hvOk and cciOk and callShape
+
+var int lastSigT = na
+canFire = na(lastSigT) or signalTime != lastSigT
+putEntrySignal = barstate.isconfirmed and putSignal and canFire and strategy.position_size == 0
+callEntrySignal = barstate.isconfirmed and callSignal and canFire and strategy.position_size == 0
+closeSignal = barstate.isconfirmed and dvolExitHit and strategy.position_size != 0
+blockReason = not cfgOk ? "档位配置错误" :
+     not dvolReady ? "DVOL历史不足·不开仓" :
+     tier == 0 ? "DVOL低于L1·不开仓" :
+     not hvOk ? "HV分位不足" :
+     not cciOk ? "CCI超限" :
+     strategy.position_size != 0 ? "已有TV持仓" :
+     not (putShape or callShape) ? "等待破轨反转" : "条件齐备"
+blockColor = blockReason == "条件齐备" ? color.green :
+     not dvolReady or not cfgOk ? color.red : color.orange
+
+// strategy 订单是唯一开平仓信号。alert_message 明确告诉后端 OPEN/CLOSE，
+// comment 分别携带信用价差类型与退出原因。
+if putEntrySignal
+    strategy.entry("PUT_CREDIT", strategy.long, qty = order_size,
+         comment = "PUT_CREDIT", alert_message = "OPEN")
+    lastSigT := signalTime
+if callEntrySignal
+    strategy.entry("CALL_CREDIT", strategy.short, qty = order_size,
+         comment = "CALL_CREDIT", alert_message = "OPEN")
+    lastSigT := signalTime
+if closeSignal
+    strategy.close_all(comment = "TV_DVOL_EXIT", alert_message = "CLOSE")
+
+// ---------------------------------------------------------------- 图面展示
+// 明确标记策略发出的订单信号；TradingView 仍会同时显示内置成交箭头。
+plotshape(putEntrySignal, title = "PUT开仓信号", style = shape.labelup,
+     location = location.belowbar, color = color.new(color.green, 0),
+     text = "PUT开", textcolor = color.white, size = size.tiny)
+plotshape(callEntrySignal, title = "CALL开仓信号", style = shape.labeldown,
+     location = location.abovebar, color = color.new(color.red, 0),
+     text = "CALL开", textcolor = color.white, size = size.tiny)
+plotshape(closeSignal, title = "平仓信号", style = shape.labeldown,
+     location = location.abovebar, color = color.new(color.orange, 0),
+     text = "平仓", textcolor = color.white, size = size.tiny)
+
+// 百分比数据仅放入数据窗口，避免 overlay=true 时压缩 BTC 主图价格比例。
+plot(dvolPct, "DVOL分位%", color = color.orange, display = display.data_window)
+plot(signalHvPct, "HV分位%", color = color.teal, display = display.data_window)
+bgcolor(cfgOk ? na : color.new(color.red, 70))
+
+var table tb = table.new(position.top_right, 2, 9, border_width = 1)
+if barstate.islast
+    table.cell(tb, 0, 0, "信号周期", text_size = size.small)
+    table.cell(tb, 1, 0, timeframe.period, text_size = size.small)
+    table.cell(tb, 0, 1, "配置", text_size = size.small)
+    table.cell(tb, 1, 1, cfgOk ? "OK" : "档位配置错误 L1<L2<L3！",
+         text_color = cfgOk ? color.green : color.red, text_size = size.small)
+    table.cell(tb, 0, 2, "DVOL数据", text_size = size.small)
+    table.cell(tb, 1, 2, dvolReady
+         ? "就绪 " + str.tostring(dvolSamples) + "/" + str.tostring(entryWinBars)
+         : "不足 " + str.tostring(dvolSamples) + "/" + str.tostring(entryWinBars),
+         text_color = dvolReady ? color.green : color.red, text_size = size.small)
+    table.cell(tb, 0, 3, "DVOL分位", text_size = size.small)
+    table.cell(tb, 1, 3, na(dvolPct) ? "样本不足"
+         : str.tostring(dvolPct, "#.#") + "%" + (dvolReady ? "" : "(窗口不足·仅参考)"),
+         text_size = size.small)
+    table.cell(tb, 0, 4, "档位", text_size = size.small)
+    table.cell(tb, 1, 4, tier == -1 ? "样本不足·不开仓" : str.tostring(tier), text_size = size.small)
+    table.cell(tb, 0, 5, "HV分位", text_size = size.small)
+    table.cell(tb, 1, 5, na(signalHvPct) ? "…" : str.tostring(signalHvPct, "#.#") + "%",
+         text_size = size.small)
+    table.cell(tb, 0, 6, "CCI", text_size = size.small)
+    table.cell(tb, 1, 6, na(signalCci) ? "…" : str.tostring(signalCci, "#.#"), text_size = size.small)
+    table.cell(tb, 0, 7, "当前状态", text_size = size.small)
+    table.cell(tb, 1, 7, blockReason, text_color = blockColor, text_size = size.small)
+    table.cell(tb, 0, 8, "退出阈值", text_size = size.small)
+    table.cell(tb, 1, 8, na(dvolExitLevel) ? "样本不足" : str.tostring(dvolExitLevel, "#.##"),
+         text_size = size.small)

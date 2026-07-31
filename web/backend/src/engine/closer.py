@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from ..config import DATA_DIR
@@ -16,6 +17,13 @@ from ..monitor import events as ev
 from . import hedge as hedge_engine
 
 log = logging.getLogger("v2.close")
+
+MANAGED_OPTION_ORDER_LABEL_PREFIXES = (
+    "spread-batch-",
+    "spread-leg-",
+    "spread-combo-",
+    "v2-single-leg",
+)
 
 
 async def handle_normal_close(ctx: Ctx, payload: dict) -> None:
@@ -39,51 +47,93 @@ async def handle_normal_close(ctx: Ctx, payload: dict) -> None:
     except Exception:  # noqa: BLE001
         pass
 
-    # 3. 平期权腿
-    remaining = _remaining_qty(parent, await repo.groups_of(pid))
-    keep_buy = cfg.exit.keep_buy_leg_on_normal_exit
-    close_net = 0.0    # 平仓净支出（BTC/张，正=付出）
-    ok = True
-    if remaining >= cfg.strategy.min_lot:
-        if keep_buy:
-            res = await adapter.close_sell_leg_only(
-                ctx.ws, sell_instrument=parent["sell_instrument"], qty=remaining,
-                min_lot=cfg.strategy.min_lot)
-            close_net = res.buy_back_avg
-            await repo.add_leg_closed(pid, "SELL_LEG", res.closed_qty)
-            await repo.record_fill(parent_id=pid, group_id=None,
-                                   instrument=parent["sell_instrument"],
-                                   direction="buy", qty=res.closed_qty,
-                                   price=res.buy_back_avg, fee=0.0, phase="close")
-        else:
-            res = await adapter.close_spread_both_legs(
-                ctx.ws, sell_instrument=parent["sell_instrument"],
-                buy_instrument=parent["buy_instrument"], qty=remaining,
-                min_lot=cfg.strategy.min_lot,
-                n_exec_groups=cfg.execution.n_exec_groups,
-                report_dir=str(DATA_DIR / "exec_reports"))
-            close_net = res.buy_back_avg - res.sell_out_avg
-            await repo.add_leg_closed(pid, "SELL_LEG", res.closed_qty)
-            await repo.add_leg_closed(pid, "BUY_LEG", res.closed_qty)
-            await repo.record_fill(parent_id=pid, group_id=None,
-                                   instrument=parent["sell_instrument"],
-                                   direction="buy", qty=res.closed_qty,
-                                   price=res.buy_back_avg, fee=0.0, phase="close")
-            await repo.record_fill(parent_id=pid, group_id=None,
-                                   instrument=parent["buy_instrument"],
-                                   direction="sell", qty=res.closed_qty,
-                                   price=res.sell_out_avg, fee=0.0, phase="close")
-        ok = res.complete
-        closed_qty = res.closed_qty
-    else:
-        closed_qty = 0.0
-
-    # 4. 卖腿确认后：BTC 期货目标归零（reduce_only IOC）
-    sell_pos = await _short_size(ctx, parent["sell_instrument"])
-    if sell_pos > 1e-9:
-        log.error("卖腿仍有 %.1f 张未平，先不平期货对冲，下轮扫描重试", sell_pos)
-        ctx.queue.put(ctx.queue.normal_close(pid, reason))
+    # Do not place replacement close orders while an older GTC order for the
+    # same legs may still be live.  A lost maker order can fill much later and
+    # invert a spread that the database already considers closed.
+    if not await cancel_managed_option_orders(ctx, parent):
         return
+
+    # 3. 平期权腿。交易所仓位是事实源：先尽量按价差等量平仓，随后按实际
+    # 残余方向逐腿归零。部分成交重试不再按数据库原始总量重复下单，已经
+    # 反转方向的残余仓位也会按正确方向自动清理。
+    keep_buy = cfg.exit.keep_buy_leg_on_normal_exit
+    min_lot = cfg.strategy.min_lot
+    positions = await account.get_option_positions(
+        ctx.ws, cfg.strategy.currency)
+    by_instrument = {p.instrument: p.size for p in positions}
+    sell_size = by_instrument.get(parent["sell_instrument"], 0.0)
+    buy_size = by_instrument.get(parent["buy_instrument"], 0.0)
+
+    if keep_buy:
+        if sell_size <= -(min_lot - 1e-9):
+            res = await adapter.close_sell_leg_only(
+                ctx.ws,
+                sell_instrument=parent["sell_instrument"],
+                qty=abs(sell_size),
+                min_lot=min_lot,
+            )
+            await _record_close_result(
+                ctx, parent, parent["sell_instrument"], "buy", res)
+    else:
+        matched = min(max(0.0, -sell_size), max(0.0, buy_size))
+        if matched >= min_lot - 1e-9:
+            res = await adapter.close_spread_both_legs(
+                ctx.ws,
+                sell_instrument=parent["sell_instrument"],
+                buy_instrument=parent["buy_instrument"],
+                qty=matched,
+                min_lot=min_lot,
+                n_exec_groups=cfg.execution.n_exec_groups,
+                report_dir=str(DATA_DIR / "exec_reports"),
+            )
+            if res.closed_qty > 0:
+                await repo.add_leg_closed(
+                    pid, "SELL_LEG", res.closed_qty)
+                await repo.add_leg_closed(
+                    pid, "BUY_LEG", res.closed_qty)
+                await repo.record_fill(
+                    parent_id=pid, group_id=None,
+                    instrument=parent["sell_instrument"],
+                    direction="buy", qty=res.closed_qty,
+                    price=res.buy_back_avg, fee=0.0, phase="close")
+                await repo.record_fill(
+                    parent_id=pid, group_id=None,
+                    instrument=parent["buy_instrument"],
+                    direction="sell", qty=res.closed_qty,
+                    price=res.sell_out_avg, fee=0.0, phase="close")
+            await repo.set_liquidity_role(
+                pid, "close", res.liquidity_role)
+
+    # Account-level verification also catches orders left by an older process
+    # or retry that the current executor instance does not know about.
+    if not await cancel_managed_option_orders(ctx, parent):
+        return
+
+    recovery = await _flatten_managed_option_residuals(
+        ctx, parent, keep_buy=keep_buy)
+    if recovery:
+        await ev.emit(
+            repo.conn, ev.CLOSE_RESIDUAL_RECOVERY, level="WARN",
+            parent_id=pid, actions=recovery)
+
+    remaining_positions = await account.get_option_positions(
+        ctx.ws, cfg.strategy.currency)
+    remaining_plan = residual_close_plan(
+        parent, remaining_positions, keep_buy=keep_buy, min_lot=min_lot)
+    if remaining_plan:
+        await ev.emit(
+            repo.conn, ev.CLOSE_RESIDUAL_RETRY, level="ERROR",
+            parent_id=pid, remaining=remaining_plan)
+        log.error(
+            "parent %s 期权腿仍未归零，保持 CLOSING，下一轮扫描重试: %s",
+            pid, remaining_plan)
+        return
+
+    await repo.mark_leg_closed(pid, "SELL_LEG")
+    if not keep_buy:
+        await repo.mark_leg_closed(pid, "BUY_LEG")
+
+    # 4. 两条受管期权腿核对通过后，BTC 期货目标归零（reduce_only IOC）
     size_usd = await hedge_engine.close_managed_hedge(ctx, pid, action="CLOSE")
     hedge_row = await repo.get_hedge(pid)
     if hedge_row:
@@ -98,8 +148,13 @@ async def handle_normal_close(ctx: Ctx, payload: dict) -> None:
     # 5. 核对 + 子组结算
     if abs(size_usd) >= cfg.hedge.perp_contract_usd - 1e-9:
         log.error("期货对冲未归零(%.0f USD)，保持 CLOSING 下轮重试", size_usd)
-        ctx.queue.put(ctx.queue.normal_close(pid, reason))
         return
+    buy_cost, sell_revenue = await repo.close_cashflows(pid)
+    qty_total = float(parent["qty_total"] or 0.0)
+    close_net = (
+        (buy_cost - sell_revenue) / qty_total
+        if qty_total > 0 else 0.0
+    )
     per_contract_pnl = (parent["net_credit_btc"] or 0.0) - close_net
     for g in await repo.groups_of(pid):
         if g["state"] in ("CLOSED", "FORCE_CLOSED"):
@@ -109,11 +164,93 @@ async def handle_normal_close(ctx: Ctx, payload: dict) -> None:
                                     realized_pnl=per_contract_pnl * g["qty"],
                                     reason=reason)
     await repo.transition_parent(pid, "CLOSED", ev.NORMAL_CLOSE,
-                                 reason=reason, closed_qty=closed_qty,
+                                 reason=reason, closed_qty=qty_total,
                                  per_contract_pnl=round(per_contract_pnl, 6),
-                                 execution_complete=ok)
+                                 execution_complete=True)
     log.info("parent %s CLOSED (%s): closed=%.1f pnl/张=%.4f",
-             pid, reason, closed_qty, per_contract_pnl)
+             pid, reason, qty_total, per_contract_pnl)
+
+
+async def cancel_managed_option_orders(ctx: Ctx, parent: dict) -> bool:
+    """Cancel and verify all live orders for one parent's option instruments."""
+    instruments = {
+        item for item in (
+            parent.get("sell_instrument"), parent.get("buy_instrument"))
+        if item
+    }
+    if not instruments:
+        return True
+
+    try:
+        open_orders = await account.get_open_orders(
+            ctx.ws, ctx.cfg.strategy.currency)
+    except Exception as exc:  # noqa: BLE001 - cannot prove safety
+        await ev.emit(
+            ctx.repo.conn, ev.CLOSE_RESIDUAL_RETRY, level="ERROR",
+            parent_id=parent["id"],
+            note="managed option order verification failed",
+            error=str(exc))
+        return False
+
+    def is_managed(order: dict) -> bool:
+        return (
+            order.get("instrument_name") in instruments
+            and str(order.get("label") or "").startswith(
+                MANAGED_OPTION_ORDER_LABEL_PREFIXES)
+        )
+
+    pending = [order for order in (open_orders or []) if is_managed(order)]
+    cancel_errors = []
+    for attempt in range(1, 4):
+        if not pending:
+            return True
+        for order in pending:
+            order_id = order.get("order_id")
+            if not order_id:
+                continue
+            try:
+                await ctx.ws.request(
+                    "private/cancel", {"order_id": order_id})
+            except Exception as exc:  # noqa: BLE001 - verify below is truth
+                cancel_errors.append({
+                    "order_id": order_id,
+                    "instrument": order.get("instrument_name"),
+                    "error": str(exc),
+                })
+        try:
+            open_orders = await account.get_open_orders(
+                ctx.ws, ctx.cfg.strategy.currency)
+        except Exception as exc:  # noqa: BLE001 - cannot prove safety
+            cancel_errors.append({"verification_error": str(exc)})
+            open_orders = pending
+        pending = [order for order in (open_orders or []) if is_managed(order)]
+        if not pending:
+            return True
+        if attempt < 3:
+            await asyncio.sleep(0.25 * attempt)
+
+    remaining = [
+        {
+            "order_id": order.get("order_id"),
+            "instrument": order.get("instrument_name"),
+            "direction": order.get("direction"),
+            "amount": order.get("amount"),
+            "filled_amount": order.get("filled_amount"),
+            "label": order.get("label"),
+        }
+        for order in pending
+    ]
+    if remaining:
+        await ev.emit(
+            ctx.repo.conn, ev.CLOSE_RESIDUAL_RETRY, level="ERROR",
+            parent_id=parent["id"],
+            note="managed option orders still live after cancellation",
+            remaining_orders=remaining, cancel_errors=cancel_errors)
+        log.error(
+            "parent %s still has live managed option orders: %s",
+            parent["id"], remaining)
+        return False
+    return False
 
 
 async def handle_group_close(ctx: Ctx, payload: dict) -> None:
@@ -158,6 +295,8 @@ async def handle_group_close(ctx: Ctx, payload: dict) -> None:
             parent_id=parent["id"], group_id=group_id,
             instrument=parent["buy_instrument"], direction="sell",
             qty=res.closed_qty, price=res.sell_out_avg, fee=0.0, phase="close")
+        await repo.set_liquidity_role(
+            parent["id"], "close", res.liquidity_role)
 
     if not res.complete or closed_total < group["qty"] - cfg.strategy.min_lot / 2:
         await repo.transition_group(
@@ -179,24 +318,113 @@ async def handle_group_close(ctx: Ctx, payload: dict) -> None:
 
     await repo.transition_parent(parent["id"], "CLOSING", ev.NORMAL_CLOSE,
                                  reason=reason)
-    remaining_hedge = await hedge_engine.close_managed_hedge(
-        ctx, parent["id"], action="CLOSE")
-    if abs(remaining_hedge) >= cfg.hedge.perp_contract_usd - 1e-9:
-        ctx.queue.put(ctx.queue.normal_close(parent["id"], reason))
+    await repo.set_close_reason(parent["id"], reason)
+    await handle_normal_close(ctx, {
+        "parent_id": parent["id"],
+        "reason": reason,
+    })
+
+
+def residual_close_plan(
+    parent: dict,
+    positions: list,
+    *,
+    keep_buy: bool,
+    min_lot: float,
+) -> list[dict]:
+    """Build direction-aware orders for managed option residue.
+
+    Full exits flatten both managed instruments regardless of whether a
+    partial/retried close has inverted their direction.  Sell-leg-only exits
+    preserve a positive protective buy leg, but still repair a negative one.
+    """
+    by_instrument = {p.instrument: float(p.size) for p in positions}
+    plan: list[dict] = []
+    legs = [
+        ("SELL_LEG", parent["sell_instrument"]),
+        ("BUY_LEG", parent["buy_instrument"]),
+    ]
+    seen: set[str] = set()
+    for role, instrument in legs:
+        if not instrument or instrument in seen:
+            continue
+        seen.add(instrument)
+        size = by_instrument.get(instrument, 0.0)
+        if keep_buy and role == "BUY_LEG" and size >= 0:
+            continue
+        qty = round(abs(size), 10)
+        if qty < min_lot - 1e-9:
+            continue
+        plan.append({
+            "role": role,
+            "instrument": instrument,
+            "position_size": size,
+            "direction": "buy" if size < 0 else "sell",
+            "qty": qty,
+        })
+    return plan
+
+
+async def _record_close_result(
+    ctx: Ctx,
+    parent: dict,
+    instrument: str,
+    direction: str,
+    result,
+) -> None:
+    if result.closed_qty <= 0:
         return
-    await repo.transition_parent(parent["id"], "CLOSED", ev.NORMAL_CLOSE,
-                                 reason=reason)
+    role = (
+        "SELL_LEG"
+        if instrument == parent["sell_instrument"]
+        else "BUY_LEG"
+    )
+    expected_direction = "buy" if role == "SELL_LEG" else "sell"
+    if direction == expected_direction:
+        await ctx.repo.add_leg_closed(
+            parent["id"], role, result.closed_qty)
+    await ctx.repo.record_fill(
+        parent_id=parent["id"], group_id=None,
+        instrument=instrument, direction=direction,
+        qty=result.closed_qty,
+        price=result.buy_back_avg or result.sell_out_avg,
+        fee=0.0, phase="close")
+    await ctx.repo.set_liquidity_role(
+        parent["id"], "close", result.liquidity_role)
 
 
-def _remaining_qty(parent: dict, groups: list[dict]) -> float:
-    total = parent["qty_total"] or 0.0
-    closed = sum(g["closed_qty"] or 0.0 for g in groups)
-    return round(max(0.0, total - closed), 10)
-
-
-async def _short_size(ctx: Ctx, instrument: str) -> float:
-    opts = await account.get_option_positions(ctx.ws, ctx.cfg.strategy.currency)
-    for p in opts:
-        if p.instrument == instrument and p.size < 0:
-            return -p.size
-    return 0.0
+async def _flatten_managed_option_residuals(
+    ctx: Ctx,
+    parent: dict,
+    *,
+    keep_buy: bool,
+) -> list[dict]:
+    positions = await account.get_option_positions(
+        ctx.ws, ctx.cfg.strategy.currency)
+    plan = residual_close_plan(
+        parent, positions, keep_buy=keep_buy,
+        min_lot=ctx.cfg.strategy.min_lot)
+    actions: list[dict] = []
+    for item in plan:
+        if item["direction"] == "buy":
+            result = await adapter.close_sell_leg_only(
+                ctx.ws,
+                sell_instrument=item["instrument"],
+                qty=item["qty"],
+                min_lot=ctx.cfg.strategy.min_lot,
+            )
+        else:
+            result = await adapter.close_long_leg(
+                ctx.ws,
+                instrument=item["instrument"],
+                qty=item["qty"],
+                min_lot=ctx.cfg.strategy.min_lot,
+            )
+        await _record_close_result(
+            ctx, parent, item["instrument"], item["direction"], result)
+        actions.append({
+            **item,
+            "filled": result.closed_qty,
+            "complete": result.complete,
+        })
+    return actions

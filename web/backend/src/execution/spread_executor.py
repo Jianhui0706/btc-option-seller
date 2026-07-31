@@ -197,6 +197,22 @@ class ExecutionIncompleteError(RuntimeError):
         self.report = report
 
 
+class OrderCancellationUnconfirmed(RuntimeError):
+    """A live GTC order could not be proven terminal.
+
+    Losing local ownership of such an order is unsafe: it may fill after the
+    strategy has already moved on and create an untracked or inverted leg.
+    """
+
+    def __init__(self, order_id: str, instrument: str, detail: str = ""):
+        message = f"order cancellation unconfirmed: {order_id} {instrument}"
+        if detail:
+            message += f" ({detail})"
+        super().__init__(message)
+        self.order_id = order_id
+        self.instrument = instrument
+
+
 # ------------------------------------------------------------------ helpers
 
 
@@ -274,8 +290,24 @@ class SpreadExecutor:
             if all(i in self.tickers for i in instruments):
                 return
             await asyncio.sleep(0.1)
+        # Streaming can occasionally acknowledge a subscription without
+        # delivering every first frame.  Seed missing legs from public
+        # snapshots so a transient websocket gap does not abort execution.
+        for instrument in instruments:
+            if instrument in self.tickers:
+                continue
+            try:
+                snapshot = await self.ws.request(
+                    "public/ticker", {"instrument_name": instrument})
+            except Exception:  # noqa: BLE001 - report all unresolved legs below
+                continue
+            if snapshot:
+                self.tickers[instrument] = snapshot
+                self.report.add(
+                    f"{instrument} 行情订阅首帧超时，已使用 public/ticker 快照兜底")
         missing = [i for i in instruments if i not in self.tickers]
-        raise RuntimeError(f"no ticker data for {missing}")
+        if missing:
+            raise RuntimeError(f"no ticker data for {missing}")
 
     async def _load_ticks(self) -> None:
         for name, state in self.legs.items():
@@ -297,6 +329,11 @@ class SpreadExecutor:
             params["post_only"] = True  # 若会立即成交,交易所自动改价到盘口内侧
         if ioc:
             params["time_in_force"] = "immediate_or_cancel"
+        if self.params.operation_kind == "close":
+            # A delayed close order must never survive long enough to invert
+            # the position.  Deribit will cap/cancel reduce-only quantity once
+            # the current leg has reached zero.
+            params["reduce_only"] = True
         method = "private/buy" if direction == "buy" else "private/sell"
         if self.params.dry_run:
             self.report.add(f"DRY-RUN {method} {instrument} {amount}@{price} "
@@ -310,6 +347,56 @@ class SpreadExecutor:
 
     async def _order_state(self, order_id: str) -> dict:
         return await self.ws.request("private/get_order_state", {"order_id": order_id})
+
+    async def _cancel_order_and_confirm(
+        self,
+        order_id: str,
+        instrument: str,
+        on_state: Optional[Callable[[dict], None]] = None,
+        attempts: int = 3,
+    ) -> dict:
+        """Cancel a GTC order and require a terminal exchange state.
+
+        A successful cancel request is not sufficient, and a failed request
+        must not be treated as a cancellation.  Re-read the order after every
+        attempt and retain ownership by raising if its terminal state cannot
+        be proven.
+        """
+        terminal = {"filled", "cancelled", "rejected"}
+        last_error = ""
+        last_order: dict = {}
+        for attempt in range(1, max(1, attempts) + 1):
+            try:
+                last_order = await self._order_state(order_id)
+                if on_state:
+                    on_state(last_order)
+                if last_order.get("order_state") in terminal:
+                    return last_order
+            except DeribitError as exc:
+                last_error = str(exc)
+
+            try:
+                await self._cancel(order_id)
+            except DeribitError as exc:
+                last_error = str(exc)
+
+            try:
+                last_order = await self._order_state(order_id)
+                if on_state:
+                    on_state(last_order)
+                if last_order.get("order_state") in terminal:
+                    return last_order
+            except DeribitError as exc:
+                last_error = str(exc)
+
+            if attempt < attempts:
+                await asyncio.sleep(0.25 * attempt)
+
+        self.report.add(
+            f"ERROR 撤单未确认: {instrument} order_id={order_id}; "
+            "保留执行中状态，禁止继续下单"
+        )
+        raise OrderCancellationUnconfirmed(order_id, instrument, last_error)
 
     async def _edit(self, order_id: str, amount: float, price: float) -> Optional[dict]:
         try:
@@ -479,6 +566,19 @@ class SpreadExecutor:
         order_counted_cost = 0.0
         last_quote = 0.0
 
+        def sync_combo_order(order: dict) -> None:
+            nonlocal filled, avg, order_counted, order_counted_cost
+            order_filled, order_avg, _ = self._order_fields(order)
+            order_cost = order_filled * order_avg
+            delta_qty = max(0.0, order_filled - order_counted)
+            delta_cost = max(0.0, order_cost - order_counted_cost)
+            if delta_qty > EPS:
+                total_cost = avg * filled + delta_cost
+                filled += delta_qty
+                avg = total_cost / max(filled, EPS)
+                order_counted = order_filled
+                order_counted_cost = order_cost
+
         while time.monotonic() - start < p.combo_timeout:
             elapsed = time.monotonic() - start
             tp = self._combo_targets(elapsed)
@@ -520,10 +620,8 @@ class SpreadExecutor:
                     edited = await self._edit(order_id, remaining, target)
                     if edited is None:
                         # 改价失败(可能刚好已成交):撤单后等下一轮重新读状态,避免重复下单
-                        try:
-                            await self._cancel(order_id)
-                        except DeribitError:
-                            pass
+                        await self._cancel_order_and_confirm(
+                            order_id, self.combo_name or "combo", sync_combo_order)
                         order_id = None
                         await asyncio.sleep(0.25)
                         continue
@@ -545,20 +643,8 @@ class SpreadExecutor:
             await asyncio.sleep(0.25)
 
         if order_id is not None:
-            state = await self._order_state(order_id)
-            order_filled, order_avg, ostate = self._order_fields(state)
-            order_cost = order_filled * order_avg
-            delta_qty = max(0.0, order_filled - order_counted)
-            delta_cost = max(0.0, order_cost - order_counted_cost)
-            if delta_qty > EPS:
-                total_cost = avg * filled + delta_cost
-                filled += delta_qty
-                avg = total_cost / max(filled, EPS)
-            if ostate not in ("filled", "cancelled"):
-                try:
-                    await self._cancel(order_id)
-                except DeribitError:
-                    pass
+            await self._cancel_order_and_confirm(
+                order_id, self.combo_name or "combo", sync_combo_order)
         self.combo_filled_live = filled
         self.combo_order_price = None
         self.report.combo_avg_net = avg
@@ -634,18 +720,10 @@ class SpreadExecutor:
         """
         if state.order_id is None:
             return 0.0, 0.0
-        try:
-            order = await self._order_state(state.order_id)
-            ostate = self._sync_leg_order(state, order)
-            if ostate not in ("filled", "cancelled", "rejected"):
-                try:
-                    await self._cancel(state.order_id)
-                    order = await self._order_state(state.order_id)
-                    self._sync_leg_order(state, order)
-                except DeribitError:
-                    pass
-        except DeribitError:
-            pass
+        order_id = state.order_id
+        await self._cancel_order_and_confirm(
+            order_id, state.leg.instrument,
+            lambda order: self._sync_leg_order(state, order))
         this_filled = state.order_counted
         cancelled = max(0.0, round_lot(state.order_qty - this_filled, self.params.min_lot))
         if cancelled >= self.params.min_lot - EPS:
@@ -785,6 +863,14 @@ class SpreadExecutor:
             imbalance = round_lot(a.filled - b.filled, p.min_lot)
             if abs(imbalance) < p.min_lot - EPS:
                 return True
+            if p.operation_kind == "close":
+                # Reversing the leading close leg would reopen exposure.  Let
+                # the caller re-read exchange positions and close only the
+                # lagging residue with direction-aware reduce-only orders.
+                self.report.add(
+                    f"平仓腿差 {imbalance:+.1f} 张：不反向重开领先腿，"
+                    "交由交易所持仓残余恢复")
+                return False
             over = a if imbalance > 0 else b
             excess = round_lot(abs(imbalance), p.min_lot)
             reverse = "sell" if over.leg.direction == "buy" else "buy"
@@ -929,19 +1015,24 @@ class SpreadExecutor:
                 previous_cum = cum
         finally:
             # 收尾(含异常路径):撤掉任何残留挂单,不留孤儿订单
+            cleanup_errors: list[OrderCancellationUnconfirmed] = []
             for st in (buy, sell):
                 if st.order_id is not None:
                     try:
-                        order = await self._order_state(st.order_id)
-                        self._sync_leg_order(st, order)
-                        await self._cancel(st.order_id)
-                    except DeribitError:
-                        pass
+                        await self._cancel_order_and_confirm(
+                            st.order_id, st.leg.instrument,
+                            lambda order, current=st:
+                                self._sync_leg_order(current, order))
+                    except OrderCancellationUnconfirmed as exc:
+                        cleanup_errors.append(exc)
+                        continue
                     st.order_id = None
                     st.order_price = None
                     st.order_qty = 0.0
                     st.order_counted = 0.0
                     st.order_counted_cost = 0.0
+            if cleanup_errors:
+                raise cleanup_errors[0]
         # 遗留池:所有组结束后的剩余量,一次性 IOC 兜底扫单
         self.cur_attempt = 0
         if p.taker_fallback:

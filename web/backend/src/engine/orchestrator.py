@@ -14,7 +14,7 @@ from ..exchange import account, market_data
 from ..execution import adapter
 from ..monitor import events as ev
 from . import bep as bep_mod
-from . import grouping, leg_selector
+from . import grouping, leg_selector, risk
 
 log = logging.getLogger("v2.open")
 
@@ -42,6 +42,12 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
     # 1. 开仓前持仓检查（规范第三节：任何期权卖方持仓都阻止，无论来源）
     await repo.transition_parent(parent_id, "POSITION_CHECKING")
     opts = await account.get_option_positions(ws, cfg.strategy.currency)
+    if opts:
+        recovered = await risk.recover_terminal_late_fills(
+            ctx, opts, ignore_parent_id=parent_id)
+        if recovered:
+            opts = await account.get_option_positions(
+                ws, cfg.strategy.currency)
     shorts = [p for p in opts if p.is_short]
     if shorts:
         await repo.transition_parent(parent_id, "OPEN_FAILED",
@@ -73,6 +79,15 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
             tier = cfg.leg_selection.tier_map.get(int(tier_no))
         except (TypeError, ValueError):
             tier = None
+        # TradingView built-in strategies cannot supply this project's option
+        # leg parameters.  On Testnet only, use the most conservative configured
+        # tier so the adapter can be exercised without weakening Mainnet rules.
+        if (tier is None
+                and signal.get("execution_profile") == "TESTNET_DEFAULT"
+                and cfg.env.is_testnet
+                and cfg.leg_selection.tier_map):
+            tier = cfg.leg_selection.tier_map[
+                min(cfg.leg_selection.tier_map)]
         if tier is not None:
             sell_delta = tier.sell_delta
             dte_lo = tier.dte_lo
@@ -98,6 +113,7 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
         chain.tickers, spread_type, sell_delta,
         sell_delta_min=cfg.leg_selection.sell_delta_min,
         sell_delta_max=cfg.leg_selection.sell_delta_max,
+        sell_delta_search_radius=cfg.leg_selection.sell_delta_search_radius,
         min_credit_btc=cfg.leg_selection.min_credit_btc,
         risk_reward_max=cfg.leg_selection.risk_reward_max)
     if sel is None:
@@ -163,6 +179,17 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
         await ev.emit(repo.conn, ev.STATE_TRANSITION, level="WARN",
                       parent_id=parent_id, note="opening cancelled by force close")
         raise
+    except Exception as exc:  # noqa: BLE001 - OPENING must never leak
+        await ev.emit(
+            repo.conn, ev.OPEN_EXECUTION_ERROR, level="ERROR",
+            parent_id=parent_id, signal_id=signal_id, error=str(exc))
+        recovered = await risk.recover_opening_parent(ctx, parent_id)
+        if recovered and recovered["state"] != "OPENING":
+            if recovered["state"] == "OPEN_FAILED":
+                await repo.set_signal_status(
+                    signal_id, "REJECTED", ev.OPEN_EXECUTION_ERROR)
+            return
+        raise
     finally:
         ctx.current_exec_task = None
 
@@ -193,6 +220,7 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
     await repo.record_fill(parent_id=parent_id, group_id=None,
                            instrument=sel.sell.instrument, direction="sell",
                            qty=res.qty, price=res.sell_avg, fee=0.0, phase="open")
+    await repo.set_liquidity_role(parent_id, "open", res.liquidity_role)
 
     # 6. 分组（规范第七节）
     n = int(signal.get("group_split_count") or cfg.group_split_count_default)

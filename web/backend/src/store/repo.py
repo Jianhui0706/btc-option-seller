@@ -79,12 +79,23 @@ class Repo:
         await self.conn.commit()
         return fresh
 
-    async def recent_pine_heartbeats(self, limit: int = 100) -> list[dict]:
+    async def recent_pine_heartbeats(
+        self,
+        limit: int = 100,
+        *,
+        strategy: Optional[str] = None,
+    ) -> list[dict]:
         safe_limit = max(1, min(int(limit), 500))
+        where = ""
+        params: tuple = (safe_limit,)
+        if strategy:
+            where = "WHERE strategy=? "
+            params = (strategy, safe_limit)
         cur = await self.conn.execute(
             "SELECT id, received_at, bar_ts, strategy, payload_json "
-            "FROM pine_heartbeats ORDER BY received_at DESC, id DESC LIMIT ?",
-            (safe_limit,))
+            f"FROM pine_heartbeats {where}"
+            "ORDER BY received_at DESC, id DESC LIMIT ?",
+            params)
         result = []
         for row in await cur.fetchall():
             try:
@@ -125,7 +136,9 @@ class Repo:
     async def active_parents(self) -> list[dict]:
         q = ",".join("?" * len(ACTIVE_TRADE_STATES))
         cur = await self.conn.execute(
-            f"SELECT * FROM parent_trades WHERE state IN ({q}) ORDER BY id",
+            f"SELECT p.*, s.strategy FROM parent_trades p "
+            "LEFT JOIN signals s ON s.signal_id=p.signal_id "
+            f"WHERE p.state IN ({q}) ORDER BY p.id",
             ACTIVE_TRADE_STATES)
         return [dict(r) for r in await cur.fetchall()]
 
@@ -133,6 +146,18 @@ class Repo:
         cur = await self.conn.execute(
             "SELECT * FROM parent_trades WHERE state IN ('OPEN','PARTIALLY_CLOSED') "
             "ORDER BY id")
+        return [dict(r) for r in await cur.fetchall()]
+
+    async def recent_terminal_parents(self, limit: int = 50) -> list[dict]:
+        """Recent completed trades used to attribute exchange-side late fills."""
+        safe_limit = max(1, min(int(limit), 200))
+        cur = await self.conn.execute(
+            "SELECT * FROM parent_trades "
+            "WHERE state IN ('CLOSED','FORCE_CLOSED') "
+            "AND closed_at IS NOT NULL "
+            "AND sell_instrument IS NOT NULL AND buy_instrument IS NOT NULL "
+            "ORDER BY closed_at DESC, id DESC LIMIT ?",
+            (safe_limit,))
         return [dict(r) for r in await cur.fetchall()]
 
     async def active_parent_by_trade_id(
@@ -210,6 +235,30 @@ class Repo:
             "UPDATE parent_trades SET close_reason=? WHERE id=?", (reason, parent_id))
         await self.conn.commit()
 
+    async def set_liquidity_role(
+            self, parent_id: int, phase: str, role: str) -> None:
+        """记录真实成交角色；分批成交出现不同角色时汇总为 MIXED。"""
+        if phase not in ("open", "close"):
+            raise ValueError(f"unsupported liquidity phase: {phase}")
+        if role not in ("MAKER", "TAKER", "MIXED"):
+            return
+        column = f"{phase}_liquidity_role"
+        row = await (await self.conn.execute(
+            f"SELECT {column} FROM parent_trades WHERE id=?", (parent_id,)
+        )).fetchone()
+        if row is None:
+            return
+        current = row[column]
+        merged = (
+            role if current not in ("MAKER", "TAKER", "MIXED")
+            else current if current == role
+            else "MIXED"
+        )
+        await self.conn.execute(
+            f"UPDATE parent_trades SET {column}=? WHERE id=?",
+            (merged, parent_id))
+        await self.conn.commit()
+
     # ------------------------------------------------------------ groups / legs / fills
 
     async def create_groups(self, parent_id: int, quantities: list[float]) -> list[int]:
@@ -284,9 +333,28 @@ class Repo:
 
     async def add_leg_closed(self, parent_id: int, role: str, qty: float) -> None:
         await self.conn.execute(
-            "UPDATE legs SET closed_qty = closed_qty + ? WHERE parent_id=? AND role=?",
+            "UPDATE legs SET closed_qty = MIN(qty, closed_qty + ?) "
+            "WHERE parent_id=? AND role=?",
             (qty, parent_id, role))
         await self.conn.commit()
+
+    async def mark_leg_closed(self, parent_id: int, role: str) -> None:
+        await self.conn.execute(
+            "UPDATE legs SET closed_qty=qty WHERE parent_id=? AND role=?",
+            (parent_id, role))
+        await self.conn.commit()
+
+    async def close_cashflows(self, parent_id: int) -> tuple[float, float]:
+        cur = await self.conn.execute(
+            "SELECT direction, SUM(qty * COALESCE(price, 0)) AS total "
+            "FROM fills WHERE parent_id=? AND phase='close' "
+            "GROUP BY direction",
+            (parent_id,))
+        totals = {
+            row["direction"]: float(row["total"] or 0.0)
+            for row in await cur.fetchall()
+        }
+        return totals.get("buy", 0.0), totals.get("sell", 0.0)
 
     async def record_fill(self, *, parent_id: Optional[int], group_id: Optional[int],
                           instrument: str, direction: str, qty: float,

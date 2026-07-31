@@ -25,6 +25,9 @@ class FakeQueue:
     def normal_close(self, parent_id, reason):
         return ("close", parent_id, reason)
 
+    def reverse(self, payload):
+        return ("reverse", payload)
+
     def put(self, command):
         self.commands.append(command)
 
@@ -201,4 +204,205 @@ async def test_alert_for_another_account_is_rejected_before_queueing():
 
     assert response.status_code == 400
     assert response_json(response)["reason"] == "bad_account"
+    assert ctx.queue.commands == []
+
+
+@pytest.mark.asyncio
+async def test_macd_long_to_short_is_queued_as_safe_reverse():
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "passphrase": "secret",
+        "accountName": "account_1",
+        "strategy": "MACD Strategy",
+        "tv_id": 43904791,
+        "id": "MacdSE",
+        "bar_time": 1785201840000,
+        "marketPosition": "short",
+        "prevMarketPosition": "long",
+        "size": 2,
+    }))
+
+    body = response_json(response)
+    assert response.status_code == 202
+    assert body["action"] == "REVERSE"
+    assert body["normalized_action"] == "REVERSE_SHORT"
+    assert repo.stored_payload["spread_type"] == "CALL_CREDIT"
+    assert repo.stored_payload["quantity"] is None
+    assert repo.stored_payload["execution_profile"] == "TESTNET_DEFAULT"
+    assert ctx.queue.commands == [("reverse", repo.stored_payload)]
+
+
+@pytest.mark.asyncio
+async def test_macd_short_to_long_is_queued_as_safe_reverse():
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "passphrase": "secret",
+        "accountName": "account_1",
+        "strategy": "MACD Strategy",
+        "tv_id": 43904791,
+        "id": "MacdLE",
+        "bar_time": 1785201900000,
+        "marketPosition": "long",
+        "prevMarketPosition": "short",
+        "size": 2,
+    }))
+
+    assert response.status_code == 202
+    assert response_json(response)["normalized_action"] == "REVERSE_LONG"
+    assert repo.stored_payload["spread_type"] == "PUT_CREDIT"
+    assert repo.stored_payload["quantity"] is None
+    assert ctx.queue.commands == [("reverse", repo.stored_payload)]
+
+
+@pytest.mark.asyncio
+async def test_macd_order_label_and_negative_strategy_size_are_ignored():
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "passphrase": "secret",
+        "accountName": "account_1",
+        "strategy": "MACD Strategy",
+        "action": "MacdSE",
+        "tv_id": 43904791,
+        "id": "MacdSE",
+        "bar_time": 1785201960000,
+        "marketPosition": "short",
+        "prevMarketPosition": "long",
+        "size": -2,
+    }))
+
+    assert response.status_code == 202
+    assert response_json(response)["normalized_action"] == "REVERSE_SHORT"
+    assert repo.stored_payload["quantity"] is None
+    assert ctx.queue.commands == [("reverse", repo.stored_payload)]
+
+
+@pytest.mark.asyncio
+async def test_v2_other_strategy_open_uses_backend_profile_and_source_identity():
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "schema_version": "2",
+        "passphrase": "secret",
+        "accountName": "account_1",
+        "source_id": "other-alert-901",
+        "source_name": "Supertrend Strategy",
+        "signal_code": "Long Entry",
+        "explicit_action": "",
+        "previous_position": "flat",
+        "market_position": "long",
+        "symbol": "BTCUSDT",
+        "timeframe": "5",
+        "bar_time": 1785202020000,
+        "event_time": 1785202020123,
+        "size": 999,
+        "sell_delta": 0.60,
+    }))
+
+    body = response_json(response)
+    assert response.status_code == 202
+    assert body["action"] == "OPEN"
+    assert body["normalized_action"] == "OPEN_LONG"
+    assert body["trade_id"] == "other-alert-901"
+    assert repo.stored_payload["strategy"] == "Supertrend Strategy"
+    assert repo.stored_payload["source_id"] == "other-alert-901"
+    assert repo.stored_payload["signal_code"] == "Long Entry"
+    assert repo.stored_payload["spread_type"] == "PUT_CREDIT"
+    assert repo.stored_payload["quantity"] is None
+    assert repo.stored_payload["sell_delta"] is None
+    assert repo.stored_payload["execution_profile"] == "TESTNET_DEFAULT"
+    assert ctx.queue.commands == [("open", repo.stored_payload)]
+
+
+@pytest.mark.asyncio
+async def test_v2_explicit_short_open_does_not_require_position_placeholders():
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "schema_version": "2",
+        "passphrase": "secret",
+        "source_id": "custom-alert-902",
+        "source_name": "Custom Breakout",
+        "signal_code": "SHORT",
+        "explicit_action": "OPEN_SHORT",
+        "bar_time": 1785202080000,
+    }))
+
+    assert response.status_code == 202
+    assert response_json(response)["normalized_action"] == "OPEN_SHORT"
+    assert repo.stored_payload["spread_type"] == "CALL_CREDIT"
+    assert repo.stored_payload["execution_profile"] == "TESTNET_DEFAULT"
+    assert ctx.queue.commands == [("open", repo.stored_payload)]
+
+
+@pytest.mark.asyncio
+async def test_v2_close_routes_only_by_stable_source_id(monkeypatch):
+    repo = FakeRepo(parent={"id": 88, "trade_id": "other-alert-901"})
+    ctx = make_ctx(repo)
+
+    async def ignore_emit(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("src.webhook.ev.emit", ignore_emit)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "schema_version": "2",
+        "passphrase": "secret",
+        "source_id": "other-alert-901",
+        "source_name": "Renamed Display Name",
+        "signal_code": "Close Long",
+        "explicit_action": "CLOSE_LONG",
+        "bar_time": 1785202140000,
+    }))
+
+    assert response.status_code == 202
+    assert response_json(response)["normalized_action"] == "CLOSE_LONG"
+    assert repo.looked_up_trade_id == "other-alert-901"
+    assert repo.looked_up_strategy == ""
+    assert repo.open_parents_called is False
+    assert ctx.queue.commands == [("close", 88, "TRADINGVIEW_CLOSE")]
+
+
+@pytest.mark.asyncio
+async def test_v2_missing_source_identity_is_rejected(monkeypatch):
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+
+    async def ignore_emit(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("src.webhook.ev.emit", ignore_emit)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "schema_version": "2",
+        "passphrase": "secret",
+        "source_name": "Incomplete Strategy",
+        "signal_code": "Long",
+        "previous_position": "flat",
+        "market_position": "long",
+    }))
+
+    assert response.status_code == 400
+    assert response_json(response)["reason"] == "missing_signal_identity"
+    assert ctx.queue.commands == []
+
+
+@pytest.mark.asyncio
+async def test_v2_close_without_active_trade_is_successful_noop():
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "schema_version": "2",
+        "passphrase": "secret",
+        "source_id": "flat-source-903",
+        "source_name": "Already Flat Strategy",
+        "signal_code": "Close",
+        "explicit_action": "CLOSE_LONG",
+        "bar_time": 1785202200000,
+    }))
+
+    assert response.status_code == 200
+    assert response_json(response)["status"] == "noop"
+    assert response_json(response)["reason"] == "no_matching_trade"
+    assert repo.status_updates[-1][1] == "ACCEPTED"
     assert ctx.queue.commands == []

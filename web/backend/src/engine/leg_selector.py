@@ -81,6 +81,7 @@ def select_spread(
     *,
     sell_delta_min: float = 0.05,
     sell_delta_max: float = 0.70,
+    sell_delta_search_radius: float = 0.10,
     min_credit_btc: float = 0.0005,
     risk_reward_max: float = 6.0,
 ) -> Optional[SpreadSelection]:
@@ -90,46 +91,58 @@ def select_spread(
     if len(quoted) < 2:
         return None
 
-    # 卖腿：|delta| 在约束区间内，最接近档位目标
+    # 卖腿：从目标 |delta| 附近开始逐个尝试。以前这里只检查最接近
+    # 目标的一条腿；那条腿没有合格买腿时，即使相邻行权价可用也会拒绝。
     sell_cands = [t for t in quoted
-                  if sell_delta_min <= abs(_delta(t)) <= sell_delta_max]
+                  if sell_delta_min <= abs(_delta(t)) <= sell_delta_max
+                  and abs(abs(_delta(t)) - target_sell_delta)
+                  <= sell_delta_search_radius]
     if not sell_cands:
         return None
-    sell_t = min(sell_cands, key=lambda t: abs(abs(_delta(t)) - target_sell_delta))
-    sell = _mk(sell_t)
+    sell_cands.sort(key=lambda t: abs(abs(_delta(t)) - target_sell_delta))
 
-    # 买腿候选：PUT 买腿行权价更低 / CALL 买腿行权价更高（规范第六节）
-    if spread_type == "PUT_CREDIT":
-        buy_cands = [t for t in quoted if _strike(t) < sell.strike]
-    else:
-        buy_cands = [t for t in quoted if _strike(t) > sell.strike]
+    for sell_rank, sell_t in enumerate(sell_cands, start=1):
+        sell = _mk(sell_t)
 
-    best: Optional[SpreadSelection] = None
-    for t in buy_cands:
-        buy = _mk(t)
-        credit = sell.bid - buy.ask
-        if credit < min_credit_btc:
-            continue
-        # 盈亏比筛选用未加压口径；算量用加压口径（PUT 深跌保护）
-        plain_loss = max_loss_per_contract(spread_type, sell.strike, buy.strike,
-                                           credit, stressed=False)
-        loss = max_loss_per_contract(spread_type, sell.strike, buy.strike, credit)
-        if plain_loss <= 0 or loss <= 0:
-            continue
-        rr = plain_loss / credit
-        if rr > risk_reward_max:
-            continue
-        cand = SpreadSelection(
-            sell=sell, buy=buy, net_credit_est=credit, max_loss_btc=loss,
-            risk_reward=rr,
-            diag={"target_sell_delta": target_sell_delta,
-                  "sell_delta_actual": sell.delta,
-                  "buy_candidates": len(buy_cands)},
-        )
-        # 占位"反向盈亏比"规则：约束内选买腿权利金最便宜（最虚值）者
-        if best is None or buy.ask < best.buy.ask:
-            best = cand
-    return best
+        # 买腿候选：PUT 买腿行权价更低 / CALL 买腿行权价更高（规范第六节）
+        if spread_type == "PUT_CREDIT":
+            buy_cands = [t for t in quoted if _strike(t) < sell.strike]
+        else:
+            buy_cands = [t for t in quoted if _strike(t) > sell.strike]
+
+        best: Optional[SpreadSelection] = None
+        for t in buy_cands:
+            buy = _mk(t)
+            credit = sell.bid - buy.ask
+            if credit < min_credit_btc:
+                continue
+            # 盈亏比筛选用未加压口径；算量用加压口径（PUT 深跌保护）
+            plain_loss = max_loss_per_contract(
+                spread_type, sell.strike, buy.strike, credit, stressed=False)
+            loss = max_loss_per_contract(
+                spread_type, sell.strike, buy.strike, credit)
+            if plain_loss <= 0 or loss <= 0:
+                continue
+            rr = plain_loss / credit
+            if rr > risk_reward_max:
+                continue
+            cand = SpreadSelection(
+                sell=sell, buy=buy, net_credit_est=credit, max_loss_btc=loss,
+                risk_reward=rr,
+                diag={
+                    "target_sell_delta": target_sell_delta,
+                    "sell_delta_actual": sell.delta,
+                    "sell_candidates_checked": sell_rank,
+                    "sell_candidates_in_radius": len(sell_cands),
+                    "buy_candidates": len(buy_cands),
+                },
+            )
+            # 同一卖腿内沿用原规则：选权利金最便宜（最虚值）的合格买腿。
+            if best is None or buy.ask < best.buy.ask:
+                best = cand
+        if best is not None:
+            return best
+    return None
 
 
 def contracts_for_budget(equity_btc: float, account_risk_pct: float,

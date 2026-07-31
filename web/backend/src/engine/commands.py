@@ -18,14 +18,18 @@ PRIO_OPEN = 5
 
 @dataclass
 class Command:
-    kind: str                       # FORCE_CLOSE / NORMAL_CLOSE / GROUP_CLOSE / HEDGE_RELEASE /
+    kind: str                       # FORCE_CLOSE / NORMAL_CLOSE / REVERSE / GROUP_CLOSE / HEDGE_RELEASE /
                                     # HEDGE_REBALANCE / SCAN / OPEN
     priority: int
     payload: dict[str, Any] = field(default_factory=dict)
 
 
 class CommandQueue:
-    """asyncio.PriorityQueue 包装：同优先级按入队次序；SCAN 去重合并。"""
+    """asyncio.PriorityQueue 包装：同优先级按入队次序；仅 SCAN 去重合并。
+
+    OPEN/REVERSE 等 TradingView 交易命令永不在这里合并，便于高频测试逐条
+    验证后端确实遵循信号。
+    """
 
     def __init__(self) -> None:
         self._q: asyncio.PriorityQueue = asyncio.PriorityQueue()
@@ -47,13 +51,24 @@ class CommandQueue:
             self._scan_pending = False
         return cmd
 
-    def force_close(self, source: str, reason: str = "") -> Command:
+    def force_close(self, source: str, reason: str = "",
+                    auto_resume: bool = False) -> Command:
         return Command("FORCE_CLOSE", PRIO_FORCE_CLOSE,
-                       {"source": source, "reason": reason})
+                       {"source": source, "reason": reason,
+                        "auto_resume": auto_resume})
 
     def normal_close(self, parent_id: int, reason: str) -> Command:
         return Command("NORMAL_CLOSE", PRIO_NORMAL_CLOSE,
                        {"parent_id": parent_id, "reason": reason})
+
+    def reverse(self, signal: dict) -> Command:
+        """Close the managed trade first, then open the signal's new side."""
+        return Command("REVERSE", PRIO_NORMAL_CLOSE, {"signal": signal})
+
+    def recover_opening(self, parent_id: int) -> Command:
+        """Reconcile a stranded OPENING trade from exchange positions."""
+        return Command(
+            "RECOVER_OPENING", PRIO_NORMAL_CLOSE, {"parent_id": parent_id})
 
     def group_close(self, group_id: int, reason: str = "MANUAL_GROUP") -> Command:
         return Command("GROUP_CLOSE", PRIO_NORMAL_CLOSE,

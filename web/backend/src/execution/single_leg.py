@@ -17,7 +17,8 @@ from dataclasses import dataclass, field
 from typing import Callable, Optional
 
 from ..exchange.deribit_ws import DeribitWS, DeribitError
-from .spread_executor import EPS, TickRule, round_lot
+from .spread_executor import (EPS, OrderCancellationUnconfirmed, TickRule,
+                              round_lot)
 
 log = logging.getLogger("deribit.single")
 
@@ -31,6 +32,7 @@ class SingleLegParams:
     limit_price: Optional[float] = None    # 价格保护:买不高于/卖不低于该价(None 不限)
     rounds: int = 2                        # 三级阶梯最多重复几轮
     dry_run: bool = False
+    reduce_only: bool = False
 
 
 @dataclass
@@ -40,11 +42,23 @@ class SingleLegReport:
     target: float
     filled: float = 0.0
     avg_price: float = 0.0
+    maker_filled: float = 0.0
+    taker_filled: float = 0.0
     events: list[str] = field(default_factory=list)
 
     @property
     def complete(self) -> bool:
         return self.filled + EPS >= self.target
+
+    @property
+    def liquidity_role(self) -> str:
+        if self.maker_filled > EPS and self.taker_filled > EPS:
+            return "MIXED"
+        if self.maker_filled > EPS:
+            return "MAKER"
+        if self.taker_filled > EPS:
+            return "TAKER"
+        return "UNKNOWN"
 
 
 class SingleLegExecutor:
@@ -84,12 +98,16 @@ class SingleLegExecutor:
         return (self.ticker.get("best_bid_price") or None,
                 self.ticker.get("best_ask_price") or None)
 
-    def _add_fill(self, qty: float, avg: float) -> None:
+    def _add_fill(self, qty: float, avg: float, liquidity_role: str) -> None:
         if qty <= EPS:
             return
         cost = self.report.avg_price * self.report.filled + avg * qty
         self.report.filled += qty
         self.report.avg_price = cost / max(self.report.filled, EPS)
+        if liquidity_role == "MAKER":
+            self.report.maker_filled += qty
+        elif liquidity_role == "TAKER":
+            self.report.taker_filled += qty
 
     async def _setup(self) -> None:
         info = await self.ws.request("public/get_instrument",
@@ -100,6 +118,19 @@ class SingleLegExecutor:
             if self.ticker:
                 return
             await asyncio.sleep(0.1)
+        # A websocket subscription acknowledgement does not guarantee that the
+        # first ticker frame arrives promptly.  Falling back to the public
+        # snapshot avoids aborting after a protective buy leg has already
+        # filled merely because one streaming update was lost.
+        try:
+            snapshot = await self.ws.request(
+                "public/ticker", {"instrument_name": self.instrument})
+        except Exception:  # noqa: BLE001 - preserve the explicit error below
+            snapshot = {}
+        if snapshot:
+            self.ticker = snapshot
+            self._log("行情订阅首帧超时，已使用 public/ticker 快照兜底")
+            return
         raise RuntimeError(f"no ticker data for {self.instrument}")
 
     # ------------------------------------------------------------ pricing
@@ -155,6 +186,8 @@ class SingleLegExecutor:
             params["time_in_force"] = "immediate_or_cancel"
         else:
             params["post_only"] = True
+        if self.p.reduce_only:
+            params["reduce_only"] = True
         method = "private/buy" if self.direction == "buy" else "private/sell"
         if self.p.dry_run:
             self._log(f"DRY-RUN {method} {qty}@{price} {'IOC' if ioc else 'post_only'}")
@@ -165,20 +198,37 @@ class SingleLegExecutor:
         """读取当前挂单成交并撤单，累计到 report。"""
         if self._order_id is None:
             return
-        try:
-            order = await self.ws.request("private/get_order_state",
-                                          {"order_id": self._order_id})
-            self._sync(order)
-            if order.get("order_state") not in ("filled", "cancelled", "rejected"):
-                try:
-                    await self.ws.request("private/cancel", {"order_id": self._order_id})
-                    order = await self.ws.request("private/get_order_state",
-                                                  {"order_id": self._order_id})
-                    self._sync(order)
-                except DeribitError:
-                    pass
-        except DeribitError:
-            pass
+        order_id = self._order_id
+        terminal = {"filled", "cancelled", "rejected"}
+        last_error = ""
+        for attempt in range(1, 4):
+            try:
+                order = await self.ws.request(
+                    "private/get_order_state", {"order_id": order_id})
+                self._sync(order)
+                if order.get("order_state") in terminal:
+                    break
+            except DeribitError as exc:
+                last_error = str(exc)
+            try:
+                await self.ws.request("private/cancel", {"order_id": order_id})
+            except DeribitError as exc:
+                last_error = str(exc)
+            try:
+                order = await self.ws.request(
+                    "private/get_order_state", {"order_id": order_id})
+                self._sync(order)
+                if order.get("order_state") in terminal:
+                    break
+            except DeribitError as exc:
+                last_error = str(exc)
+            if attempt < 3:
+                await asyncio.sleep(0.25 * attempt)
+        else:
+            self._log(
+                f"ERROR 撤单未确认 order_id={order_id}; 保留执行中状态，禁止继续下单")
+            raise OrderCancellationUnconfirmed(
+                order_id, self.instrument, last_error)
         self._order_id = None
         self._order_qty = 0.0
         self._order_counted = 0.0
@@ -191,7 +241,8 @@ class SingleLegExecutor:
         dq = max(0.0, filled - self._order_counted)
         dc = max(0.0, cost - self._order_counted_cost)
         if dq > EPS:
-            self._add_fill(dq, dc / max(dq, EPS))
+            # _sync 只处理 post_only 委托，因此其真实成交角色必为 maker。
+            self._add_fill(dq, dc / max(dq, EPS), "MAKER")
             self._order_counted = filled
             self._order_counted_cost = cost
 
@@ -228,7 +279,7 @@ class SingleLegExecutor:
                         if result:
                             filled = float(result["order"].get("filled_amount") or 0.0)
                             avg = float(result["order"].get("average_price") or 0.0)
-                            self._add_fill(filled, avg)
+                            self._add_fill(filled, avg, "TAKER")
                     self._log(f"[R{rnd}/A{attempt}] 累计 {self.report.filled:.1f}/"
                               f"{p.amount:.1f} @ {self.report.avg_price:.4f}")
             return self.report

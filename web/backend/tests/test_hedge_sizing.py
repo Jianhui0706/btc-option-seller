@@ -1,6 +1,10 @@
 """Delta trigger 与对冲量口径测试（规范第十、十二节）。"""
 
+from types import SimpleNamespace
+
 import pytest
+
+from src.engine.hedge import TradeHedgeParams, hedge_diagnostic
 
 
 def trigger(equity: float) -> float:
@@ -47,3 +51,88 @@ def test_hedge_direction_neutral():
     assert order == pytest.approx(0.85)
     # 已有 0.5 对冲时只补差额
     assert (target - 0.5) == pytest.approx(0.35)
+
+
+def _diagnostic_ctx():
+    return SimpleNamespace(
+        hedge_frozen=False,
+        cfg=SimpleNamespace(
+            hedge=SimpleNamespace(
+                delta_account_risk_pct=0.02,
+                delta_trigger_pct=0.10,
+                call_release_pct=0.98,
+                put_release_pct=1.02,
+                perp_contract_usd=10.0,
+            ),
+            debug=SimpleNamespace(
+                bep_override=None,
+                trigger_override=None,
+            ),
+        ),
+    )
+
+
+def _params():
+    return TradeHedgeParams(
+        account_risk_pct=0.02,
+        trigger_pct=0.10,
+        call_release_pct=0.98,
+        put_release_pct=1.02,
+    )
+
+
+def _snapshot(*, bar_close=65000.0, option_delta=0.01,
+              futures_delta=0.0):
+    return {
+        "bar_close": bar_close,
+        "bar_ts": 123,
+        "observed_at": 456,
+        "option_delta": option_delta,
+        "futures_delta": futures_delta,
+        "net_delta": option_delta + futures_delta,
+        "equity_btc": 1.0,
+        "index_price": 65000.0,
+    }
+
+
+def test_diagnostic_explains_waiting_for_put_bep():
+    result = hedge_diagnostic(
+        _diagnostic_ctx(),
+        {"spread_type": "PUT_CREDIT", "bep_price": 62000.0},
+        {"state": "HEDGE_INACTIVE", "futures_usd": 0.0},
+        _snapshot(bar_close=65000.0),
+        _params(),
+    )
+
+    assert result["reason_code"] == "WAITING_FOR_BEP"
+    assert "65,000.0" in result["reason"]
+    assert "62,000.0" in result["reason"]
+    assert "3,000.0 USD" in result["next_action"]
+
+
+def test_diagnostic_explains_active_delta_below_threshold():
+    result = hedge_diagnostic(
+        _diagnostic_ctx(),
+        {"spread_type": "PUT_CREDIT", "bep_price": 62000.0},
+        {"state": "HEDGE_ACTIVE", "futures_usd": 0.0},
+        _snapshot(bar_close=61000.0, option_delta=0.001),
+        _params(),
+    )
+
+    assert result["reason_code"] == "BELOW_DELTA_TRIGGER"
+    assert result["effective_trigger"] == pytest.approx(0.002)
+    assert "避免小额频繁交易" in result["next_action"]
+
+
+def test_diagnostic_shows_required_perpetual_adjustment():
+    result = hedge_diagnostic(
+        _diagnostic_ctx(),
+        {"spread_type": "PUT_CREDIT", "bep_price": 62000.0},
+        {"state": "HEDGE_ACTIVE", "futures_usd": 0.0},
+        _snapshot(bar_close=61000.0, option_delta=0.06648),
+        _params(),
+    )
+
+    assert result["reason_code"] == "REBALANCE_REQUIRED"
+    assert result["adjustment_usd"] == -4320.0
+    assert "BTC-PERPETUAL -4320 USD" in result["next_action"]

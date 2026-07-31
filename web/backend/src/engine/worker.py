@@ -1,14 +1,17 @@
-"""单 worker 串行消费命令队列——并发模型核心，消灭竞态。
+"""单 worker 串行消费交易命令队列——确保每条 TradingView 信号依次执行。
 
 处理器在 app 启动时注册到 ctx.handlers（避免模块间循环依赖）：
-  OPEN → orchestrator / SCAN → scanner / NORMAL_CLOSE、GROUP_CLOSE → closer /
+  OPEN → orchestrator / NORMAL_CLOSE、GROUP_CLOSE → closer /
   HEDGE_RELEASE, HEDGE_REBALANCE → hedge / FORCE_CLOSE → risk
+
+定时风险扫描由独立协程运行，不占用此队列；反向信号仍逐条排队，不合并、不跳过。
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
+import time
 
 from ..context import Ctx
 from ..monitor import events as ev
@@ -24,6 +27,8 @@ async def run_worker(ctx: Ctx) -> None:
         if handler is None:
             log.error("no handler for command %s", cmd.kind)
             continue
+        ctx.current_command_kind = cmd.kind
+        ctx.current_command_started_ts = int(time.time() * 1000)
         try:
             await handler(ctx, cmd.payload)
         except asyncio.CancelledError:
@@ -41,3 +46,6 @@ async def run_worker(ctx: Ctx) -> None:
                               command=cmd.kind, error=str(exc))
             except Exception:  # noqa: BLE001
                 pass
+        finally:
+            ctx.current_command_kind = None
+            ctx.current_command_started_ts = None

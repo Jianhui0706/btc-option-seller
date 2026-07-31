@@ -6,7 +6,7 @@ strategy:
   currency: BTC
   min_lot: 0.1                       # Deribit BTC 期权最小下单量（张）
   dvol_entry_levels: [0.40, 0.60, 0.85]   # 与 Pine dvol_entry_level_1/2/3 一致（0~1）
-  dvol_entry_window_days: 730             # DVOL 开仓分位窗口（后端权威计算）
+  dvol_entry_window_days: 730             # 只读诊断窗口；V2 交易判断以 TradingView 为准
 
 # ⚠ 待确认口径：档位→卖腿|Delta|/DTE 映射为占位值（DTE 分段参考 V1 文档
 # "高波动短 DTE"），实盘前必须由用户确认后修改。
@@ -17,6 +17,7 @@ leg_selection:
     3: { sell_delta: 0.25, dte_lo: 14, dte_hi: 28 }
   sell_delta_min: 0.05               # 卖腿 Delta 约束（沿用 V1 文档）
   sell_delta_max: 0.70
+  sell_delta_search_radius: 0.10     # 目标 Delta 附近逐个尝试卖腿；不允许为成交无限偏离目标
   # ⚠ 待确认口径：买腿按"反向盈亏比"选择的占位实现——
   # 在满足 max_loss/net_credit ≤ risk_reward_max 的候选中选权利金最便宜（最虚值）者。
   # （Delta≈0.2 的信用价差典型盈亏比 8~13，阈值 12 为流程验证用占位值）

@@ -101,8 +101,9 @@ def evaluate(bars: Sequence[market_data.Candle], dvol_pct: Optional[float],
 
     # Pine 的 cfgOk：档位阈值必须严格递增，否则整段开仓逻辑停发
     config_ok = all(levels[i] < levels[i + 1] for i in range(len(levels) - 1))
-    # tier=0 才是"明确低于 L1"；样本不足（tier=-1）交由后端权威判定，不拦
-    tier_ok = dvol_tier != 0
+    # 这是只读复现值，不会进入订单执行链路。样本不足统一显示未就绪，
+    # 不能被解释为后端替 TradingView 放行。
+    tier_ok = dvol_tier > 0
     hv_ok = hv_pct is not None and hv_pct >= es.hv_pctl_min
     cci_ok = cci_value is not None and abs(cci_value) < es.cci_max
 
@@ -135,11 +136,11 @@ def evaluate(bars: Sequence[market_data.Candle], dvol_pct: Optional[float],
 
 
 async def _dvol_entry_cached(ctx, ttl: float = 600.0) -> tuple:
-    """DVOL 开仓分位（2 年历史，分页 ~13 次调用）单独长缓存。
+    """只读诊断用 DVOL 分位（2 年历史，分页 ~13 次调用）单独长缓存。
 
     DVOL 每 12h 才收一根，两年窗口的分位不会在几秒内变化；与 2h 门槛快照分开
     缓存，看板降到 15s 高频刷新时不必反复重拉全历史（防 Deribit 限频）。
-    返回 (pct, tier, samples)。
+    返回 (pct, tier, samples)，不得用于 V2 订单审批。
     """
     now = time.time()
     cached = ctx.dvol_entry_cache
@@ -153,7 +154,7 @@ async def _dvol_entry_cached(ctx, ttl: float = 600.0) -> tuple:
         completed, cfg.strategy.dvol_entry_window_days * 2,
         cfg.strategy.dvol_entry_levels)
     if dvol_pct is None:
-        tier = -1          # 样本不足：与 Pine 一致标记为"待判定"，不算作 tier=0 拦截
+        tier = -1          # 样本不足：与 Pine 一致标记为“未就绪”
     result = (dvol_pct, tier, len(completed))
     ctx.dvol_entry_cache = result
     ctx.dvol_entry_cache_ts = now

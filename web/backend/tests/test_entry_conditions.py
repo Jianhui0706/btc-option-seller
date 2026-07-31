@@ -92,10 +92,13 @@ def test_high_cci_blocks_signal_even_with_valid_shape():
     assert "cci" in result["blocking"]
 
 
-def test_tier_minus_one_does_not_block_but_tier_zero_does():
+def test_diagnostic_dvol_marks_both_missing_and_low_tiers_not_ready():
     closes = [100.0] * 20
     bar = Candle(0, 100.0, 100.0, 100.0, 100.0)
-    assert ec.evaluate(_bars(closes, bar), None, -1, 88, _cfg())["checks"]["dvol_tier"]["ok"]
+    # 只读诊断不得把样本不足显示成“后端可代为放行”。
+    assert not ec.evaluate(
+        _bars(closes, bar), None, -1, 88, _cfg()
+    )["checks"]["dvol_tier"]["ok"]
     assert not ec.evaluate(_bars(closes, bar), 0.1, 0, 1460, _cfg())["checks"]["dvol_tier"]["ok"]
 
 

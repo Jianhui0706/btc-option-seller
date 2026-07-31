@@ -76,9 +76,9 @@ async def fetch_dvol_12h(ws: DeribitWS, currency: str = "BTC",
 
 async def fetch_dvol_12h_days(ws: DeribitWS, currency: str = "BTC",
                               days: int = 730) -> list[DvolBar]:
-    """分页拉取 N 天的 12h DVOL 全历史（开仓分位窗口用，约 730 天 = 1460 根）。
+    """分页拉取 N 天的 12h DVOL 全历史（只读诊断，约 730 天 = 1460 根）。
 
-    TradingView 3 分钟图加载不了 2 年历史，DVOL 开仓分位由后端在此权威计算。
+    用于面板核对 TradingView 数据完整性；不得接入 V2 开仓批准或拒绝链路。
     """
     end = now_ms()
     # 多取两天，覆盖起止边界与当前未完成 12h bar；调用方再严格截取完整窗口。

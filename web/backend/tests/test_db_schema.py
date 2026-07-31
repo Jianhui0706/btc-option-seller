@@ -30,7 +30,9 @@ async def test_group_pnl_and_hedge_attribution_columns(tmp_path):
         parent_rows = await (await conn.execute(
             "PRAGMA table_info(parent_trades)")).fetchall()
         parent_cols = {r[1] for r in parent_rows}
-        assert "trade_id" in parent_cols
+        assert {
+            "trade_id", "open_liquidity_role", "close_liquidity_role",
+        } <= parent_cols
         indexes = await (await conn.execute(
             "PRAGMA index_list(parent_trades)")).fetchall()
         assert "idx_parent_trades_trade_id" in {r[1] for r in indexes}

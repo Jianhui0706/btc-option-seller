@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS parent_trades (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
   signal_id       TEXT REFERENCES signals(signal_id),
   trade_id        TEXT,                        -- TradingView 交易实例 ID，供精确平仓关联
+  open_liquidity_role TEXT,                    -- MAKER / TAKER / MIXED / UNKNOWN
+  close_liquidity_role TEXT,                   -- 多次分组平仓会合并为 MIXED
   spread_type     TEXT NOT NULL,
   state           TEXT NOT NULL,
   dvol_tier       INTEGER,

@@ -65,6 +65,7 @@ async def main() -> None:
             chain.tickers, args.type, tier.sell_delta,
             sell_delta_min=cfg.leg_selection.sell_delta_min,
             sell_delta_max=cfg.leg_selection.sell_delta_max,
+            sell_delta_search_radius=cfg.leg_selection.sell_delta_search_radius,
             min_credit_btc=cfg.leg_selection.min_credit_btc,
             risk_reward_max=cfg.leg_selection.risk_reward_max)
         if sel is None:

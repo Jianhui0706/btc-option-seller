@@ -31,11 +31,12 @@ def quantile(sorted_values: Sequence[float], q: float) -> float:
 
 def dvol_entry_tier(completed_closes: Sequence[float], window_bars: int,
                     levels: Sequence[float]) -> tuple[Optional[float], int]:
-    """DVOL 开仓分位与档位（后端权威口径，规范第四.1节）。
+    """DVOL 开仓分位与档位（后端只读诊断口径，规范第四.1节）。
 
     completed_closes: 已完成 12h DVOL 收盘序列（升序）；取最近 window_bars 个
     算当前值的中位秩分位（0~1）。档位：< L1 → 0（不开仓）；L1~L2 → 1；
     L2~L3 → 2；≥ L3 → 3。样本为空返回 (None, 0)。
+    本函数不得用于 V2 信号的二次审批。
     """
     if window_bars < 1 or len(completed_closes) < window_bars:
         return None, 0

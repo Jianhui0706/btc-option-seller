@@ -6,11 +6,14 @@ from datetime import datetime
 import json
 import time
 
+import aiosqlite
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from . import webhook
 from .context import Ctx
 from .engine import entry_conditions as entry_conditions_mod
+from .engine import hedge as hedge_mod
+from .engine import risk as risk_mod
 from .monitor import events as ev
 
 router = APIRouter()
@@ -27,17 +30,56 @@ async def status(request: Request):
     parents = await repo.active_parents()
     detail = []
     for p in parents:
+        hedge_row = await repo.get_hedge(p["id"])
+        params = await hedge_mod.trade_hedge_params(ctx, p)
         detail.append({
             "parent": p,
             "groups": await repo.groups_of(p["id"]),
-            "hedge": await repo.get_hedge(p["id"]),
+            "hedge": hedge_row,
+            "hedge_diagnostic": hedge_mod.hedge_diagnostic(
+                ctx, p, hedge_row, getattr(ctx, "hedge_snapshot", None), params),
         })
+    stored_last_scan = await repo.get_state("last_scan_ts")
+    last_scan_ts = (
+        ctx.scan_last_completed_ts
+        or (int(stored_last_scan) if stored_last_scan else None)
+    )
+    error_is_latest = bool(
+        ctx.scan_last_error
+        and (ctx.scan_last_error_ts or 0) > (last_scan_ts or 0)
+    )
+    scan_state = (
+        "error" if error_is_latest
+        else "running" if ctx.scan_running
+        else "ok" if last_scan_ts
+        else "starting"
+    )
     return {
         "env": "testnet" if ctx.cfg.env.is_testnet else "mainnet",
         "trading_enabled": await ctx.trading_enabled(),
         "force_close_active": await ctx.force_close_active(),
+        "trading_pause_reason": (
+            await repo.get_state(risk_mod.PAUSE_REASON_KEY) or None),
+        "risk_auto_resume_state": (
+            await repo.get_state(risk_mod.AUTO_RESUME_STATE_KEY) or None),
         "hedge_frozen": ctx.hedge_frozen,
-        "last_scan_ts": await repo.get_state("last_scan_ts"),
+        "last_scan_ts": last_scan_ts,
+        "scan": {
+            "state": scan_state,
+            "running": ctx.scan_running,
+            "last_started_ts": ctx.scan_last_started_ts,
+            "last_completed_ts": last_scan_ts,
+            "last_error": ctx.scan_last_error if error_is_latest else None,
+            "last_error_kind": (
+                ctx.scan_last_error_kind if error_is_latest else None
+            ),
+            "last_error_ts": ctx.scan_last_error_ts if error_is_latest else None,
+        },
+        "execution": {
+            "busy": ctx.current_command_kind is not None,
+            "command": ctx.current_command_kind,
+            "started_ts": ctx.current_command_started_ts,
+        },
         "server_ts": int(time.time() * 1000),
         "active_trades": detail,
     }
@@ -107,9 +149,14 @@ async def recent_events(request: Request, limit: int = 50):
 
 
 @router.get("/api/signals")
-async def signal_feed(request: Request, limit: int = 100):
+async def signal_feed(
+    request: Request,
+    limit: int = 100,
+    strategy: str | None = None,
+):
     ctx = _auth(request)
     safe_limit = max(1, min(limit, 500))
+    selected_strategy = (strategy or "").strip()
     tradingview_filter = (
         "(json_extract(payload_json, '$.source') = 'tradingview' "
         "OR (json_extract(payload_json, '$.source') IS NULL "
@@ -117,12 +164,17 @@ async def signal_feed(request: Request, limit: int = 100):
         "AND signal_id NOT LIKE 'TEST\\_%' ESCAPE '\\' "
         "AND signal_id NOT LIKE 'TEST-%'))"
     )
+    item_filter = tradingview_filter
+    item_params: tuple = (safe_limit,)
+    if selected_strategy:
+        item_filter = f"({tradingview_filter}) AND strategy=?"
+        item_params = (selected_strategy, safe_limit)
     cur = await ctx.repo.conn.execute(
         "SELECT signal_id, event, strategy, spread_type, payload_json, "
         "received_at, status, reject_reason FROM signals "
-        f"WHERE {tradingview_filter} "
+        f"WHERE {item_filter} "
         "ORDER BY received_at DESC LIMIT ?",
-        (safe_limit,),
+        item_params,
     )
     items = []
     for row in await cur.fetchall():
@@ -141,7 +193,10 @@ async def signal_feed(request: Request, limit: int = 100):
         item["payload"] = payload
         items.append(item)
 
-    for row in await ctx.repo.recent_pine_heartbeats(safe_limit):
+    for row in await ctx.repo.recent_pine_heartbeats(
+        safe_limit,
+        strategy=selected_strategy or None,
+    ):
         payload = dict(row.get("payload") or {})
         payload.pop("passphrase", None)
         items.append({
@@ -258,21 +313,160 @@ async def signal_feed(request: Request, limit: int = 100):
     }
 
 
+@router.delete("/api/strategies")
+async def delete_strategy_records(request: Request, strategy: str):
+    """删除一个已停用的 TradingView 策略及其全部后台历史记录。
+
+    策略由 Webhook 自动发现，并不存在独立的“接口实例”。共享 Webhook
+    保留不动；这里只清理该 strategy/source_name 归属的数据。
+    """
+    ctx = _auth(request)
+    strategy = strategy.strip()
+    if not strategy or len(strategy) > 200:
+        raise HTTPException(status_code=400, detail="策略名称不合法")
+
+    async with aiosqlite.connect(ctx.db.path, timeout=15) as conn:
+        conn.row_factory = aiosqlite.Row
+        await conn.execute("PRAGMA foreign_keys=ON")
+        await conn.execute("BEGIN IMMEDIATE")
+        try:
+            active = await (await conn.execute(
+                """
+                SELECT p.id, p.state
+                FROM parent_trades p
+                JOIN signals s ON s.signal_id=p.signal_id
+                WHERE s.strategy=?
+                  AND p.state NOT IN ('CLOSED', 'FORCE_CLOSED', 'OPEN_FAILED')
+                ORDER BY p.id
+                """,
+                (strategy,),
+            )).fetchall()
+            if active:
+                await conn.rollback()
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "message": "该策略仍有关联仓位，必须先完成平仓",
+                        "active_trades": [
+                            {"id": row["id"], "state": row["state"]}
+                            for row in active
+                        ],
+                    },
+                )
+
+            signal_rows = await (await conn.execute(
+                "SELECT signal_id FROM signals WHERE strategy=?",
+                (strategy,),
+            )).fetchall()
+            signal_ids = [row["signal_id"] for row in signal_rows]
+            parent_rows = []
+            if signal_ids:
+                marks = ",".join("?" for _ in signal_ids)
+                parent_rows = await (await conn.execute(
+                    f"SELECT id FROM parent_trades "
+                    f"WHERE signal_id IN ({marks})",
+                    signal_ids,
+                )).fetchall()
+            parent_ids = [row["id"] for row in parent_rows]
+            group_ids: list[int] = []
+            if parent_ids:
+                marks = ",".join("?" for _ in parent_ids)
+                group_rows = await (await conn.execute(
+                    f"SELECT id FROM trade_groups "
+                    f"WHERE parent_id IN ({marks})",
+                    parent_ids,
+                )).fetchall()
+                group_ids = [row["id"] for row in group_rows]
+
+                await conn.execute(
+                    f"DELETE FROM hedge_actions WHERE parent_id IN ({marks})",
+                    parent_ids,
+                )
+                await conn.execute(
+                    f"DELETE FROM hedge_state WHERE parent_id IN ({marks})",
+                    parent_ids,
+                )
+                await conn.execute(
+                    f"DELETE FROM fills WHERE parent_id IN ({marks})",
+                    parent_ids,
+                )
+                await conn.execute(
+                    f"DELETE FROM legs WHERE parent_id IN ({marks})",
+                    parent_ids,
+                )
+                await conn.execute(
+                    f"DELETE FROM events WHERE parent_id IN ({marks})",
+                    parent_ids,
+                )
+                if group_ids:
+                    group_marks = ",".join("?" for _ in group_ids)
+                    await conn.execute(
+                        f"DELETE FROM events WHERE group_id IN ({group_marks})",
+                        group_ids,
+                    )
+                await conn.execute(
+                    f"DELETE FROM trade_groups WHERE parent_id IN ({marks})",
+                    parent_ids,
+                )
+                await conn.execute(
+                    f"DELETE FROM parent_trades WHERE id IN ({marks})",
+                    parent_ids,
+                )
+
+            if signal_ids:
+                marks = ",".join("?" for _ in signal_ids)
+                await conn.execute(
+                    f"DELETE FROM events "
+                    f"WHERE json_valid(payload_json) "
+                    f"AND json_extract(payload_json, '$.signal_id') IN ({marks})",
+                    signal_ids,
+                )
+                await conn.execute(
+                    f"DELETE FROM signals WHERE signal_id IN ({marks})",
+                    signal_ids,
+                )
+            heartbeat_cursor = await conn.execute(
+                "DELETE FROM pine_heartbeats WHERE strategy=?",
+                (strategy,),
+            )
+            await conn.execute(
+                "DELETE FROM system_state WHERE key='pine_status' "
+                "AND json_valid(value) "
+                "AND json_extract(value, '$.strategy')=?",
+                (strategy,),
+            )
+            await conn.commit()
+        except HTTPException:
+            raise
+        except Exception:
+            await conn.rollback()
+            raise
+
+    return {
+        "deleted": True,
+        "strategy": strategy,
+        "signals": len(signal_ids),
+        "trades": len(parent_ids),
+        "groups": len(group_ids),
+        "heartbeats": heartbeat_cursor.rowcount,
+    }
+
+
 @router.get("/api/tradingview_setup")
 async def tradingview_setup(request: Request, response: Response):
     """实验阶段的 TradingView 配置向导，包含可直接复制的 Webhook 口令。"""
     ctx = _auth(request)
     response.headers["Cache-Control"] = "no-store"
     return {
-        "schema_version": "1",
+        "schema_version": "2",
         "webhook_path": "/webhook/signal",
         "legacy_webhook_path": "/webhook/tradingview",
         "account_name": ctx.cfg.env.trading_account_name,
         "strategy": ctx.cfg.strategy.name,
         "passphrase": ctx.cfg.env.webhook_auth_token,
         "passphrase_configured": bool(ctx.cfg.env.webhook_auth_token),
-        "condition": "策略 → 订单成交和 alert() 函数调用",
-        "message_mode": "strategy_placeholders",
+        "condition": "策略 → 订单成交",
+        "message_mode": "generic_position_transition",
     }
 
 
@@ -366,6 +560,7 @@ async def performance(request: Request):
         SELECT p.id, p.signal_id, p.trade_id, s.strategy,
                p.spread_type, p.state, p.qty_total,
                p.opened_at, p.closed_at, p.close_reason,
+               p.open_liquidity_role, p.close_liquidity_role,
                COALESCE(SUM(g.realized_pnl_btc), 0) AS realized_pnl_btc,
                COALESCE(SUM(CASE WHEN g.state='OPEN' THEN g.unrealized_pnl_btc ELSE 0 END), 0) AS unrealized_pnl_btc
         FROM parent_trades p
@@ -385,6 +580,22 @@ async def performance(request: Request):
     wins = sum(float(t["realized_pnl_btc"]) > 0 for t in completed)
     losses = sum(float(t["realized_pnl_btc"]) < 0 for t in completed)
     decided = wins + losses
+    cumulative_realized = 0.0
+    curve = []
+    for trade in sorted(
+        (t for t in completed if t.get("closed_at") is not None),
+        key=lambda item: (item["closed_at"], item["id"]),
+    ):
+        trade_pnl = float(trade["realized_pnl_btc"])
+        cumulative_realized += trade_pnl
+        curve.append({
+            "trade_id": trade["id"],
+            "closed_at": trade["closed_at"],
+            "strategy": trade.get("strategy"),
+            "spread_type": trade["spread_type"],
+            "realized_pnl_btc": trade_pnl,
+            "cumulative_realized_pnl_btc": cumulative_realized,
+        })
 
     daily_cur = await conn.execute(
         """
@@ -416,6 +627,7 @@ async def performance(request: Request):
             "closed_trades": len(completed),
         },
         "daily": daily,
+        "curve": curve,
         "trades": trades,
     }
 
@@ -444,6 +656,10 @@ async def hedge_stats(request: Request, days: int = 7):
 async def set_trading(request: Request, enabled: bool):
     ctx = _auth(request)
     await ctx.repo.set_flag("trading_enabled", enabled)
+    # An explicit operator choice always supersedes an older automatic
+    # recovery marker; otherwise a later scan could undo a manual pause.
+    await ctx.repo.set_state(risk_mod.AUTO_RESUME_STATE_KEY, "")
+    await ctx.repo.set_state(risk_mod.PAUSE_REASON_KEY, "")
     return {"trading_enabled": enabled}
 
 
@@ -451,6 +667,10 @@ async def set_trading(request: Request, enabled: bool):
 async def manual_force_close(request: Request, reason: str = "manual"):
     """人工强平（规范第九节）：立即打断执行，再入队最高优先级命令。"""
     ctx = _auth(request)
+    await ctx.repo.set_flag("trading_enabled", False)
+    await ctx.repo.set_flag("force_close_active", False)
+    await ctx.repo.set_state(risk_mod.AUTO_RESUME_STATE_KEY, "")
+    await ctx.repo.set_state(risk_mod.PAUSE_REASON_KEY, reason)
     interrupted = ctx.request_force_close(source="MANUAL", reason=reason)
     await ev.emit(ctx.repo.conn, ev.FORCE_CLOSE_MANUAL, level="WARN", reason=reason)
     return {"status": "queued", "interrupted_execution": interrupted}

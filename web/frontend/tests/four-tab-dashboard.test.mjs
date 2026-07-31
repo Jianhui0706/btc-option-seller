@@ -60,6 +60,18 @@ test("each primary page owns the correct operational content", () => {
   assert.match(html, /function renderStrategyCenter\(data\)/);
 });
 
+test("active strategy card explains why delta hedge is or is not trading", () => {
+  assert.match(html, /function renderHedgeDiagnostic\(d\)/);
+  assert.match(html, /Delta 对冲诊断/);
+  assert.match(html, /3分钟收盘/);
+  assert.match(html, /BEP 激活线/);
+  assert.match(html, /期权 Delta/);
+  assert.match(html, /永续 Delta/);
+  assert.match(html, /衍生品净 Delta/);
+  assert.match(html, /调仓阈值/);
+  assert.match(html, /t\.hedge_diagnostic/);
+});
+
 test("five-page shell is responsive and keeps danger actions explicit", () => {
   assert.match(html, /\.main-nav\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(html, /\.global-metrics\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);

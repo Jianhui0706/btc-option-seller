@@ -27,6 +27,8 @@ class Database:
             "ALTER TABLE trade_groups ADD COLUMN unrealized_pnl_btc REAL DEFAULT 0",
             "ALTER TABLE trade_groups ADD COLUMN profit_ratio REAL",
             "ALTER TABLE parent_trades ADD COLUMN trade_id TEXT",
+            "ALTER TABLE parent_trades ADD COLUMN open_liquidity_role TEXT",
+            "ALTER TABLE parent_trades ADD COLUMN close_liquidity_role TEXT",
         ):
             try:
                 await conn.execute(ddl)
