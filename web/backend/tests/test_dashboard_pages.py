@@ -7,7 +7,7 @@ import time
 import pytest
 from fastapi import Response
 
-from src.api import (delete_strategy_records, performance, signal_feed,
+from src.api import (delete_strategy_records, hedge_ledger, performance, signal_feed,
                      status, trades_history, tradingview_setup)
 from src.app import app
 from src.store.db import Database
@@ -32,8 +32,13 @@ def test_dashboard_exposes_signal_and_returns_pages_and_apis():
 
     assert ("/api/signals", "GET") in routes
     assert ("/api/performance", "GET") in routes
+    assert ("/api/hedge_ledger", "GET") in routes
     assert ("/api/tradingview_setup", "GET") in routes
     assert ("/api/strategies", "DELETE") in routes
+    assert ("/control/manual_hedge", "POST") in routes
+    assert ("/control/manual_hedge_release", "POST") in routes
+    assert ("/control/residual/retry", "POST") in routes
+    assert ("/control/residual/quarantine", "POST") in routes
     assert ("/webhook/signal", "POST") in routes
     assert ("/webhook/tradingview", "POST") in routes
     assert ("/signals", "GET") in routes
@@ -44,12 +49,153 @@ def test_dashboard_exposes_signal_and_returns_pages_and_apis():
 
 
 @pytest.mark.asyncio
+async def test_hedge_ledger_reports_requested_vs_filled_and_attribution(tmp_path):
+    db = Database(tmp_path / "hedge-ledger.db")
+    conn = await db.open()
+    now = int(time.time() * 1000)
+    try:
+        repo = Repo(conn)
+        await repo.insert_signal(
+            "HEDGE-LEDGER-1", "OPEN_REQUEST", "MACD策略2", "CALL_CREDIT", {})
+        await conn.execute(
+            "INSERT INTO parent_trades(id, signal_id, spread_type, state, created_at) "
+            "VALUES(1, 'HEDGE-LEDGER-1', 'CALL_CREDIT', 'OPEN', ?)", (now,))
+        await conn.executemany(
+            "INSERT INTO hedge_actions(parent_id, ts, action, net_delta_before, "
+            "net_delta_after, order_usd, requested_usd, managed_usd_after, "
+            "cycle_id, attempt_no, max_attempts, residual_delta, fill_price, fee) "
+            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            [
+                (1, now - 2000, "REBALANCE", -2.0, -1.4, 40000, 130000,
+                 40000, "cycle-a", 1, 3, -1.4, 65000, 0.0003),
+                (1, now - 1000, "REBALANCE", -1.4, -0.01, 90000, 90000,
+                 130000, "cycle-a", 2, 3, -0.01, 65100, 0.0007),
+            ],
+        )
+        await repo.record_execution_attempts(1, [{
+            "phase": "hedge",
+            "operation": "manual_perp",
+            "instrument": "BTC-PERPETUAL",
+            "direction": "buy",
+            "liquidity_role": "MAKER",
+            "attempt_no": 2,
+            "round": 1,
+            "requested_qty": 20000,
+            "filled_qty": 15000,
+            "limit_price": 65050,
+            "avg_fill_price": 65050,
+            "status": "PARTIAL",
+            "group_index": 3,
+            "group_count": 5,
+            "hedge_cycle_id": "manual-cycle",
+            "cycle_attempt_no": 1,
+            "cycle_max_attempts": 1,
+            "placed_at": now - 1500,
+            "finished_at": now - 1400,
+            "duration_ms": 100,
+            "exchange_order_id": "test-order-1",
+            "fill_qty_is_incremental": True,
+        }])
+        await conn.execute(
+            "UPDATE hedge_actions SET details_json=? WHERE attempt_no=2",
+            (json.dumps({
+                "manual": False, "liquidity_role": "TAKER",
+                "exchange_order_id": "auto-order-2",
+                "exchange_trade_ids": ["auto-trade-2"],
+            }),))
+        await conn.commit()
+        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(
+            ctx=SimpleNamespace(repo=repo))))
+
+        result = await hedge_ledger(request, days=14, limit=20)
+
+        assert result["summary"]["executions"] == 2
+        assert result["summary"]["requested_usd"] == pytest.approx(220000)
+        assert result["summary"]["filled_usd"] == pytest.approx(130000)
+        assert result["summary"]["partial_fills"] == 1
+        assert result["summary"]["fees_btc"] == pytest.approx(0.001)
+        assert result["actions"][0]["result"] == "FILLED"
+        assert result["actions"][1]["result"] == "PARTIAL"
+        assert result["actions"][1]["parent_id"] == 1
+        assert result["actions"][1]["strategy"] == "MACD策略2"
+        assert result["actions"][1]["fill_ratio"] == pytest.approx(40000 / 130000)
+        assert result["actions"][0]["cycle_id"] == "cycle-a"
+        assert result["actions"][0]["attempt_no"] == 2
+        assert result["actions"][0]["max_attempts"] == 3
+        assert result["actions"][0]["residual_delta"] == pytest.approx(-0.01)
+        detailed = next(row for row in result["execution_records"]
+                        if row["record_type"] == "ORDER_ATTEMPT")
+        assert detailed["group_index"] == 3
+        assert detailed["group_attempt_no"] == 2
+        assert detailed["cycle_attempt_no"] == 1
+        assert detailed["requested_usd"] == pytest.approx(20000)
+        assert detailed["filled_usd"] == pytest.approx(15000)
+        assert detailed["exchange_order_id"] == "test-order-1"
+        automatic = [row for row in result["execution_records"]
+                     if row["record_type"] == "AUTO_IOC"]
+        assert len(automatic) == 2
+        assert all(row["liquidity_role"] == "TAKER" for row in automatic)
+        linked_auto = next(row for row in automatic
+                           if row["cycle_attempt_no"] == 2)
+        assert linked_auto["exchange_order_id"] == "auto-order-2"
+        assert linked_auto["exchange_trade_ids"] == ["auto-trade-2"]
+    finally:
+        await db.close()
+
+
+@pytest.mark.asyncio
+async def test_hedge_ledger_converts_legacy_cumulative_maker_fill_to_incremental(
+        tmp_path):
+    db = Database(tmp_path / "legacy-hedge-attempts.db")
+    conn = await db.open()
+    now = int(time.time() * 1000)
+    try:
+        repo = Repo(conn)
+        await repo.insert_signal(
+            "LEGACY-HEDGE", "OPEN_REQUEST", "测试策略", "PUT_CREDIT", {})
+        await conn.execute(
+            "INSERT INTO parent_trades(id, signal_id, spread_type, state, created_at) "
+            "VALUES(1, 'LEGACY-HEDGE', 'PUT_CREDIT', 'OPEN', ?)", (now,))
+        await conn.execute(
+            "INSERT INTO hedge_actions(parent_id, ts, action, order_usd, "
+            "requested_usd, details_json) VALUES(?,?,?,?,?,?)",
+            (1, now, "REBALANCE", -30, -30,
+             json.dumps({"manual": True, "groups": []})))
+        await conn.executemany(
+            "INSERT INTO execution_attempts(parent_id, phase, operation, "
+            "instrument, direction, liquidity_role, attempt_no, round_no, "
+            "requested_qty, filled_qty, status, details_json) "
+            "VALUES(1,'hedge','manual_perp','BTC-PERPETUAL','sell','MAKER',"
+            "?,?,?,?,?,?)",
+            [
+                (1, 1, 30, 20, "PARTIAL", json.dumps({"group_index": 5})),
+                (2, 1, 10, 30, "FILLED", json.dumps({"group_index": 5})),
+            ],
+        )
+        await conn.commit()
+        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(
+            ctx=SimpleNamespace(repo=repo))))
+
+        result = await hedge_ledger(request, days=14, limit=20)
+        rows = [row for row in result["execution_records"]
+                if row["record_type"] == "ORDER_ATTEMPT"]
+
+        assert [row["filled_usd"] for row in rows] == [-10.0, -20.0]
+        assert all(row["group_index"] == 5 for row in rows)
+        assert all(str(row["cycle_id"]).startswith("legacy-action-")
+                   for row in rows)
+    finally:
+        await db.close()
+
+
+@pytest.mark.asyncio
 async def test_status_exposes_explainable_hedge_diagnostic():
     parent = {
         "id": 7,
         "signal_id": "LIVE-HEDGE-7",
         "spread_type": "PUT_CREDIT",
         "state": "OPEN",
+        "open_index_price": 65000.0,
         "bep_price": 62000.0,
     }
 
@@ -82,6 +228,11 @@ async def test_status_exposes_explainable_hedge_diagnostic():
             "equity_btc": 1.0,
             "index_price": 65000.0,
         }
+        hedge_snapshots = {7: {
+            **hedge_snapshot,
+            "option_delta": 0.003,
+            "net_delta": 0.003,
+        }}
         scan_last_completed_ts = 1000
         scan_last_error = None
         scan_last_error_ts = None
@@ -95,6 +246,7 @@ async def test_status_exposes_explainable_hedge_diagnostic():
             hedge=SimpleNamespace(
                 delta_account_risk_pct=0.02,
                 delta_trigger_pct=0.10,
+                bep_activation_progress=0.50,
                 call_release_pct=0.98,
                 put_release_pct=1.02,
                 perp_contract_usd=10.0,
@@ -117,10 +269,11 @@ async def test_status_exposes_explainable_hedge_diagnostic():
     result = await status(request)
 
     diagnostic = result["active_trades"][0]["hedge_diagnostic"]
-    assert diagnostic["reason_code"] == "WAITING_FOR_BEP"
+    assert diagnostic["reason_code"] == "WAITING_FOR_HEDGE_TRIGGER"
     assert diagnostic["bar_close"] == 65000.0
     assert diagnostic["bep"] == 62000.0
-    assert diagnostic["net_delta"] == pytest.approx(0.01)
+    assert diagnostic["activation_price"] == 63500.0
+    assert diagnostic["net_delta"] == pytest.approx(0.003)
 
 
 @pytest.mark.asyncio
@@ -138,6 +291,8 @@ async def test_tradingview_setup_exposes_configured_secret_for_experiment():
     result = await tradingview_setup(request, response)
 
     assert result["webhook_path"] == "/webhook/signal"
+    assert result["schema_version"] == "2"
+    assert result["message_mode"] == "generic_position_transition"
     assert result["account_name"] == "account_1"
     assert result["passphrase_configured"] is True
     assert result["passphrase"] == "super-secret"
@@ -492,13 +647,24 @@ async def test_performance_summarizes_realized_unrealized_and_trade_results(tmp_
         )
         await conn.commit()
         request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(
-            ctx=SimpleNamespace(repo=repo)
+            ctx=SimpleNamespace(
+                repo=repo,
+                db=db,
+                cfg=SimpleNamespace(env=SimpleNamespace(
+                    trading_account_name="account_2",
+                    client_id="account-2-client",
+                    is_testnet=True,
+                )),
+            )
         )))
 
         result = await performance(request)
         history = await trades_history(request)
 
         summary = result["summary"]
+        assert result["account"]["name"] == "account_2"
+        assert result["account"]["environment"] == "TESTNET"
+        assert result["account"]["scope"].startswith("testnet-")
         assert summary["realized_pnl_btc"] == pytest.approx(0.01)
         assert summary["unrealized_pnl_btc"] == pytest.approx(0.005)
         assert summary["hedge_fees_btc"] == pytest.approx(0.001)
@@ -524,6 +690,44 @@ async def test_performance_summarizes_realized_unrealized_and_trade_results(tmp_
         assert history_trade["signal_id"] == "TV-OPEN-1"
         assert "open_liquidity_role" in history_trade
         assert "close_liquidity_role" in history_trade
+    finally:
+        await db.close()
+
+
+@pytest.mark.asyncio
+async def test_performance_curve_is_not_limited_by_recent_trade_history(tmp_path):
+    db = Database(tmp_path / "performance-curve-history.db")
+    conn = await db.open()
+    now = int(time.time() * 1000)
+    try:
+        repo = Repo(conn)
+        await conn.execute(
+            "INSERT INTO parent_trades(id, spread_type, state, closed_at, created_at) "
+            "VALUES(1, 'PUT_CREDIT', 'CLOSED', ?, ?)",
+            (now - 1000, now - 2000),
+        )
+        await conn.execute(
+            "INSERT INTO trade_groups(parent_id, group_index, qty, state, "
+            "realized_pnl_btc, closed_at) VALUES(1, 1, 1, 'CLOSED', 0.02, ?)",
+            (now - 1000,),
+        )
+        await conn.executemany(
+            "INSERT INTO parent_trades(id, spread_type, state, created_at) "
+            "VALUES(?, 'CALL_CREDIT', 'OPEN_FAILED', ?)",
+            [(trade_id, now + trade_id) for trade_id in range(2, 202)],
+        )
+        await conn.commit()
+        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(
+            ctx=SimpleNamespace(repo=repo)
+        )))
+
+        result = await performance(request)
+
+        assert [trade["id"] for trade in result["trades"]] == [1]
+        assert result["summary"]["closed_trades"] == 1
+        assert result["summary"]["wins"] == 1
+        assert [point["trade_id"] for point in result["curve"]] == [1]
+        assert result["curve"][0]["cumulative_realized_pnl_btc"] == pytest.approx(0.02)
     finally:
         await db.close()
 

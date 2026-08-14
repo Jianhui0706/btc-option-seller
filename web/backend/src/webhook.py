@@ -153,11 +153,15 @@ def _derive_action(sig: TVSignal) -> str:
     ).strip().lower()
     if explicit == "REVERSE":
         if current == "long":
-            return "REVERSE_LONG"
+            return "OPEN_LONG"
         if current == "short":
-            return "REVERSE_SHORT"
+            return "OPEN_SHORT"
     if explicit in ACTION_ALIASES:
         action = ACTION_ALIASES[explicit]
+        if action == "REVERSE_LONG":
+            return "OPEN_LONG"
+        if action == "REVERSE_SHORT":
+            return "OPEN_SHORT"
         if action == "OPEN" and current in {"long", "short"}:
             return f"OPEN_{current.upper()}"
         if action == "CLOSE" and previous in {"long", "short"}:
@@ -183,16 +187,27 @@ def _derive_action(sig: TVSignal) -> str:
     if current == "flat" and previous == "short":
         return "CLOSE_SHORT"
     if previous == "long" and current == "short":
-        return "REVERSE_SHORT"
+        return "OPEN_SHORT"
     if previous == "short" and current == "long":
-        return "REVERSE_LONG"
+        return "OPEN_LONG"
     raise ValueError("cannot determine OPEN/CLOSE action")
 
 
 def _derive_spread_type(sig: TVSignal, action: str) -> Optional[str]:
     explicit = (sig.spread_type or "").strip().upper()
-    if explicit:
-        return explicit
+    if action == "CLOSE_LONG":
+        return "PUT_CREDIT"
+    if action == "CLOSE_SHORT":
+        return "CALL_CREDIT"
+    if action == "CLOSE":
+        previous = (
+            sig.previous_position or sig.prev_market_position or ""
+        ).strip().lower()
+        if previous == "long":
+            return "PUT_CREDIT"
+        if previous == "short":
+            return "CALL_CREDIT"
+        return None
     if action not in OPEN_ACTIONS | REVERSE_ACTIONS:
         return None
     if action in {"OPEN_LONG", "REVERSE_LONG"}:
@@ -203,6 +218,11 @@ def _derive_spread_type(sig: TVSignal, action: str) -> Optional[str]:
     if current == "long":
         return "PUT_CREDIT"
     if current == "short":
+        return "CALL_CREDIT"
+    signal_code = (sig.signal_code or sig.order_id or "").upper()
+    if "PUT_CREDIT" in signal_code:
+        return "PUT_CREDIT"
+    if "CALL_CREDIT" in signal_code:
         return "CALL_CREDIT"
     side = (sig.side or "").strip().lower()
     if side == "buy":
@@ -216,12 +236,15 @@ def _derive_spread_type(sig: TVSignal, action: str) -> Optional[str]:
         return "PUT_CREDIT"
     if "CALL_CREDIT" in comment:
         return "CALL_CREDIT"
-    return None
+    return explicit or None
 
 
 def _normalise_signal(sig: TVSignal) -> dict:
     """把两种输入格式变成执行层唯一认识的命令格式。"""
     action = _derive_action(sig)
+    explicit_spread = (sig.spread_type or "").strip().upper()
+    if explicit_spread and explicit_spread not in ("PUT_CREDIT", "CALL_CREDIT"):
+        raise ValueError("invalid spread_type")
     is_v2 = str(sig.schema_version or "") == "2" or sig.source_id is not None
     source_id = str(
         sig.source_id if sig.source_id is not None else ""
@@ -459,11 +482,10 @@ async def _process_tradingview(request: Request) -> JSONResponse:
     except ValueError as exc:
         await ev.emit(repo.conn, ev.REJECT_BAD_PAYLOAD, level="WARN",
                       error=str(exc))
-        reason = (
-            "missing_signal_identity"
-            if str(exc) == "missing generic signal identity"
-            else "unknown_action"
-        )
+        reason = {
+            "missing generic signal identity": "missing_signal_identity",
+            "invalid spread_type": "bad_spread_type",
+        }.get(str(exc), "unknown_action")
         return JSONResponse(
             {"status": "rejected", "reason": reason},
             status_code=400)
@@ -494,15 +516,6 @@ async def _process_tradingview(request: Request) -> JSONResponse:
             return JSONResponse(
                 {"status": "rejected", "reason": "bad_spread_type"},
                 status_code=400)
-        if payload["action"] in REVERSE_ACTIONS:
-            ctx.queue.put(ctx.queue.reverse(payload))
-            return JSONResponse({
-                "status": "queued",
-                "action": "REVERSE",
-                "normalized_action": payload["action"],
-                "signal_id": signal_id,
-                "trade_id": payload["trade_id"],
-            }, status_code=202)
         ctx.queue.put(ctx.queue.open(payload))
         return JSONResponse({
             "status": "queued",
@@ -512,18 +525,47 @@ async def _process_tradingview(request: Request) -> JSONResponse:
             "trade_id": payload["trade_id"],
         }, status_code=202)
 
-    # CLOSE 必须优先按 source_id/tv_id 精确定位。仅当旧消息没有身份且当前
-    # 确实只有一笔开放交易时才兼容回退，绝不再“一条退出信号关闭全部”。
-    parent = None
+    # CLOSE 优先按 source_id/tv_id + PUT/CALL 定位。同源同侧可有多批，
+    # 分侧 CLOSE 默认关闭该侧全部批次；没有方向且匹配多侧时拒绝歧义操作。
+    matches = []
     if payload["trade_id"]:
-        parent = await repo.active_parent_by_trade_id(
-            payload["trade_id"],
-            "" if payload["source_id"] else payload["strategy"])
+        strategy = "" if payload["source_id"] else payload["strategy"]
+        if hasattr(repo, "active_parents_by_trade_id"):
+            matches = await repo.active_parents_by_trade_id(
+                payload["trade_id"], strategy,
+                payload.get("spread_type") or "")
+        else:  # test/legacy repository adapter
+            match = await repo.active_parent_by_trade_id(
+                payload["trade_id"], strategy)
+            matches = [match] if match else []
+        if len(matches) > 1 and not payload.get("spread_type"):
+            await repo.set_signal_status(
+                signal_id, "REJECTED", ev.REJECT_AMBIGUOUS_CLOSE_TARGET)
+            return JSONResponse({
+                "status": "rejected",
+                "reason": "ambiguous_close_target",
+                "signal_id": signal_id,
+                "trade_id": payload["trade_id"],
+            }, status_code=409)
+        if not matches and getattr(repo, "conn", None) is not None:
+            cur = await repo.conn.execute(
+                "SELECT p.* FROM parent_trades p WHERE p.trade_id=? "
+                "AND p.state='OPENING' AND (?='' OR p.spread_type=?) "
+                "ORDER BY p.id DESC",
+                (payload["trade_id"], payload.get("spread_type") or "",
+                 payload.get("spread_type") or ""))
+            matches = [dict(row) for row in await cur.fetchall()]
     else:
         parents = await repo.open_parents()
         if len(parents) == 1:
-            parent = parents[0]
-    if parent is None:
+            matches = parents
+        elif not parents and getattr(repo, "conn", None) is not None:
+            cur = await repo.conn.execute(
+                "SELECT * FROM parent_trades WHERE state='OPENING' ORDER BY id DESC")
+            opening = [dict(r) for r in await cur.fetchall()]
+            if len(opening) == 1:
+                matches = opening
+    if not matches:
         await repo.set_signal_status(
             signal_id, "ACCEPTED", "no matching active trade; no-op")
         return JSONResponse({
@@ -534,17 +576,25 @@ async def _process_tradingview(request: Request) -> JSONResponse:
         }, status_code=200)
 
     await repo.set_signal_status(signal_id, "ACCEPTED")
-    ctx.queue.put(ctx.queue.normal_close(parent["id"], payload["reason"]))
-    await ev.emit(repo.conn, ev.NORMAL_CLOSE, signal_id=signal_id,
-                  parent_id=parent["id"], source="tradingview",
-                  reason=payload["reason"])
+    parent_ids = [parent["id"] for parent in matches]
+    for parent in matches:
+        if parent.get("state") == "OPENING":
+            task = ctx.current_exec_task
+            if task and not task.done():
+                task.cancel()
+            ctx.queue.put(ctx.queue.recover_opening(parent["id"]))
+        ctx.queue.put(ctx.queue.normal_close(parent["id"], payload["reason"]))
+        await ev.emit(repo.conn, ev.NORMAL_CLOSE, signal_id=signal_id,
+                      parent_id=parent["id"], source="tradingview",
+                      reason=payload["reason"])
     return JSONResponse({
         "status": "queued",
         "action": "CLOSE",
         "normalized_action": payload["action"],
         "signal_id": signal_id,
-        "trade_id": payload["trade_id"] or parent.get("trade_id"),
-        "parent_id": parent["id"],
+        "trade_id": payload["trade_id"] or matches[0].get("trade_id"),
+        "parent_id": parent_ids[0] if len(parent_ids) == 1 else None,
+        "parent_ids": parent_ids,
     }, status_code=202)
 
 

@@ -14,10 +14,12 @@
 from __future__ import annotations
 
 import logging
+import time
 from dataclasses import dataclass, field
-from typing import Callable, Optional
+from typing import Awaitable, Callable, Optional
 
 from ..exchange.deribit_ws import DeribitWS
+from ..exchange import futures
 from .spread_executor import (EPS, ExecParams, ExecutionIncompleteError,
                               SpreadExecutor, round_lot)
 from .single_leg import SingleLegExecutor, SingleLegParams
@@ -66,10 +68,25 @@ class OpenResult:
     unwound_qty: float         # 被回滚的买腿张数
     liquidity_role: str = "UNKNOWN"
     events: list[str] = field(default_factory=list)
+    attempts: list[dict] = field(default_factory=list)
 
     @property
     def opened(self) -> bool:
         return self.qty >= 0.1 - EPS
+
+
+@dataclass
+class PerpOrderResult:
+    """人工永续委托的分批 Maker-first 执行结果。"""
+
+    requested_usd: float
+    filled_usd: float
+    avg_price: float
+    fee_btc: float = 0.0
+    liquidity_role: str = "UNKNOWN"
+    events: list[str] = field(default_factory=list)
+    attempts: list[dict] = field(default_factory=list)
+    groups: list[dict] = field(default_factory=list)
 
 
 def _exec_groups(total: float, n: int, min_lot: float) -> list[float]:
@@ -85,6 +102,211 @@ def _exec_groups(total: float, n: int, min_lot: float) -> list[float]:
 async def _spot_quotes(ws: DeribitWS, instrument: str) -> tuple[float, float]:
     t = await ws.request("public/ticker", {"instrument_name": instrument})
     return float(t.get("best_bid_price") or 0.0), float(t.get("best_ask_price") or 0.0)
+
+
+async def execute_perp_maker_first(
+    ws: DeribitWS,
+    *,
+    instrument: str,
+    usd_signed: float,
+    min_lot: float = 10.0,
+    n_exec_groups: int = 5,
+    attempt_waits: tuple = (3.0, 8.0, 15.0),
+    reduce_only: bool = False,
+    ioc_ticks: int = 10,
+    completion_ioc_ticks: tuple[int, ...] = (20, 40),
+    target_provider: Optional[Callable[[], Awaitable[float]]] = None,
+    on_event: OnEvent = None,
+    on_attempt: Optional[Callable[[dict], Awaitable[None]]] = None,
+) -> PerpOrderResult:
+    """按普通开仓节奏执行人工永续委托。
+
+    最多拆成五个近似等量批次；每批先跑一轮中间价 Maker、靠近
+    对手价 Maker、剩余 IOC。若 Testnet 薄盘口只部分成交，则在同一
+    批内逐级扩大 IOC 价格范围，完成本批后才进入下一批。
+    """
+    events: list[str] = []
+
+    def emit(msg: str) -> None:
+        events.append(msg)
+        if on_event:
+            on_event(msg)
+
+    target = round_lot(abs(usd_signed), min_lot)
+    groups = _exec_groups(target, n_exec_groups, min_lot)
+    if not groups:
+        return PerpOrderResult(usd_signed, 0.0, 0.0, events=events)
+
+    filled_signed_total = 0.0
+    filled_abs_total = 0.0
+    value_total = 0.0
+    roles: list[str] = []
+    attempts: list[dict] = []
+    group_reports: list[dict] = []
+    fee_total = 0.0
+    latest_target = usd_signed
+    initial_target = usd_signed
+    cycle_sign = 1.0 if usd_signed > 0 else -1.0
+    group_count = len(groups)
+    for group_index in range(1, group_count + 1):
+        initial_group_qty = groups[group_index - 1]
+        if target_provider is not None:
+            fresh_target = float(await target_provider())
+            fresh_abs = round_lot(abs(fresh_target), min_lot)
+            if fresh_abs >= min_lot - EPS and fresh_target * cycle_sign > 0:
+                latest_target = cycle_sign * fresh_abs
+            elif fresh_target * cycle_sign < 0:
+                emit(
+                    f"[人工对冲 {group_index}/{group_count}] 最新 Delta 已反向，"
+                    "本周期保持原方向，避免来回成交")
+        remaining_signed = round(
+            latest_target - filled_signed_total, 10)
+        remaining_groups = group_count - group_index + 1
+        next_groups = _exec_groups(
+            abs(remaining_signed), remaining_groups, min_lot)
+        if not next_groups:
+            break
+        group_qty = next_groups[0]
+        group_sign = 1.0 if remaining_signed > 0 else -1.0
+        direction = "buy" if group_sign > 0 else "sell"
+        emit(
+            f"[人工对冲 {group_index}/{group_count}] {direction} "
+            f"{instrument}，本批目标 {group_qty:.0f} USD")
+        attempt_context = {
+            "instrument": instrument,
+            "direction": direction,
+            "phase": "hedge",
+            "operation": "manual_perp",
+            "group_index": group_index,
+            "group_count": group_count,
+            "initial_target_usd": initial_target,
+            "initial_group_usd": cycle_sign * initial_group_qty,
+            "live_target_usd": latest_target,
+            "live_group_usd": group_sign * group_qty,
+        }
+
+        async def publish_group_attempt(item: dict) -> None:
+            if on_attempt:
+                await on_attempt({**item, **attempt_context})
+
+        executor_kwargs = {"on_event": emit}
+        if on_attempt:
+            executor_kwargs["on_attempt"] = publish_group_attempt
+        executor = SingleLegExecutor(
+            ws, instrument, direction,
+            SingleLegParams(
+                amount=group_qty,
+                min_lot=min_lot,
+                attempt_waits=attempt_waits,
+                rounds=1,
+                pay_extra_ticks=ioc_ticks,
+                reduce_only=reduce_only),
+            **executor_kwargs)
+        report = await executor.execute()
+        group_filled = report.filled
+        group_value = report.filled * report.avg_price
+        group_maker_filled = float(getattr(report, "maker_filled", 0.0))
+        group_taker_filled = float(getattr(report, "taker_filled", 0.0))
+        fee_total += report.fee_btc
+        group_roles = [report.liquidity_role]
+        group_attempts = [{**attempt, **attempt_context}
+                          for attempt in report.attempts]
+
+        for fallback_no, ticks in enumerate(completion_ioc_ticks, start=1):
+            remaining = round_lot(group_qty - group_filled, min_lot)
+            if remaining < min_lot - EPS:
+                break
+            signed_remaining = group_sign * remaining
+            emit(
+                f"[人工对冲 {group_index}/{group_count}] 本批剩余 "
+                f"{remaining:.0f} USD，IOC {ticks} ticks 补齐")
+            fallback_started = time.time()
+            fallback = await futures.perp_ioc(
+                ws, instrument, signed_remaining,
+                ioc_ticks=ticks, reduce_only=reduce_only)
+            fallback_finished = time.time()
+            fallback_filled = abs(fallback.filled_usd)
+            group_value += fallback_filled * fallback.avg_price
+            group_filled = round_lot(
+                group_filled + fallback_filled, min_lot)
+            fee_total += fallback.fee_btc
+            if fallback_filled > EPS:
+                group_roles.append("TAKER")
+                group_taker_filled += fallback_filled
+            fallback_attempt = {
+                "instrument": instrument,
+                "direction": direction,
+                "phase": "hedge",
+                "operation": "manual_perp_completion",
+                "group_index": group_index,
+                "group_count": group_count,
+                "initial_target_usd": initial_target,
+                "initial_group_usd": cycle_sign * initial_group_qty,
+                "live_target_usd": latest_target,
+                "live_group_usd": group_sign * group_qty,
+                "attempt_no": 3 + fallback_no,
+                "round": 1,
+                "liquidity_role": "TAKER",
+                "requested_qty": remaining,
+                "filled_qty": fallback_filled,
+                "limit_price": None,
+                "avg_fill_price": fallback.avg_price or None,
+                "status": (
+                    "FILLED" if fallback_filled + EPS >= remaining
+                    else "PARTIAL" if fallback_filled > EPS else "CANCELED"),
+                "ioc_ticks": ticks,
+                "placed_at": int(fallback_started * 1000),
+                "finished_at": int(fallback_finished * 1000),
+                "duration_ms": int((fallback_finished - fallback_started) * 1000),
+                "exchange_order_id": fallback.order_id,
+                "exchange_trade_ids": fallback.trade_ids or [],
+            }
+            group_attempts.append(fallback_attempt)
+            if on_attempt:
+                await on_attempt(dict(fallback_attempt))
+
+        filled_signed_total = round(
+            filled_signed_total + group_sign * group_filled, 10)
+        filled_abs_total = round_lot(
+            filled_abs_total + group_filled, min_lot)
+        value_total += group_value
+        group_role = _merge_liquidity_roles(*group_roles)
+        roles.append(group_role)
+        attempts.extend(group_attempts)
+        group_reports.append({
+            "group_index": group_index,
+            "group_count": group_count,
+            "initial_target_usd": initial_target,
+            "initial_group_usd": cycle_sign * initial_group_qty,
+            "live_target_usd": latest_target,
+            "dynamically_recalculated": abs(
+                group_qty - initial_group_qty) >= min_lot - EPS,
+            "requested_usd": group_sign * group_qty,
+            "filled_usd": group_sign * group_filled,
+            "avg_price": (
+                group_value / group_filled if group_filled > EPS else 0.0),
+            "liquidity_role": group_role,
+            "maker_filled_usd": group_maker_filled,
+            "taker_filled_usd": group_taker_filled,
+            "complete": group_filled + EPS >= group_qty,
+        })
+        if group_filled + EPS < group_qty:
+            emit(
+                f"[人工对冲 {group_index}/{group_count}] 仍未完成，"
+                "停止后续批次并交由安全重试")
+            break
+
+    average = value_total / filled_abs_total if filled_abs_total > EPS else 0.0
+    return PerpOrderResult(
+        requested_usd=latest_target,
+        filled_usd=filled_signed_total,
+        avg_price=average,
+        fee_btc=fee_total,
+        liquidity_role=_merge_liquidity_roles(*roles),
+        events=events,
+        attempts=attempts,
+        groups=group_reports,
+    )
 
 
 async def open_credit_spread(
@@ -152,6 +374,7 @@ async def open_credit_spread(
     sell_filled = 0.0
     sell_revenue = 0.0
     liquidity_roles = ["MAKER"] if combo_qty > EPS else []
+    attempts: list[dict] = []
 
     for gi, g_qty in enumerate(_exec_groups(remaining, n_exec_groups, min_lot), start=1):
         # 组前健康检查：当前盘口是否仍满足最低净权利金
@@ -168,6 +391,7 @@ async def open_credit_spread(
         buy_ex = SingleLegExecutor(ws, buy_instrument, "buy", SingleLegParams(
             amount=g_qty, min_lot=min_lot, attempt_waits=attempt_waits), on_event=emit)
         brep = await buy_ex.execute()
+        attempts.extend([{**a, "instrument": buy_instrument, "direction": "buy", "phase": "open"} for a in brep.attempts])
         liquidity_roles.append(brep.liquidity_role)
         if brep.filled < min_lot - EPS:
             emit(f"[组{gi}] 买腿未成交，停止后续开仓")
@@ -180,6 +404,7 @@ async def open_credit_spread(
             amount=brep.filled, min_lot=min_lot, attempt_waits=attempt_waits,
             limit_price=round(brep.avg_price + min_credit_btc, 10)), on_event=emit)
         srep = await sell_ex.execute()
+        attempts.extend([{**a, "instrument": sell_instrument, "direction": "sell", "phase": "open"} for a in srep.attempts])
         liquidity_roles.append(srep.liquidity_role)
         sell_filled = round_lot(sell_filled + srep.filled, min_lot)
         sell_revenue += srep.filled * srep.avg_price
@@ -197,6 +422,7 @@ async def open_credit_spread(
             rounds=3, reduce_only=True),
             on_event=emit)
         urep = await un_ex.execute()
+        attempts.extend([{**a, "instrument": buy_instrument, "direction": "sell", "phase": "unwind"} for a in urep.attempts])
         liquidity_roles.append(urep.liquidity_role)
         unwound = urep.filled
         buy_filled = round_lot(buy_filled - urep.filled, min_lot)
@@ -217,7 +443,7 @@ async def open_credit_spread(
     return OpenResult(qty=total_qty, net_credit_btc=net_credit, buy_avg=buy_avg,
                       sell_avg=sell_avg, combo_qty=combo_qty, unwound_qty=unwound,
                       liquidity_role=_merge_liquidity_roles(*liquidity_roles),
-                      events=events)
+                      events=events, attempts=attempts)
 
 
 @dataclass
@@ -226,8 +452,10 @@ class CloseResult:
     buy_back_avg: float        # 买回卖腿均价（BTC/张）
     sell_out_avg: float        # 卖出买腿均价（双腿全平时）
     complete: bool
+    fee_btc: float = 0.0
     liquidity_role: str = "UNKNOWN"
     events: list[str] = field(default_factory=list)
+    attempts: list[dict] = field(default_factory=list)
 
 
 async def close_spread_both_legs(
@@ -274,6 +502,14 @@ async def close_spread_both_legs(
         emit(f"平仓未完整完成：{exc}")
     closed = min(rep.leg_filled.get(sell_instrument, 0.0),
                  rep.leg_filled.get(buy_instrument, 0.0))
+    attempts = []
+    for group in rep.groups:
+        for a in group.attempts:
+            role = "TAKER" if a.attempt >= 3 else "MAKER"
+            attempts.extend([
+                {"phase": "close", "instrument": sell_instrument, "direction": "buy", "liquidity_role": role, "attempt_no": a.attempt, "requested_qty": a.buy_qty, "filled_qty": a.buy_filled, "limit_price": a.buy_price, "status": "FILLED" if a.buy_filled > EPS else "CANCELED"},
+                {"phase": "close", "instrument": buy_instrument, "direction": "sell", "liquidity_role": role, "attempt_no": a.attempt, "requested_qty": a.sell_qty, "filled_qty": a.sell_filled, "limit_price": a.sell_price, "status": "FILLED" if a.sell_filled > EPS else "CANCELED"},
+            ])
     return CloseResult(
         closed_qty=round_lot(closed, min_lot),
         buy_back_avg=rep.leg_avg_price.get(sell_instrument, 0.0),
@@ -281,6 +517,7 @@ async def close_spread_both_legs(
         complete=complete,
         liquidity_role=_spread_report_liquidity_role(rep),
         events=events,
+        attempts=attempts,
     )
 
 
@@ -290,9 +527,34 @@ async def close_sell_leg_only(
     sell_instrument: str,
     qty: float,
     min_lot: float = 0.1,
+    n_exec_groups: int = 1,
+    attempt_waits: tuple = (3.0, 8.0, 15.0),
     on_event: OnEvent = None,
 ) -> CloseResult:
-    """只买回卖腿（保留买方保护腿），单腿三级阶梯。"""
+    """只买回卖腿；账户全平可指定五批 Maker 优先执行。"""
+    return await _close_single_leg(
+        ws, instrument=sell_instrument, direction="buy", qty=qty,
+        min_lot=min_lot, n_exec_groups=n_exec_groups,
+        attempt_waits=attempt_waits, on_event=on_event)
+
+
+async def _close_single_leg(
+    ws: DeribitWS,
+    *,
+    instrument: str,
+    direction: str,
+    qty: float,
+    min_lot: float,
+    n_exec_groups: int,
+    attempt_waits: tuple,
+    on_event: OnEvent,
+) -> CloseResult:
+    """Close one real position, optionally in cumulative Maker-first batches.
+
+    A grouped close uses one three-step ladder per batch (mid Maker, 2/3-touch
+    Maker, IOC). Any unfilled amount is carried into the next cumulative
+    target, so the fifth batch becomes the final taker backstop.
+    """
     events: list[str] = []
 
     def emit(msg: str) -> None:
@@ -300,13 +562,58 @@ async def close_sell_leg_only(
         if on_event:
             on_event(msg)
 
-    ex = SingleLegExecutor(ws, sell_instrument, "buy", SingleLegParams(
-        amount=qty, min_lot=min_lot, rounds=3, reduce_only=True), on_event=emit)
-    rep = await ex.execute()
-    return CloseResult(closed_qty=round_lot(rep.filled, min_lot),
-                       buy_back_avg=rep.avg_price, sell_out_avg=0.0,
-                       complete=rep.complete,
-                       liquidity_role=rep.liquidity_role, events=events)
+    groups = _exec_groups(qty, n_exec_groups, min_lot)
+    grouped = len(groups) > 1
+    if not groups:
+        return CloseResult(0.0, 0.0, 0.0, True, events=events)
+
+    filled_total = 0.0
+    value_total = 0.0
+    fee_total = 0.0
+    cumulative_target = 0.0
+    roles: list[str] = []
+    attempts: list[dict] = []
+    for group_index, group_qty in enumerate(groups, start=1):
+        cumulative_target = round_lot(
+            cumulative_target + group_qty, min_lot)
+        todo = max(0.0, round_lot(
+            cumulative_target - filled_total, min_lot))
+        if todo < min_lot - EPS:
+            continue
+        if grouped:
+            emit(
+                f"[账户全平 {group_index}/{len(groups)}] {direction} "
+                f"{instrument}，本轮目标 {todo:.1f} 张")
+        ex = SingleLegExecutor(
+            ws, instrument, direction,
+            SingleLegParams(
+                amount=todo, min_lot=min_lot,
+                attempt_waits=attempt_waits,
+                rounds=1 if grouped else 3,
+                reduce_only=True),
+            on_event=emit)
+        rep = await ex.execute()
+        filled_total = round_lot(filled_total + rep.filled, min_lot)
+        value_total += rep.filled * rep.avg_price
+        roles.append(rep.liquidity_role)
+        fee_total += float(getattr(rep, "fee_btc", 0.0) or 0.0)
+        attempts.extend([
+            {**attempt, "instrument": instrument, "direction": direction,
+             "phase": "close", "group_index": group_index}
+            for attempt in rep.attempts
+        ])
+
+    average = value_total / filled_total if filled_total > EPS else 0.0
+    complete = filled_total + EPS >= qty
+    return CloseResult(
+        closed_qty=round_lot(filled_total, min_lot),
+        buy_back_avg=average if direction == "buy" else 0.0,
+        sell_out_avg=average if direction == "sell" else 0.0,
+        complete=complete,
+        fee_btc=fee_total,
+        liquidity_role=_merge_liquidity_roles(*roles),
+        events=events,
+        attempts=attempts)
 
 
 async def close_long_leg(
@@ -315,20 +622,12 @@ async def close_long_leg(
     instrument: str,
     qty: float,
     min_lot: float = 0.1,
+    n_exec_groups: int = 1,
+    attempt_waits: tuple = (3.0, 8.0, 15.0),
     on_event: OnEvent = None,
 ) -> CloseResult:
-    """卖出平掉买方长腿（强平清跛腿等场景）。"""
-    events: list[str] = []
-
-    def emit(msg: str) -> None:
-        events.append(msg)
-        if on_event:
-            on_event(msg)
-
-    ex = SingleLegExecutor(ws, instrument, "sell", SingleLegParams(
-        amount=qty, min_lot=min_lot, rounds=3, reduce_only=True), on_event=emit)
-    rep = await ex.execute()
-    return CloseResult(closed_qty=round_lot(rep.filled, min_lot),
-                       buy_back_avg=0.0, sell_out_avg=rep.avg_price,
-                       complete=rep.complete,
-                       liquidity_role=rep.liquidity_role, events=events)
+    """卖出平掉买方长腿；账户全平可指定五批 Maker 优先执行。"""
+    return await _close_single_leg(
+        ws, instrument=instrument, direction="sell", qty=qty,
+        min_lot=min_lot, n_exec_groups=n_exec_groups,
+        attempt_waits=attempt_waits, on_event=on_event)

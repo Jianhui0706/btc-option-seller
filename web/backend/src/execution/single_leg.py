@@ -14,7 +14,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Callable, Optional
+from typing import Awaitable, Callable, Optional
 
 from ..exchange.deribit_ws import DeribitWS, DeribitError
 from .spread_executor import (EPS, OrderCancellationUnconfirmed, TickRule,
@@ -44,7 +44,9 @@ class SingleLegReport:
     avg_price: float = 0.0
     maker_filled: float = 0.0
     taker_filled: float = 0.0
+    fee_btc: float = 0.0
     events: list[str] = field(default_factory=list)
+    attempts: list[dict] = field(default_factory=list)
 
     @property
     def complete(self) -> bool:
@@ -64,7 +66,9 @@ class SingleLegReport:
 class SingleLegExecutor:
     def __init__(self, ws: DeribitWS, instrument: str, direction: str,
                  params: SingleLegParams,
-                 on_event: Optional[Callable[[str], None]] = None):
+                 on_event: Optional[Callable[[str], None]] = None,
+                 on_attempt: Optional[
+                     Callable[[dict], Awaitable[None]]] = None):
         assert direction in ("buy", "sell")
         self.ws = ws
         self.instrument = instrument
@@ -75,6 +79,7 @@ class SingleLegExecutor:
         self.report = SingleLegReport(instrument=instrument, direction=direction,
                                       target=params.amount)
         self._on_event = on_event
+        self._on_attempt = on_attempt
         self._order_id: Optional[str] = None
         self._order_qty = 0.0
         self._order_counted = 0.0
@@ -90,6 +95,22 @@ class SingleLegExecutor:
                 self._on_event(msg)
             except Exception:  # noqa: BLE001
                 log.exception("single-leg event callback failed")
+
+    async def _record_attempt(self, started: float, **values) -> None:
+        finished = time.time()
+        item = {
+            **values,
+            "fill_qty_is_incremental": True,
+            "placed_at": int(started * 1000),
+            "finished_at": int(finished * 1000),
+            "duration_ms": int((finished - started) * 1000),
+        }
+        self.report.attempts.append(item)
+        if self._on_attempt:
+            try:
+                await self._on_attempt(dict(item))
+            except Exception:  # noqa: BLE001 - 统计失败不能打断真实交易
+                log.exception("single-leg attempt callback failed")
 
     async def _on_ticker(self, channel: str, data: dict) -> None:
         self.ticker = data
@@ -254,18 +275,29 @@ class SingleLegExecutor:
         try:
             for rnd in range(1, p.rounds + 1):
                 for attempt in (1, 2, 3):
+                    started = time.time()
                     todo = round_lot(p.amount - self.report.filled, p.min_lot)
                     if todo < p.min_lot - EPS:
                         return self.report
                     price = self._quote(attempt)
                     if price is None:
+                        await self._record_attempt(
+                            started, attempt_no=attempt, round=rnd,
+                            liquidity_role="MAKER" if attempt < 3 else "TAKER",
+                            requested_qty=todo, limit_price=None,
+                            filled_qty=0.0, status="SKIPPED",
+                            details="no_quote_or_price_protection")
                         self._log(f"[R{rnd}/A{attempt}] 无有效盘口或触发价格保护,跳过")
                         await asyncio.sleep(1.0)
                         continue
                     if attempt < 3:
+                        filled_before = self.report.filled
+                        cost_before = self.report.avg_price * self.report.filled
                         result = await self._place(todo, price, ioc=False)
+                        order_id = None
                         if result:
-                            self._order_id = result["order"]["order_id"]
+                            order_id = result["order"]["order_id"]
+                            self._order_id = order_id
                             self._order_qty = todo
                             self._order_counted = 0.0
                             self._order_counted_cost = 0.0
@@ -273,13 +305,50 @@ class SingleLegExecutor:
                                       f"{result['order'].get('price', price)} post_only")
                         await asyncio.sleep(p.attempt_waits[attempt - 1])
                         await self._reconcile_and_cancel()
+                        filled_now = max(0.0, self.report.filled - filled_before)
+                        cost_now = max(
+                            0.0,
+                            self.report.avg_price * self.report.filled - cost_before)
+                        avg_now = cost_now / filled_now if filled_now > EPS else None
+                        await self._record_attempt(
+                            started, attempt_no=attempt, round=rnd,
+                            liquidity_role="MAKER", requested_qty=todo,
+                            limit_price=price, filled_qty=filled_now,
+                            avg_fill_price=avg_now,
+                            status=("FILLED" if filled_now + EPS >= todo
+                                    else "PARTIAL" if filled_now > EPS
+                                    else "CANCELED"),
+                            exchange_order_id=order_id)
                     else:
                         self._log(f"[R{rnd}/A{attempt}] IOC {todo:.1f}@{price}")
                         result = await self._place(todo, price, ioc=True)
                         if result:
-                            filled = float(result["order"].get("filled_amount") or 0.0)
-                            avg = float(result["order"].get("average_price") or 0.0)
+                            order = result["order"]
+                            trades = result.get("trades") or []
+                            filled = float(order.get("filled_amount") or 0.0)
+                            avg = float(order.get("average_price") or 0.0)
+                            self.report.fee_btc += sum(
+                                float(trade.get("fee") or 0.0)
+                                for trade in trades)
                             self._add_fill(filled, avg, "TAKER")
+                            await self._record_attempt(
+                                started, attempt_no=attempt, round=rnd,
+                                liquidity_role="TAKER", requested_qty=todo,
+                                limit_price=price, filled_qty=filled,
+                                avg_fill_price=avg or None,
+                                status=("FILLED" if filled + EPS >= todo
+                                        else "PARTIAL" if filled > EPS
+                                        else "CANCELED"),
+                                exchange_order_id=order.get("order_id"),
+                                exchange_trade_ids=[
+                                    trade.get("trade_id") for trade in trades
+                                    if trade.get("trade_id")])
+                        else:
+                            await self._record_attempt(
+                                started, attempt_no=attempt, round=rnd,
+                                liquidity_role="TAKER", requested_qty=todo,
+                                limit_price=price, filled_qty=0.0,
+                                status="DRY_RUN")
                     self._log(f"[R{rnd}/A{attempt}] 累计 {self.report.filled:.1f}/"
                               f"{p.amount:.1f} @ {self.report.avg_price:.4f}")
             return self.report

@@ -53,6 +53,7 @@ call_hedge_release_pct = input.float(98.0, "call_hedge_release_pct (%)", group =
 put_hedge_release_pct = input.float(102.0, "put_hedge_release_pct (%)", group = grpMisc)
 
 grpWh = "Webhook"
+trade_side = input.string("PUT", "独立信号方向", options = ["PUT", "CALL"], group = grpWh)
 passphrase = input.string("eh9szblqgp46onjxd0w1y87r", "passphrase", group = grpWh,
      tooltip = "必须与控制台 Alert JSON 的 passphrase 完全一致")
 strategy_name = input.string("BTC期权卖方_项目规范策略A", "strategy（后端显示名称）", group = grpWh,
@@ -185,7 +186,7 @@ f_status_json() =>
 
 // strategy 订单是唯一开平仓信号。alert_message 明确告诉后端 OPEN/CLOSE，
 // comment 分别携带信用价差类型与退出原因。
-if barstate.isconfirmed and enable_order_signals and putSignal and canFire and strategy.position_size == 0
+if trade_side == "PUT" and barstate.isconfirmed and enable_order_signals and putSignal and canFire and strategy.position_size == 0
     activeTradeId := t2
     activeSellDelta := selectedSellDelta
     activeDteMin := selectedDteMin
@@ -194,7 +195,7 @@ if barstate.isconfirmed and enable_order_signals and putSignal and canFire and s
     strategy.entry("PUT_CREDIT", strategy.long, qty = order_size,
          comment = "PUT_CREDIT", alert_message = "OPEN")
     lastSigT := t2
-if barstate.isconfirmed and enable_order_signals and callSignal and canFire and strategy.position_size == 0
+if trade_side == "CALL" and barstate.isconfirmed and enable_order_signals and callSignal and canFire and strategy.position_size == 0
     activeTradeId := t2
     activeSellDelta := selectedSellDelta
     activeDteMin := selectedDteMin
@@ -204,7 +205,8 @@ if barstate.isconfirmed and enable_order_signals and callSignal and canFire and 
          comment = "CALL_CREDIT", alert_message = "OPEN")
     lastSigT := t2
 if barstate.isconfirmed and enable_order_signals and dvolExitHit and strategy.position_size != 0
-    strategy.close_all(comment = "TV_DVOL_EXIT", alert_message = "CLOSE")
+    strategy.close(trade_side == "PUT" ? "PUT_CREDIT" : "CALL_CREDIT",
+         comment = "TV_DVOL_EXIT", alert_message = "CLOSE")
 // 心跳与信号相互独立：配置错误、门槛不通过时心跳照发，否则最该看到状态的时候反而没有。
 statusDue = (barstate.isrealtime and not realtimeStatusSent) or
      (newBar2h and statusCanFire)

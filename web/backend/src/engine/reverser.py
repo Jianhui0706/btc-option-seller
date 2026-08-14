@@ -12,8 +12,19 @@ async def handle_reverse(ctx: Ctx, payload: dict) -> None:
     signal_id: str = signal["signal_id"]
     repo = ctx.repo
 
+    async def entry_enabled() -> bool:
+        if await ctx.trading_enabled():
+            return True
+        return await risk.maybe_resume_testnet_daily_loss_pause(ctx)
+
     async def reject(code: str, **extra) -> None:
-        await repo.set_signal_status(signal_id, "REJECTED", code)
+        detail = None
+        if code in (ev.REJECT_TRADING_DISABLED, ev.REVERSE_OPEN_SKIPPED):
+            detail = await repo.get_state(risk.PAUSE_REASON_KEY, "") or None
+            if detail:
+                extra.setdefault("pause_reason", detail)
+        await repo.set_signal_status(
+            signal_id, "REJECTED", code, detail=detail)
         await ev.emit(repo.conn, code, level="WARN",
                       signal_id=signal_id, **extra)
 
@@ -43,6 +54,14 @@ async def handle_reverse(ctx: Ctx, payload: dict) -> None:
         if parent is not None and parent["state"] == "OPEN_FAILED":
             parent = None
 
+    # A position-derived TradingView reversal can arrive while the backend is
+    # already flat.  In that case no close happened, so report the real gate
+    # instead of claiming that the old side was closed before the open was
+    # skipped.
+    if parent is None and not await entry_enabled():
+        await reject(ev.REJECT_TRADING_DISABLED, force_close=False)
+        return
+
     if parent is not None:
         await closer.handle_normal_close(ctx, {
             "parent_id": parent["id"],
@@ -57,7 +76,7 @@ async def handle_reverse(ctx: Ctx, payload: dict) -> None:
 
     # The operator's pause blocks only the new side; a managed old side above
     # is still allowed to close.
-    if not await ctx.trading_enabled():
+    if not await entry_enabled():
         await reject(ev.REVERSE_OPEN_SKIPPED,
                      closed_parent_id=parent["id"] if parent else None)
         return

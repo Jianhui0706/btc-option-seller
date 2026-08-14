@@ -36,7 +36,10 @@ class FakeRepo:
     conn = None
 
     def __init__(self, parent=None):
-        self.parent = parent
+        self.parents = (
+            list(parent) if isinstance(parent, list)
+            else ([parent] if parent is not None else [])
+        )
         self.stored_payload = None
         self.status_updates = []
         self.open_parents_called = False
@@ -45,10 +48,20 @@ class FakeRepo:
         self.stored_payload = payload
         return True
 
-    async def active_parent_by_trade_id(self, trade_id, strategy=""):
+    async def active_parents_by_trade_id(
+            self, trade_id, strategy="", spread_type=""):
         self.looked_up_trade_id = trade_id
         self.looked_up_strategy = strategy
-        return self.parent
+        self.looked_up_spread_type = spread_type
+        return [
+            parent for parent in self.parents
+            if not spread_type or parent.get("spread_type") in (
+                None, spread_type)
+        ]
+
+    async def active_parent_by_trade_id(self, trade_id, strategy=""):
+        rows = await self.active_parents_by_trade_id(trade_id, strategy)
+        return rows[0] if rows else None
 
     async def open_parents(self):
         self.open_parents_called = True
@@ -184,8 +197,45 @@ async def test_close_signal_targets_trade_id_instead_of_closing_everything(monke
     assert response.status_code == 202
     assert repo.looked_up_trade_id == "1784707200000"
     assert repo.looked_up_strategy == "BTC_OPTION_SELLER_V2"
+    assert repo.looked_up_spread_type == "PUT_CREDIT"
     assert repo.open_parents_called is False
     assert ctx.queue.commands == [("close", 41, "TV_DVOL_EXIT")]
+
+
+@pytest.mark.asyncio
+async def test_close_put_closes_all_same_source_put_batches(monkeypatch):
+    repo = FakeRepo(parent=[
+        {"id": 41, "trade_id": "source-a", "spread_type": "PUT_CREDIT"},
+        {"id": 42, "trade_id": "source-a", "spread_type": "PUT_CREDIT"},
+        {"id": 43, "trade_id": "source-a", "spread_type": "CALL_CREDIT"},
+    ])
+    ctx = make_ctx(repo)
+
+    async def ignore_emit(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("src.webhook.ev.emit", ignore_emit)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "schema_version": "2",
+        "passphrase": "secret",
+        "accountName": "account_1",
+        "source_id": "source-a",
+        "source_name": "MACD",
+        "signal_code": "ClosePut",
+        "explicit_action": "CLOSE_LONG",
+        "previous_position": "long",
+        "market_position": "flat",
+        "bar_time": 1784707200000,
+    }))
+
+    body = response_json(response)
+    assert response.status_code == 202
+    assert body["parent_id"] is None
+    assert body["parent_ids"] == [41, 42]
+    assert ctx.queue.commands == [
+        ("close", 41, "TRADINGVIEW_CLOSE"),
+        ("close", 42, "TRADINGVIEW_CLOSE"),
+    ]
 
 
 @pytest.mark.asyncio
@@ -208,7 +258,7 @@ async def test_alert_for_another_account_is_rejected_before_queueing():
 
 
 @pytest.mark.asyncio
-async def test_macd_long_to_short_is_queued_as_safe_reverse():
+async def test_macd_long_to_short_opens_call_without_closing_put():
     repo = FakeRepo()
     ctx = make_ctx(repo)
     response = await tradingview_signal_webhook(FakeRequest(ctx, {
@@ -225,16 +275,16 @@ async def test_macd_long_to_short_is_queued_as_safe_reverse():
 
     body = response_json(response)
     assert response.status_code == 202
-    assert body["action"] == "REVERSE"
-    assert body["normalized_action"] == "REVERSE_SHORT"
+    assert body["action"] == "OPEN"
+    assert body["normalized_action"] == "OPEN_SHORT"
     assert repo.stored_payload["spread_type"] == "CALL_CREDIT"
     assert repo.stored_payload["quantity"] is None
     assert repo.stored_payload["execution_profile"] == "TESTNET_DEFAULT"
-    assert ctx.queue.commands == [("reverse", repo.stored_payload)]
+    assert ctx.queue.commands == [("open", repo.stored_payload)]
 
 
 @pytest.mark.asyncio
-async def test_macd_short_to_long_is_queued_as_safe_reverse():
+async def test_macd_short_to_long_opens_put_without_closing_call():
     repo = FakeRepo()
     ctx = make_ctx(repo)
     response = await tradingview_signal_webhook(FakeRequest(ctx, {
@@ -250,10 +300,10 @@ async def test_macd_short_to_long_is_queued_as_safe_reverse():
     }))
 
     assert response.status_code == 202
-    assert response_json(response)["normalized_action"] == "REVERSE_LONG"
+    assert response_json(response)["normalized_action"] == "OPEN_LONG"
     assert repo.stored_payload["spread_type"] == "PUT_CREDIT"
     assert repo.stored_payload["quantity"] is None
-    assert ctx.queue.commands == [("reverse", repo.stored_payload)]
+    assert ctx.queue.commands == [("open", repo.stored_payload)]
 
 
 @pytest.mark.asyncio
@@ -274,9 +324,9 @@ async def test_macd_order_label_and_negative_strategy_size_are_ignored():
     }))
 
     assert response.status_code == 202
-    assert response_json(response)["normalized_action"] == "REVERSE_SHORT"
+    assert response_json(response)["normalized_action"] == "OPEN_SHORT"
     assert repo.stored_payload["quantity"] is None
-    assert ctx.queue.commands == [("reverse", repo.stored_payload)]
+    assert ctx.queue.commands == [("open", repo.stored_payload)]
 
 
 @pytest.mark.asyncio
@@ -406,3 +456,50 @@ async def test_v2_close_without_active_trade_is_successful_noop():
     assert response_json(response)["reason"] == "no_matching_trade"
     assert repo.status_updates[-1][1] == "ACCEPTED"
     assert ctx.queue.commands == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("explicit_action", "expected_spread"), [
+    ("OPEN_LONG", "PUT_CREDIT"),
+    ("OPEN_SHORT", "CALL_CREDIT"),
+])
+async def test_v3_without_explicit_spread_type_uses_each_signal_position(
+        explicit_action, expected_spread):
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "schema_version": "3", "passphrase": "secret",
+        "source_id": "put-v3", "source_name": "PUT V3",
+        "signal_code": expected_spread, "explicit_action": explicit_action,
+        "bar_time": 1785202080000,
+    }))
+    assert response.status_code == 202
+    assert repo.stored_payload["spread_type"] == expected_spread
+
+
+@pytest.mark.asyncio
+async def test_v3_explicit_put_is_queued_without_direction_guessing():
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "schema_version": "3", "passphrase": "secret",
+        "source_id": "put-v3", "source_name": "PUT V3",
+        "spread_type": "PUT_CREDIT", "signal_code": "PUT_CREDIT",
+        "explicit_action": "OPEN_LONG", "bar_time": 1785202080000,
+    }))
+    assert response.status_code == 202
+    assert repo.stored_payload["spread_type"] == "PUT_CREDIT"
+
+
+@pytest.mark.asyncio
+async def test_v3_fixed_legacy_spread_does_not_block_each_signal_direction():
+    repo = FakeRepo()
+    ctx = make_ctx(repo)
+    response = await tradingview_signal_webhook(FakeRequest(ctx, {
+        "schema_version": "3", "passphrase": "secret",
+        "source_id": "bad-v3", "source_name": "BAD V3",
+        "spread_type": "PUT_CREDIT", "signal_code": "CALL_CREDIT",
+        "explicit_action": "OPEN_SHORT", "bar_time": 1785202080000,
+    }))
+    assert response.status_code == 202
+    assert repo.stored_payload["spread_type"] == "CALL_CREDIT"

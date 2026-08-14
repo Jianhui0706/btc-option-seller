@@ -17,6 +17,8 @@ class PerpFill:
     filled_usd: float
     avg_price: float
     fee_btc: float
+    order_id: str | None = None
+    trade_ids: list[str] | None = None
 
 
 async def perp_ioc(ws: DeribitWS, instrument: str, usd_signed: float,
@@ -56,9 +58,13 @@ async def perp_ioc(ws: DeribitWS, instrument: str, usd_signed: float,
     fee = sum(float(tr.get("fee") or 0.0) for tr in trades)
     log.info("perp %s %s %.0f USD @ %.1f → filled %.0f avg %.1f fee %.8f",
              direction, instrument, abs(usd_signed), price, filled, avg, fee)
-    return PerpFill(requested_usd=usd_signed,
-                    filled_usd=filled if direction == "buy" else -filled,
-                    avg_price=avg, fee_btc=fee)
+    return PerpFill(
+        requested_usd=usd_signed,
+        filled_usd=filled if direction == "buy" else -filled,
+        avg_price=avg, fee_btc=fee,
+        order_id=order.get("order_id"),
+        trade_ids=[str(tr["trade_id"]) for tr in trades if tr.get("trade_id")],
+    )
 
 
 async def current_perp_position(ws: DeribitWS, instrument: str) -> tuple[float, float]:

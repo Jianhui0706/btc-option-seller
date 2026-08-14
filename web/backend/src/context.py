@@ -36,13 +36,41 @@ class Ctx:
     scan_last_error: Optional[str] = None
     scan_last_error_kind: Optional[str] = None
     scan_last_error_ts: Optional[int] = None
+    scan_last_healthy_ts: Optional[int] = None
+    scan_last_warning: Optional[str] = None
+    scan_last_warning_kind: Optional[str] = None
+    scan_last_warning_ts: Optional[int] = None
+    scan_quote_issues: list[dict] = field(default_factory=list)
     # 同一根 bar 内"平仓优先于对冲"：平仓处理时置位，对冲命令检查后丢弃
     hedge_frozen: bool = False
-    # 最近一轮完整 3 分钟扫描得到的账户级对冲快照，仅用于状态页解释
+    # 最近一轮完整复核 Bar 扫描得到的账户级对冲快照，仅用于状态页解释
     # “为什么没有下对冲单”。交易决策仍在 hedge.scan_hedge 内完成。
     hedge_snapshot: Optional[dict] = None
+    # 每个父仓位自己的期权 Delta + 虚拟永续归属快照；用于独立激活与诊断。
+    hedge_snapshots: dict[int, dict] = field(default_factory=dict)
+    # Deribit 实时指数频道推送的最近价格；仅用于提前激活和状态展示。
+    realtime_index_price: Optional[float] = None
+    realtime_index_ts: Optional[int] = None
+    # 实时对冲监控的未落库检查快照。键为 parent_id，供状态页显示最新 tick。
+    hedge_live_checks: dict[int, dict] = field(default_factory=dict)
+    # 三轮 IOC 后仍未达标时的延迟重试任务，键为触发 parent_id。
+    hedge_retry_tasks: dict[int, asyncio.Task] = field(default_factory=dict)
     # 盘口连续缺失计数（风控用）
     quote_missing_count: int = 0
+    # 前端可调的运行时参数（system_state 持久化 + 进程内缓存，见 runtime_settings.py）。
+    # None 表示未覆盖，回退到 cfg 默认 / 原选腿逻辑。
+    runtime_bep_activation_progress: Optional[float] = None
+    runtime_forced_expiry_ts: Optional[int] = None
+    runtime_review_bar_minutes: Optional[int] = None
+    runtime_release_recovery_pct: Optional[float] = None
+    runtime_release_confirmation_bars: Optional[int] = None
+    runtime_hedge_profiles: dict[str, dict] = field(default_factory=dict)
+    hedge_review_bar_ts: dict[str, int] = field(default_factory=dict)
+    # 人工取消对冲后的自动重开冷却截止时间（毫秒）；同时持久化到 system_state。
+    hedge_rearm_after: dict[int, int] = field(default_factory=dict)
+    # 刚由 HEDGE_INACTIVE 激活、尚未发出初始五组委托的父仓位。
+    hedge_grouped_open_pending: set[int] = field(default_factory=set)
+    hedge_execution_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     # 开仓条件看板快照缓存：2h bar 两小时才变一次，不必每次刷新面板都重拉全历史
     entry_snapshot: Optional[dict] = None
     entry_snapshot_ts: float = 0.0

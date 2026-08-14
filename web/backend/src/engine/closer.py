@@ -58,6 +58,15 @@ async def handle_normal_close(ctx: Ctx, payload: dict) -> None:
     # 反转方向的残余仓位也会按正确方向自动清理。
     keep_buy = cfg.exit.keep_buy_leg_on_normal_exit
     min_lot = cfg.strategy.min_lot
+    reserved_sizes = await _other_managed_position_sizes(ctx, parent)
+    parent_groups = await repo.groups_of(pid)
+    parent_remaining = max(
+        0.0,
+        sum(float(group.get("qty") or 0.0) -
+            float(group.get("closed_qty") or 0.0)
+            for group in parent_groups)
+        if parent_groups else float(parent.get("qty_total") or 0.0),
+    )
     positions = await account.get_option_positions(
         ctx.ws, cfg.strategy.currency)
     by_instrument = {p.instrument: p.size for p in positions}
@@ -65,17 +74,23 @@ async def handle_normal_close(ctx: Ctx, payload: dict) -> None:
     buy_size = by_instrument.get(parent["buy_instrument"], 0.0)
 
     if keep_buy:
-        if sell_size <= -(min_lot - 1e-9):
+        own_short = min(
+            parent_remaining,
+            max(0.0, -(sell_size - reserved_sizes.get(
+                parent["sell_instrument"], 0.0))),
+        )
+        if own_short >= min_lot - 1e-9:
             res = await adapter.close_sell_leg_only(
                 ctx.ws,
                 sell_instrument=parent["sell_instrument"],
-                qty=abs(sell_size),
+                qty=own_short,
                 min_lot=min_lot,
             )
             await _record_close_result(
                 ctx, parent, parent["sell_instrument"], "buy", res)
     else:
-        matched = min(max(0.0, -sell_size), max(0.0, buy_size))
+        matched = min(parent_remaining, max(0.0, -sell_size),
+                      max(0.0, buy_size))
         if matched >= min_lot - 1e-9:
             res = await adapter.close_spread_both_legs(
                 ctx.ws,
@@ -110,7 +125,7 @@ async def handle_normal_close(ctx: Ctx, payload: dict) -> None:
         return
 
     recovery = await _flatten_managed_option_residuals(
-        ctx, parent, keep_buy=keep_buy)
+        ctx, parent, keep_buy=keep_buy, reserved_sizes=reserved_sizes)
     if recovery:
         await ev.emit(
             repo.conn, ev.CLOSE_RESIDUAL_RECOVERY, level="WARN",
@@ -119,8 +134,20 @@ async def handle_normal_close(ctx: Ctx, payload: dict) -> None:
     remaining_positions = await account.get_option_positions(
         ctx.ws, cfg.strategy.currency)
     remaining_plan = residual_close_plan(
-        parent, remaining_positions, keep_buy=keep_buy, min_lot=min_lot)
+        parent, remaining_positions, keep_buy=keep_buy, min_lot=min_lot,
+        reserved_sizes=reserved_sizes)
     if remaining_plan:
+        long_only = all(
+            item["role"] == "BUY_LEG" and item["direction"] == "sell"
+            for item in remaining_plan)
+        if long_only:
+            await repo.set_close_reason(pid, "RESIDUAL_LONG_DECISION_REQUIRED")
+            await ev.emit(
+                repo.conn, ev.RESIDUAL_LONG_DECISION_REQUIRED, level="WARN",
+                parent_id=pid, remaining=remaining_plan,
+                note="保护买腿未能成交，等待人工选择再次平仓或确认隔离")
+            log.warning("parent %s 只剩保护买腿，等待人工处理: %s", pid, remaining_plan)
+            return
         await ev.emit(
             repo.conn, ev.CLOSE_RESIDUAL_RETRY, level="ERROR",
             parent_id=pid, remaining=remaining_plan)
@@ -167,6 +194,9 @@ async def handle_normal_close(ctx: Ctx, payload: dict) -> None:
                                  reason=reason, closed_qty=qty_total,
                                  per_contract_pnl=round(per_contract_pnl, 6),
                                  execution_complete=True)
+    active = await repo.active_parents() if hasattr(repo, "active_parents") else []
+    if not any(p["state"] == "CLOSING" for p in active):
+        ctx.hedge_frozen = False
     log.info("parent %s CLOSED (%s): closed=%.1f pnl/张=%.4f",
              pid, reason, qty_total, per_contract_pnl)
 
@@ -331,6 +361,7 @@ def residual_close_plan(
     *,
     keep_buy: bool,
     min_lot: float,
+    reserved_sizes: dict[str, float] | None = None,
 ) -> list[dict]:
     """Build direction-aware orders for managed option residue.
 
@@ -338,7 +369,11 @@ def residual_close_plan(
     partial/retried close has inverted their direction.  Sell-leg-only exits
     preserve a positive protective buy leg, but still repair a negative one.
     """
-    by_instrument = {p.instrument: float(p.size) for p in positions}
+    reserves = reserved_sizes or {}
+    by_instrument = {
+        p.instrument: float(p.size) - float(reserves.get(p.instrument, 0.0))
+        for p in positions
+    }
     plan: list[dict] = []
     legs = [
         ("SELL_LEG", parent["sell_instrument"]),
@@ -372,6 +407,8 @@ async def _record_close_result(
     direction: str,
     result,
 ) -> None:
+    if hasattr(ctx.repo, "record_execution_attempts"):
+        await ctx.repo.record_execution_attempts(parent["id"], getattr(result, "attempts", []))
     if result.closed_qty <= 0:
         return
     role = (
@@ -398,12 +435,14 @@ async def _flatten_managed_option_residuals(
     parent: dict,
     *,
     keep_buy: bool,
+    reserved_sizes: dict[str, float] | None = None,
 ) -> list[dict]:
     positions = await account.get_option_positions(
         ctx.ws, ctx.cfg.strategy.currency)
     plan = residual_close_plan(
         parent, positions, keep_buy=keep_buy,
-        min_lot=ctx.cfg.strategy.min_lot)
+        min_lot=ctx.cfg.strategy.min_lot,
+        reserved_sizes=reserved_sizes)
     actions: list[dict] = []
     for item in plan:
         if item["direction"] == "buy":
@@ -428,3 +467,35 @@ async def _flatten_managed_option_residuals(
             "complete": result.complete,
         })
     return actions
+
+
+async def _other_managed_position_sizes(ctx: Ctx, parent: dict) -> dict[str, float]:
+    """Exchange positions are netted; reserve quantities owned by other parents."""
+    if hasattr(ctx.repo, "active_parents"):
+        parents = await ctx.repo.active_parents()
+    elif hasattr(ctx.repo, "open_parents"):
+        parents = await ctx.repo.open_parents()
+    else:
+        return {}
+    reserved: dict[str, float] = {}
+    for other in parents:
+        if other["id"] == parent["id"]:
+            continue
+        if not other.get("sell_instrument") or not other.get("buy_instrument"):
+            continue
+        groups = await ctx.repo.groups_of(other["id"])
+        remaining = (
+            sum(max(0.0, float(group.get("qty") or 0.0) -
+                    float(group.get("closed_qty") or 0.0))
+                for group in groups)
+            if groups else float(other.get("qty_total") or 0.0)
+        )
+        if remaining <= 0:
+            continue
+        sell = other.get("sell_instrument")
+        buy = other.get("buy_instrument")
+        if sell:
+            reserved[sell] = reserved.get(sell, 0.0) - remaining
+        if buy:
+            reserved[buy] = reserved.get(buy, 0.0) + remaining
+    return reserved

@@ -17,3 +17,6 @@ backups/
 .cloud-package/
 dist/
 .worktrees/
+.codex-doc-review/
+.codex_tmp/
+.deploy-residual-hotfix/

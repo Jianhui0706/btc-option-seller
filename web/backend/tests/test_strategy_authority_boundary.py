@@ -31,6 +31,20 @@ def test_order_orchestrator_does_not_import_or_recompute_entry_conditions():
     assert "后端不再拉行情重算档位" in source
 
 
+def test_entry_index_is_sampled_only_after_both_option_legs_are_open():
+    """标准 E 必须晚于执行器确认完整价差，并用于 BEP 与持仓落库。"""
+    source = ORCHESTRATOR.read_text(encoding="utf-8")
+
+    completed = source.index("res = await task")
+    accepted = source.index("if not res.opened:")
+    sampled = source.index("entry_index_price = await market_data.get_index_price")
+    bep = source.index("res.net_credit_btc, entry_index_price")
+    persisted = source.index("open_index_price=entry_index_price")
+
+    assert completed < accepted < sampled < bep < persisted
+    assert "idx_price = await market_data.get_index_price" not in source
+
+
 def test_backend_dvol_modules_are_explicitly_diagnostic_only():
     entry = ENTRY_CONDITIONS.read_text(encoding="utf-8")
     market = MARKET_DATA.read_text(encoding="utf-8")

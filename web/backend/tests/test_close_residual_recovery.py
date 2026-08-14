@@ -50,6 +50,22 @@ def test_sell_leg_only_exit_preserves_positive_protective_leg():
     ]
 
 
+def test_residual_plan_preserves_other_batches_on_same_instruments():
+    plan = closer.residual_close_plan(
+        parent(),
+        [position("BTC-SELL", -3.0), position("BTC-BUY", 3.0)],
+        keep_buy=False,
+        min_lot=0.1,
+        reserved_sizes={"BTC-SELL": -2.0, "BTC-BUY": 2.0},
+    )
+
+    assert [(item["instrument"], item["direction"], item["qty"])
+            for item in plan] == [
+        ("BTC-SELL", "buy", 1.0),
+        ("BTC-BUY", "sell", 1.0),
+    ]
+
+
 class FakeWs:
     async def request(self, method, params):
         return {}
@@ -211,6 +227,65 @@ async def test_partial_close_uses_actual_residue_and_only_then_marks_closed(
 
 
 @pytest.mark.asyncio
+async def test_close_one_batch_preserves_other_batch_on_shared_instruments(
+    monkeypatch,
+):
+    repo = FakeRepo()
+    repo.parent["qty_total"] = 1.0
+    repo.groups = [{"id": 1, "state": "OPEN", "qty": 1.0,
+                    "closed_qty": 0.0}]
+    other = {
+        "id": 8, "state": "OPEN", "qty_total": 2.0,
+        "sell_instrument": "BTC-SELL", "buy_instrument": "BTC-BUY",
+    }
+
+    async def active_parents():
+        rows = [other]
+        if repo.parent["state"] != "CLOSED":
+            rows.insert(0, repo.parent)
+        return rows
+
+    async def groups_of(parent_id):
+        if parent_id == 8:
+            return [{"qty": 2.0, "closed_qty": 0.0}]
+        return repo.groups
+
+    repo.active_parents = active_parents
+    repo.groups_of = groups_of
+    context = ctx(repo)
+    position_reads = iter([
+        [position("BTC-SELL", -3.0), position("BTC-BUY", 3.0)],
+        [position("BTC-SELL", -2.0), position("BTC-BUY", 2.0)],
+        [position("BTC-SELL", -2.0), position("BTC-BUY", 2.0)],
+    ])
+    spread_calls = []
+
+    async def get_positions(*args, **kwargs):
+        return next(position_reads)
+
+    async def close_spread(*args, **kwargs):
+        spread_calls.append(kwargs["qty"])
+        return CloseResult(
+            closed_qty=kwargs["qty"], buy_back_avg=0.010,
+            sell_out_avg=0.003, complete=True, liquidity_role="TAKER")
+
+    async def close_hedge(*args, **kwargs):
+        return 0.0
+
+    monkeypatch.setattr(closer.account, "get_option_positions", get_positions)
+    monkeypatch.setattr(
+        closer.adapter, "close_spread_both_legs", close_spread)
+    monkeypatch.setattr(
+        closer.hedge_engine, "close_managed_hedge", close_hedge)
+
+    await closer.handle_normal_close(
+        context, {"parent_id": 7, "reason": "CLOSE_PUT"})
+
+    assert spread_calls == [1.0]
+    assert repo.parent["state"] == "CLOSED"
+
+
+@pytest.mark.asyncio
 async def test_unfilled_inverted_residue_stays_closing(monkeypatch):
     repo = FakeRepo()
     context = ctx(repo)
@@ -251,3 +326,40 @@ async def test_unfilled_inverted_residue_stays_closing(monkeypatch):
         args[1] == closer.ev.CLOSE_RESIDUAL_RETRY
         for args, _kwargs in emitted
     )
+
+
+@pytest.mark.asyncio
+async def test_decision_waiting_parent_finalizes_after_exchange_becomes_flat(
+    monkeypatch,
+):
+    repo = FakeRepo()
+    repo.parent["state"] = "CLOSING"
+    repo.parent["close_reason"] = "RESIDUAL_LONG_DECISION_REQUIRED"
+    context = ctx(repo)
+
+    async def no_positions(*args, **kwargs):
+        return []
+
+    async def close_hedge(*args, **kwargs):
+        return 0.0
+
+    async def unexpected_order(*args, **kwargs):
+        raise AssertionError("flat reconciliation must not place an option order")
+
+    monkeypatch.setattr(closer.account, "get_option_positions", no_positions)
+    monkeypatch.setattr(
+        closer.adapter, "close_spread_both_legs", unexpected_order)
+    monkeypatch.setattr(closer.adapter, "close_sell_leg_only", unexpected_order)
+    monkeypatch.setattr(closer.adapter, "close_long_leg", unexpected_order)
+    monkeypatch.setattr(
+        closer.hedge_engine, "close_managed_hedge", close_hedge)
+
+    await closer.handle_normal_close(context, {
+        "parent_id": 7,
+        "reason": "RESIDUAL_AUTO_RECONCILE_FLAT",
+    })
+
+    assert repo.parent["state"] == "CLOSED"
+    assert repo.marked_legs == ["SELL_LEG", "BUY_LEG"]
+    assert all(group["state"] == "CLOSED" for group in repo.groups)
+    assert context.hedge_frozen is False

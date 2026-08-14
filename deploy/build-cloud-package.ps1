@@ -59,7 +59,7 @@ New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot 'web\backend')
 New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot 'deploy\cloud') | Out-Null
 New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
 
-foreach ($directory in @('config', 'src', 'static')) {
+foreach ($directory in @('config', 'scripts', 'src', 'static')) {
     Copy-Item -LiteralPath (Join-Path $backendDir $directory) -Destination (Join-Path $packageRoot 'web\backend') -Recurse
 }
 foreach ($file in @('server.py', 'requirements.txt')) {
@@ -70,6 +70,13 @@ $normalizedEnv = $envText.Replace("`r`n", "`n").Replace("`r", "`n")
 $utf8NoBom = [Text.UTF8Encoding]::new($false)
 [IO.File]::WriteAllText((Join-Path $packageRoot 'web\backend\.env'), $normalizedEnv, $utf8NoBom)
 Get-ChildItem -LiteralPath (Join-Path $projectRoot 'deploy\cloud') | Copy-Item -Destination (Join-Path $packageRoot 'deploy\cloud') -Recurse
+
+Get-ChildItem -LiteralPath $packageRoot -Directory -Recurse -Force |
+    Where-Object { $_.Name -eq '__pycache__' } |
+    Remove-Item -Recurse -Force
+Get-ChildItem -LiteralPath $packageRoot -File -Recurse -Force |
+    Where-Object { $_.Extension -in @('.pyc', '.pyo') } |
+    Remove-Item -Force
 
 if (Test-Path -LiteralPath $archivePath) {
     Remove-Item -LiteralPath $archivePath -Force

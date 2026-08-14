@@ -25,8 +25,26 @@ def test_illegal_trade_transitions():
 
 
 def test_force_close_from_open_states():
-    for frm in ("OPENING", "OPEN", "PARTIALLY_CLOSED", "CLOSING"):
+    for frm in ("OPENING", "OPEN", "PARTIALLY_CLOSED", "SETTLEMENT_PENDING", "CLOSING"):
         check_transition("trade", frm, "FORCE_CLOSED")
+
+
+def test_hold_to_expiry_transitions_are_terminal():
+    check_transition("trade", "OPEN", "SETTLEMENT_PENDING")
+    check_transition("trade", "PARTIALLY_CLOSED", "SETTLEMENT_PENDING")
+    check_transition("trade", "SETTLEMENT_PENDING", "SETTLED")
+    check_transition("group", "OPEN", "SETTLED")
+    with pytest.raises(IllegalTransition):
+        check_transition("trade", "SETTLED", "OPEN")
+
+
+def test_long_only_residue_is_quarantined_but_still_settles():
+    for state in ("OPEN", "PARTIALLY_CLOSED", "SETTLEMENT_PENDING", "CLOSING"):
+        check_transition("trade", state, "RESIDUAL_LONG")
+    check_transition("trade", "RESIDUAL_LONG", "SETTLED")
+    check_transition("trade", "RESIDUAL_LONG", "FORCE_CLOSED")
+    with pytest.raises(IllegalTransition):
+        check_transition("trade", "RESIDUAL_LONG", "OPEN")
 
 
 def test_hedge_cycle():

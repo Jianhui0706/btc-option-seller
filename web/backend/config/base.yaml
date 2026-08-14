@@ -18,34 +18,60 @@ leg_selection:
   sell_delta_min: 0.05               # 卖腿 Delta 约束（沿用 V1 文档）
   sell_delta_max: 0.70
   sell_delta_search_radius: 0.10     # 目标 Delta 附近逐个尝试卖腿；不允许为成交无限偏离目标
-  # ⚠ 待确认口径：买腿按"反向盈亏比"选择的占位实现——
-  # 在满足 max_loss/net_credit ≤ risk_reward_max 的候选中选权利金最便宜（最虚值）者。
-  # （Delta≈0.2 的信用价差典型盈亏比 8~13，阈值 12 为流程验证用占位值）
-  risk_reward_max: 12.0
   min_credit_btc: 0.0005             # 每张最低净收权利金（实际 bid/ask 口径）
 
 risk:
   # ⚠ 待确认口径：每笔最大亏损 ≤ 账户权益 × account_risk_pct（对应文档 delta_account_risk_pct=2%）
   account_risk_pct: 0.02
+  portfolio_risk_pct: 0.06          # 活跃价差的剩余最大风险合计上限；部分平仓会释放额度
   daily_loss_limit_pct: 0.05         # ⚠ 占位：日亏损超权益 5% → FORCE_CLOSE_RISK
   margin_ratio_limit: 0.60           # ⚠ 占位：维持保证金/权益 > 60% → FORCE_CLOSE_RISK
   quote_missing_scans: 5             # 盘口连续缺失 N 轮扫描 → FORCE_CLOSE_RISK
   delta_anomaly_btc: 1.0             # ⚠ 占位：|净Delta| 超过该绝对值视为异常扩大
+  auto_pause_enabled: false          # 人工处理开关仓位，不自动暂停或强平
 
 hedge:
   delta_account_risk_pct: 0.02       # 文档十：2%
   delta_trigger_pct: 0.10            # 文档十：10%（trigger = equity × 2% × 10%）
-  call_release_pct: 0.98             # Call 对冲撤销线 BEP × 0.98
-  put_release_pct: 1.02              # Put 对冲撤销线 BEP × 1.02
+  rebalance_outer_equity_pct: 0.02   # 调仓外层阈值 = 账户权益 2% Delta；避免 0.2% 阈值造成高频来回交易
+  rebalance_inner_ratio: 0.00        # 触发后以 Delta 中性为目标；仅保留字段兼容旧配置
+  min_rebalance_usd: 5000            # 小于该计划额不调仓
+  rebalance_cooldown_sec: 360        # 普通成交后 6 分钟冷却；紧急阈值可绕过
+  emergency_trigger_multiplier: 2.0 # |Delta| 达到外层阈值 2 倍时忽略冷却
+  hedge_scope: SIDE_BOOK             # PUT/CALL 独立判断，BTC-PERPETUAL 最终净额执行
+  review_bar_minutes: 1              # 完整复核 Bar 周期
+  release_confirmation_bars: 1       # 进入撤销区后，再确认 1 根完整复核 Bar
+  activation_price_source: REALTIME_INDEX # 保留实时指数 tick 激活
+  bep_activation_progress: 1.00      # 主策略文档 α：到达 BEP（100%）时激活；运行时允许 0%～200%
+  release_recovery_pct: 0.50         # 参考文档 β：从 BEP 向开仓价恢复 50%
+  hedge_release_progress: 0.05       # 回到开仓价至 BEP 的 5% 位置并经下一根完整 bar 确认后撤销
+  call_release_pct: 0.98             # 旧信号兼容字段；新撤销逻辑使用 hedge_release_progress
+  put_release_pct: 1.02              # 旧信号兼容字段；新撤销逻辑使用 hedge_release_progress
   perp_instrument: BTC-PERPETUAL
   perp_contract_usd: 10              # 永续合约面值（美元），下单量取整到其倍数
   ioc_ticks: 5                       # 对冲 IOC 限价越过对手价的 tick 数
+  retry_rounds: 3                    # 部分/零成交同一轮最多尝试次数
+  retry_delay_sec: 1.5               # 每轮之间重读真实仓位和 Delta 前的等待
+  retry_tick_step: 5                 # 每轮额外增加的吃单 tick 数：5 / 10 / 15
+  degraded_retry_sec: 15             # 三轮仍未达标时的高优先级重试间隔
+  manual_rearm_sec: 10               # 人工取消对冲完成后，至少 10 秒才允许自动重新激活
+  put:
+    rebalance_outer_equity_pct: 0.02
+    min_rebalance_usd: 5000
+    rebalance_cooldown_sec: 360
+    emergency_trigger_multiplier: 2.0
+  call:
+    rebalance_outer_equity_pct: 0.02
+    min_rebalance_usd: 5000
+    rebalance_cooldown_sec: 360
+    emergency_trigger_multiplier: 2.0
 
 exit:
   dvol_window_bars: 120              # 最近 120 个已完成 12h DVOL 值
   dvol_percentile: 30
   keep_buy_leg_on_normal_exit: false # 正常退出默认双腿全平；true=只平卖腿保留买腿
-  expiry_close_dte: 1.0              # 距到期 ≤ 1 天平仓（沿用 V1）
+  expiry_policy: HOLD_TO_EXPIRY      # 正常持有到 Deribit 到期结算，不提前发送平仓单
+  expiry_close_dte: 1.0              # 仅 CLOSE_BEFORE_EXPIRY 兼容模式使用
 
 scan:
   interval_sec: 180                  # 3 分钟扫描
@@ -66,6 +92,7 @@ entry_signal:
 execution:
   n_exec_groups: 5                   # 执行分批数（下单节奏，≠管理子组 group_split_count）
   attempt_waits: [3, 8, 15]          # mid → 2/3 touch → IOC 等待秒数（沿用 V1）
+  manual_hedge_maker_wait_sec: 10    # 一键开/关对冲：每组 A1、A2 Maker 各等待 10 秒
 
 group_split_count_default: 4         # webhook 未带时的默认管理子组数
 

@@ -19,8 +19,13 @@ async def test_group_pnl_and_hedge_attribution_columns(tmp_path):
             "PRAGMA table_info(trade_groups)")).fetchall()
         hedge_cols = {r[1] for r in hedge_rows}
         group_cols = {r[1] for r in group_rows}
-        assert {"futures_usd", "futures_delta_btc"} <= hedge_cols
+        assert {"futures_usd", "futures_delta_btc", "manual_hold"} <= hedge_cols
         assert {"unrealized_pnl_btc", "profit_ratio"} <= group_cols
+
+        action_rows = await (await conn.execute(
+            "PRAGMA table_info(hedge_actions)")).fetchall()
+        action_cols = {r[1] for r in action_rows}
+        assert {"requested_usd", "managed_usd_after", "details_json"} <= action_cols
 
         heartbeat_rows = await (await conn.execute(
             "PRAGMA table_info(pine_heartbeats)")).fetchall()

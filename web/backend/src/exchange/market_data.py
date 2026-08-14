@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Optional
 
 from .deribit_ws import DeribitWS
@@ -22,6 +23,21 @@ def now_ms() -> int:
 async def get_index_price(ws: DeribitWS, currency: str = "BTC") -> float:
     r = await ws.request("public/get_index_price", {"index_name": f"{currency.lower()}_usd"})
     return float(r["index_price"])
+
+
+async def get_delivery_price(ws: DeribitWS, expiry_ts: int,
+                             currency: str = "BTC") -> Optional[float]:
+    """返回到期 UTC 日期的 Deribit 正式交割价；尚未发布时返回 None。"""
+    expiry_date = datetime.fromtimestamp(
+        expiry_ts / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+    result = await ws.request("public/get_delivery_prices", {
+        "index_name": f"{currency.lower()}_usd",
+        "count": 10,
+    })
+    for item in result.get("data", []):
+        if item.get("date") == expiry_date and item.get("delivery_price") is not None:
+            return float(item["delivery_price"])
+    return None
 
 
 @dataclass
@@ -119,8 +135,14 @@ def strike_of(ticker: dict) -> float:
 
 
 async def option_chain_tickers(ws: DeribitWS, currency: str, option_type: str,
-                               dte_lo: float, dte_hi: float) -> OptionChain:
-    """按目标 DTE 区间排序逐个检查到期日，返回首个至少两只双边报价的链（沿用 V1 降级规则）。"""
+                               dte_lo: float, dte_hi: float,
+                               forced_expiry_ts: Optional[int] = None
+                               ) -> OptionChain:
+    """按目标 DTE 区间排序逐个检查到期日，返回首个至少两只双边报价的链（沿用 V1 降级规则）。
+
+    forced_expiry_ts 非空时锁定到该到期日：只检查这一个到期日，忽略 DTE 区间；
+    该到期日已下市则返回空链（交由上层判为无合格双腿），绝不改选别的到期日。
+    """
     instruments = await ws.request(
         "public/get_instruments", {"currency": currency, "kind": "option", "expired": False})
     side = [i for i in instruments if i["option_type"] == option_type]
@@ -128,11 +150,22 @@ async def option_chain_tickers(ws: DeribitWS, currency: str, option_type: str,
     expiries = sorted({i["expiration_timestamp"] for i in side})
     if not expiries:
         raise RuntimeError(f"{currency} 没有可用 {option_type} 到期日")
-    mid = (dte_lo + dte_hi) / 2
-    ranked = sorted(expiries, key=lambda e: (
-        0 if dte_lo <= (e - now) / 86400000 <= dte_hi else 1,
-        abs((e - now) / 86400000 - mid),
-    ))
+    if forced_expiry_ts is not None:
+        if forced_expiry_ts not in expiries:
+            # 指定到期日不在当前挂牌列表（已过期/未上市）→ 空链，不回退别的到期日
+            return OptionChain(
+                tickers=[], option_type=option_type,
+                dte=(forced_expiry_ts - now) / 86400000,
+                expiration_timestamp=int(forced_expiry_ts),
+                checked_expiries=0, target_range_match=False,
+            )
+        ranked = [forced_expiry_ts]
+    else:
+        mid = (dte_lo + dte_hi) / 2
+        ranked = sorted(expiries, key=lambda e: (
+            0 if dte_lo <= (e - now) / 86400000 <= dte_hi else 1,
+            abs((e - now) / 86400000 - mid),
+        ))
 
     fallback: Optional[OptionChain] = None
     for checked, expiry in enumerate(ranked, start=1):
@@ -158,3 +191,14 @@ async def option_chain_tickers(ws: DeribitWS, currency: str, option_type: str,
     assert fallback is not None
     fallback.checked_expiries = len(ranked)
     return fallback
+
+
+async def list_option_expiries(ws: DeribitWS, currency: str = "BTC"
+                               ) -> list[dict]:
+    """当前挂牌的期权到期日（去重、按时间升序），供前端强制到期日下拉。"""
+    instruments = await ws.request(
+        "public/get_instruments",
+        {"currency": currency, "kind": "option", "expired": False})
+    now = now_ms()
+    ts_set = sorted({int(i["expiration_timestamp"]) for i in instruments})
+    return [{"ts": e, "dte": (e - now) / 86400000} for e in ts_set]

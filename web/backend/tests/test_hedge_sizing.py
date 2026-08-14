@@ -4,7 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.engine.hedge import TradeHedgeParams, hedge_diagnostic
+from src.engine.hedge import (TradeHedgeParams, delta_view_from_positions,
+                              hedge_diagnostic)
 
 
 def trigger(equity: float) -> float:
@@ -53,6 +54,22 @@ def test_hedge_direction_neutral():
     assert (target - 0.5) == pytest.approx(0.35)
 
 
+def test_scanner_position_snapshot_builds_delta_view():
+    ctx = SimpleNamespace(cfg=SimpleNamespace(
+        hedge=SimpleNamespace(perp_instrument="BTC-PERPETUAL")))
+    view = delta_view_from_positions(
+        ctx,
+        SimpleNamespace(equity_btc=2.0),
+        [SimpleNamespace(delta=-0.30), SimpleNamespace(delta=0.05)],
+        [SimpleNamespace(instrument="BTC-PERPETUAL", delta_btc=0.10)],
+        65000.0,
+    )
+
+    assert view.option_delta == pytest.approx(-0.25)
+    assert view.futures_delta == pytest.approx(0.10)
+    assert view.net_delta == pytest.approx(-0.15)
+
+
 def _diagnostic_ctx():
     return SimpleNamespace(
         hedge_frozen=False,
@@ -60,6 +77,7 @@ def _diagnostic_ctx():
             hedge=SimpleNamespace(
                 delta_account_risk_pct=0.02,
                 delta_trigger_pct=0.10,
+                bep_activation_progress=0.50,
                 call_release_pct=0.98,
                 put_release_pct=1.02,
                 perp_contract_usd=10.0,
@@ -98,16 +116,35 @@ def _snapshot(*, bar_close=65000.0, option_delta=0.01,
 def test_diagnostic_explains_waiting_for_put_bep():
     result = hedge_diagnostic(
         _diagnostic_ctx(),
-        {"spread_type": "PUT_CREDIT", "bep_price": 62000.0},
+        {"spread_type": "PUT_CREDIT", "bep_price": 62000.0,
+         "open_index_price": 65000.0},
         {"state": "HEDGE_INACTIVE", "futures_usd": 0.0},
         _snapshot(bar_close=65000.0),
         _params(),
     )
 
-    assert result["reason_code"] == "WAITING_FOR_BEP"
+    assert result["reason_code"] == "WAITING_FOR_HEDGE_TRIGGER"
     assert "65,000.0" in result["reason"]
-    assert "62,000.0" in result["reason"]
-    assert "3,000.0 USD" in result["next_action"]
+    assert "63,500.0" in result["reason"]
+    assert "1,500.0 USD" in result["next_action"]
+    assert result["activation_price"] == pytest.approx(63500.0)
+    assert result["review_bar_minutes"] == 3
+
+
+def test_release_pending_copy_uses_configured_review_bar_minutes():
+    ctx = _diagnostic_ctx()
+    ctx.runtime_review_bar_minutes = 1
+    result = hedge_diagnostic(
+        ctx,
+        {"spread_type": "PUT_CREDIT", "bep_price": 62000.0,
+         "open_index_price": 65000.0},
+        {"state": "HEDGE_RELEASE_PENDING", "futures_usd": 100.0},
+        _snapshot(bar_close=63500.0),
+        _params(),
+    )
+
+    assert result["review_bar_minutes"] == 1
+    assert "完整 1 分钟 K 线" in result["reason"]
 
 
 def test_diagnostic_explains_active_delta_below_threshold():

@@ -19,6 +19,24 @@ from ..monitor import events as ev
 log = logging.getLogger("v2.worker")
 
 
+async def recover_failed_open_command(ctx: Ctx, cmd, exc: Exception) -> None:
+    """确保 OPEN 异常不会留下永久占用 active 计数的中间态。"""
+    signal_id = str(cmd.payload.get("signal", {}).get("signal_id") or "")
+    parent_reader = getattr(ctx.repo, "parent_by_signal_id", None)
+    parent = (await parent_reader(signal_id)
+              if signal_id and callable(parent_reader) else None)
+    if parent and parent["state"] in (
+            "SIGNAL_RECEIVED", "POSITION_CHECKING", "SELECTING_LEGS"):
+        detail = str(exc) or type(exc).__name__
+        await ctx.repo.transition_parent(
+            parent["id"], "OPEN_FAILED", ev.OPEN_EXECUTION_ERROR,
+            error=detail)
+        await ctx.repo.set_signal_status(
+            signal_id, "REJECTED", ev.OPEN_EXECUTION_ERROR, detail=detail)
+    elif parent and parent["state"] == "OPENING":
+        ctx.queue.put(ctx.queue.recover_opening(parent["id"]))
+
+
 async def run_worker(ctx: Ctx) -> None:
     log.info("engine worker started")
     while True:
@@ -26,6 +44,9 @@ async def run_worker(ctx: Ctx) -> None:
         handler = ctx.handlers.get(cmd.kind)
         if handler is None:
             log.error("no handler for command %s", cmd.kind)
+            complete = getattr(ctx.queue, "complete", None)
+            if callable(complete):
+                complete(cmd)
             continue
         ctx.current_command_kind = cmd.kind
         ctx.current_command_started_ts = int(time.time() * 1000)
@@ -46,6 +67,14 @@ async def run_worker(ctx: Ctx) -> None:
                               command=cmd.kind, error=str(exc))
             except Exception:  # noqa: BLE001
                 pass
+            if cmd.kind == "OPEN":
+                try:
+                    await recover_failed_open_command(ctx, cmd, exc)
+                except Exception:  # noqa: BLE001 - 保留原始异常并等待扫描恢复
+                    log.exception("failed to recover OPEN command state")
         finally:
+            complete = getattr(ctx.queue, "complete", None)
+            if callable(complete):
+                complete(cmd)
             ctx.current_command_kind = None
             ctx.current_command_started_ts = None

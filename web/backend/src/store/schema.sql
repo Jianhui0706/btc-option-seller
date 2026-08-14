@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS signals (
   payload_json  TEXT NOT NULL,
   received_at   INTEGER NOT NULL,
   status        TEXT NOT NULL DEFAULT 'RECEIVED',   -- RECEIVED / ACCEPTED / REJECTED
-  reject_reason TEXT
+  reject_reason TEXT,
+  reject_detail TEXT
 );
 
 CREATE TABLE IF NOT EXISTS parent_trades (
@@ -29,6 +30,7 @@ CREATE TABLE IF NOT EXISTS parent_trades (
   net_credit_btc  REAL,                      -- 每张净收权利金（BTC，实际成交口径）
   open_index_price REAL,                     -- 开仓时指数价（BEP 折算用）
   bep_price       REAL,                      -- 后端按实际成交计算
+  settlement_price REAL,                    -- Deribit 正式交割价（到期结算终态）
   opened_at       INTEGER,
   closed_at       INTEGER,
   close_reason    TEXT,
@@ -73,27 +75,74 @@ CREATE TABLE IF NOT EXISTS fills (
   ts          INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS execution_attempts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  parent_id INTEGER REFERENCES parent_trades(id),
+  phase TEXT NOT NULL,
+  operation TEXT,
+  instrument TEXT,
+  direction TEXT,
+  liquidity_role TEXT,
+  attempt_no INTEGER,
+  round_no INTEGER,
+  requested_qty REAL,
+  filled_qty REAL DEFAULT 0,
+  limit_price REAL,
+  avg_fill_price REAL,
+  status TEXT,
+  placed_at INTEGER,
+  finished_at INTEGER,
+  duration_ms INTEGER,
+  group_index INTEGER,
+  group_count INTEGER,
+  cycle_id TEXT,
+  cycle_attempt_no INTEGER,
+  cycle_max_attempts INTEGER,
+  recorded_at INTEGER,
+  exchange_order_id TEXT,
+  details_json TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_execution_attempts_parent ON execution_attempts(parent_id, id);
+
 CREATE TABLE IF NOT EXISTS hedge_state (
   parent_id       INTEGER PRIMARY KEY REFERENCES parent_trades(id),
   state           TEXT NOT NULL DEFAULT 'HEDGE_INACTIVE',
+  manual_hold     INTEGER NOT NULL DEFAULT 0, -- 兼容旧版人工固定持有；新版一键对冲允许自动撤销
   activated_at    INTEGER,
-  release_pending_bar_ts INTEGER,            -- 触发撤销线的 3min bar 时间戳
+  release_pending_bar_ts INTEGER,            -- 触发撤销线的复核 bar 时间戳
+  release_confirm_count INTEGER NOT NULL DEFAULT 0,
   futures_usd     REAL DEFAULT 0,            -- 本策略归属的对冲成交净额（USD，正=多）
   futures_delta_btc REAL DEFAULT 0,          -- 本策略归属对冲的估算 Delta（BTC）
-  last_rebalance_at INTEGER
+  last_rebalance_at INTEGER,
+  check_count     INTEGER NOT NULL DEFAULT 0, -- 实时价 / 扫描价比较总次数
+  last_check_at   INTEGER,
+  last_check_price REAL,
+  last_check_source TEXT,                     -- realtime_index / 3m_close
+  last_check_trigger REAL,
+  last_check_progress REAL,
+  last_check_offset REAL,
+  last_check_touched INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS hedge_actions (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   parent_id     INTEGER,
+  book_key     TEXT,                         -- PUT_CREDIT / CALL_CREDIT
   ts            INTEGER NOT NULL,
   action        TEXT NOT NULL,               -- ACTIVATE / REBALANCE / RELEASE / SKIP / CLOSE
   net_delta_before REAL,
   net_delta_after  REAL,
-  order_usd     REAL,
+  order_usd     REAL,                       -- 实际成交额（USD，带方向）
+  requested_usd REAL,                       -- 本轮计划调整额（USD，带方向）
+  managed_usd_after REAL,                   -- 本轮后该触发仓位归属的累计永续金额
+  cycle_id     TEXT,                        -- 一次调仓周期的关联 ID
+  attempt_no   INTEGER,                     -- 本周期第几次 IOC 尝试
+  max_attempts INTEGER,                     -- 本周期最大尝试次数
+  residual_delta REAL,                      -- 本次成交后仍待处理的策略净 Delta
   fill_price    REAL,
   fee           REAL,
-  skipped_reason TEXT                        -- MIN_AMOUNT / BELOW_TRIGGER / NULL
+  skipped_reason TEXT,                       -- MIN_AMOUNT / BELOW_TRIGGER / NULL
+  details_json  TEXT                         -- 人工分批执行等扩展审计明细
 );
 
 CREATE TABLE IF NOT EXISTS events (

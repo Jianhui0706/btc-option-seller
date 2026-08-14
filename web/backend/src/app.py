@@ -13,10 +13,11 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
-from . import api, webhook
+from . import api, runtime_settings, webhook
 from .config import db_path, load_config
 from .context import Ctx
-from .engine import closer, hedge, orchestrator, reverser, risk, scanner, worker
+from .engine import (closer, hedge, orchestrator, realtime_hedge, reverser,
+                     risk, scanner, worker)
 from .engine.commands import CommandQueue
 from .exchange.deribit_ws import DeribitWS, MAINNET_URL, TESTNET_URL
 from .store.db import Database
@@ -37,7 +38,7 @@ async def lifespan(app: FastAPI):
     if not cfg.env.is_testnet:
         log.warning("!!! 实盘环境 MAINNET，请确认所有待确认口径已由用户确认 !!!")
 
-    db = Database(db_path())
+    db = Database(db_path(cfg.env))
     conn = await db.open()
     repo = Repo(conn)
 
@@ -69,14 +70,25 @@ async def lifespan(app: FastAPI):
     }
     app.state.ctx = ctx
 
+    # 前端可调的运行时参数（激活系数 / 强制到期日）从库回填进缓存
+    await runtime_settings.load_into_ctx(ctx)
+
     # 崩溃恢复：启动时核对 DB 与交易所（M6 reconcile）
     await risk.reconcile_on_startup(ctx)
+
+    # 逐笔 BTC 指数价负责提前激活；3 分钟扫描保留作风控、撤销确认和断线兜底。
+    realtime_monitor = realtime_hedge.RealtimeHedgeMonitor(ctx)
+    try:
+        await realtime_monitor.start()
+    except Exception as exc:  # 订阅不可用时不阻断服务启动
+        log.warning("实时对冲价格订阅启动失败，使用 3 分钟扫描兜底: %s", exc)
 
     worker_task = asyncio.create_task(worker.run_worker(ctx))
     scanner_task = asyncio.create_task(scanner.run_scheduler(ctx))
     try:
         yield
     finally:
+        await realtime_monitor.close()
         scanner_task.cancel()
         worker_task.cancel()
         await asyncio.gather(scanner_task, worker_task, return_exceptions=True)

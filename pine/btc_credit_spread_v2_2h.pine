@@ -7,7 +7,7 @@
 // 所有跨周期数据均取 [1] + lookahead_on，只使用已经收盘的高周期 K 线。
 //
 // ⚠ 待确认口径（占位默认值，请按原策略核对）：布林带周期/倍数、HV 计算窗口与分位窗口。
-// 已与控制台生成的通用 Alert JSON V2 对齐。
+// 已与控制台生成的方向显式 Alert JSON V3 对齐。
 // Alert 条件只选择“订单成交”；消息使用管理页面生成的 JSON 模板。
 strategy("BTC期权卖方V2·固定2小时版", overlay = true, pyramiding = 0,
      process_orders_on_close = true, calc_on_every_tick = false)
@@ -34,6 +34,8 @@ hv_pctl_window = input.int(252, "HV 分位窗口(2h bar 数) ⚠待核对", grou
 hv_pctl_min = input.float(30.0, "HV 分位下限 (%)", group = grpSig)
 
 grpMisc = "TradingView 回测"
+trade_side = input.string("PUT", "独立信号方向", options = ["PUT", "CALL"], group = grpMisc,
+     tooltip = "同一脚本加载两份：一份 PUT、一份 CALL，并分别创建 Alert")
 // 仅用于 TradingView 策略回测；真实 Deribit 数量、Delta、DTE 与分组由后端风险配置统一决定。
 order_size = input.float(0.1, "TV 回测虚拟数量（后端忽略）",
      group = grpMisc, minval = 0.1, step = 0.1)
@@ -104,8 +106,8 @@ callSignal = newSignalBar and cfgOk and tierOk and hvOk and cciOk and callShape
 
 var int lastSigT = na
 canFire = na(lastSigT) or signalTime != lastSigT
-putEntrySignal = barstate.isconfirmed and putSignal and canFire and strategy.position_size == 0
-callEntrySignal = barstate.isconfirmed and callSignal and canFire and strategy.position_size == 0
+putEntrySignal = trade_side == "PUT" and barstate.isconfirmed and putSignal and canFire and strategy.position_size == 0
+callEntrySignal = trade_side == "CALL" and barstate.isconfirmed and callSignal and canFire and strategy.position_size == 0
 closeSignal = barstate.isconfirmed and dvolExitHit and strategy.position_size != 0
 blockReason = not cfgOk ? "档位配置错误" :
      not dvolReady ? "DVOL历史不足·不开仓" :
@@ -126,7 +128,8 @@ if callEntrySignal
          comment = "CALL_CREDIT", alert_message = "OPEN")
     lastSigT := signalTime
 if closeSignal
-    strategy.close_all(comment = "TV_DVOL_EXIT", alert_message = "CLOSE")
+    strategy.close(trade_side == "PUT" ? "PUT_CREDIT" : "CALL_CREDIT",
+         comment = "TV_DVOL_EXIT", alert_message = "CLOSE")
 
 // ---------------------------------------------------------------- 图面展示
 plotshape(putEntrySignal, title = "PUT开仓信号", style = shape.labelup,

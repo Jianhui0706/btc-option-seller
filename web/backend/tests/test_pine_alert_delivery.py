@@ -22,14 +22,15 @@ def test_v2_orders_are_strategy_fills_without_legacy_status_alerts():
         assert 'strategy.entry("PUT_CREDIT", strategy.long' in source
         assert 'strategy.entry("CALL_CREDIT", strategy.short' in source
         assert 'alert_message = "OPEN"' in source
-        assert 'strategy.close_all(comment = "TV_DVOL_EXIT", alert_message = "CLOSE")' in source
+        assert 'strategy.close(trade_side == "PUT" ? "PUT_CREDIT" : "CALL_CREDIT"' in source
+        assert 'trade_side = input.string("PUT", "独立信号方向"' in source
         assert "f_open_json" not in source
         assert "f_exit_json" not in source
         assert "f_status_json" not in source
         assert "heartbeat_on" not in source
         assert "alert(" not in source
-        assert "putEntrySignal = barstate.isconfirmed and putSignal" in source
-        assert "callEntrySignal = barstate.isconfirmed and callSignal" in source
+        assert 'putEntrySignal = trade_side == "PUT"' in source
+        assert 'callEntrySignal = trade_side == "CALL"' in source
         assert "closeSignal = barstate.isconfirmed and dvolExitHit" in source
         assert "if putEntrySignal" in source
         assert "if callEntrySignal" in source
@@ -100,7 +101,7 @@ def test_v2_pine_has_no_duplicate_identity_or_execution_payload_contract():
     for path in V2_PINES:
         source = path.read_text(encoding="utf-8")
 
-        assert "Alert JSON V2" in source
+        assert "Alert JSON V3" in source
         assert 'Alert 条件只选择“订单成交”' in source
         assert "passphrase = input." not in source
         assert "strategy_name = input." not in source

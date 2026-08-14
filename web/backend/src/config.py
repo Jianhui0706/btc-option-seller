@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 SERVER_DIR = Path(__file__).resolve().parent.parent
@@ -57,32 +58,63 @@ class LegSelectionCfg(BaseModel):
     sell_delta_min: float = 0.05
     sell_delta_max: float = 0.70
     sell_delta_search_radius: float = 0.10
-    risk_reward_max: float = 6.0
     min_credit_btc: float = 0.0005
 
 
 class RiskCfg(BaseModel):
     account_risk_pct: float = 0.02
+    portfolio_risk_pct: float = Field(default=0.06, gt=0.0, le=1.0)
     daily_loss_limit_pct: float = 0.05
     margin_ratio_limit: float = 0.60
     quote_missing_scans: int = 5
     delta_anomaly_btc: float = 1.0
+    auto_pause_enabled: bool = False
+
+
+class HedgeSideCfg(BaseModel):
+    """PUT/CALL 独立对冲决策参数；交易所永续仓位仍按净额执行。"""
+    rebalance_outer_equity_pct: float = Field(default=0.02, gt=0.0, le=0.20)
+    min_rebalance_usd: float = Field(default=5000.0, ge=10.0)
+    rebalance_cooldown_sec: float = Field(default=360.0, ge=0.0)
+    emergency_trigger_multiplier: float = Field(default=2.0, ge=1.0)
 
 
 class HedgeCfg(BaseModel):
     delta_account_risk_pct: float = 0.02
     delta_trigger_pct: float = 0.10
+    rebalance_outer_equity_pct: float = Field(default=0.02, gt=0.0, le=1.0)
+    rebalance_inner_ratio: float = Field(default=0.0, ge=0.0, lt=1.0)
+    min_rebalance_usd: float = Field(default=5000.0, ge=0.0)
+    rebalance_cooldown_sec: float = Field(default=360.0, ge=0.0)
+    emergency_trigger_multiplier: float = Field(default=2.0, ge=1.0)
+    hedge_scope: Literal["ACCOUNT_NET", "SIDE_BOOK"] = "SIDE_BOOK"
+    review_bar_minutes: Literal[1, 3, 5, 10, 15, 30, 60] = 1
+    release_confirmation_bars: int = Field(default=1, ge=1, le=10)
+    activation_price_source: Literal[
+        "REALTIME_INDEX", "COMPLETED_REVIEW_BAR"
+    ] = "REALTIME_INDEX"
+    bep_activation_progress: float = Field(default=1.00, ge=0.0, le=2.0)
+    release_recovery_pct: float = Field(default=0.50, ge=0.0, le=1.0)
+    hedge_release_progress: float = Field(default=0.05, ge=0.0, le=1.0)
     call_release_pct: float = 0.98
     put_release_pct: float = 1.02
     perp_instrument: str = "BTC-PERPETUAL"
     perp_contract_usd: float = 10.0
     ioc_ticks: int = 5
+    retry_rounds: int = Field(default=3, ge=1, le=8)
+    retry_delay_sec: float = Field(default=1.5, ge=0.0, le=30.0)
+    retry_tick_step: int = Field(default=5, ge=0, le=100)
+    degraded_retry_sec: float = Field(default=15.0, ge=1.0, le=300.0)
+    manual_rearm_sec: float = Field(default=10.0, ge=0.0, le=3600.0)
+    put: HedgeSideCfg = HedgeSideCfg()
+    call: HedgeSideCfg = HedgeSideCfg()
 
 
 class ExitCfg(BaseModel):
     dvol_window_bars: int = 120
     dvol_percentile: float = 30.0
     keep_buy_leg_on_normal_exit: bool = False
+    expiry_policy: Literal["HOLD_TO_EXPIRY", "CLOSE_BEFORE_EXPIRY"] = "HOLD_TO_EXPIRY"
     expiry_close_dte: float = 1.0
 
 
@@ -106,6 +138,8 @@ class EntrySignalCfg(BaseModel):
 class ExecutionCfg(BaseModel):
     n_exec_groups: int = 5
     attempt_waits: list[float] = [3.0, 8.0, 15.0]
+    manual_hedge_maker_wait_sec: float = Field(
+        default=10.0, ge=1.0, le=60.0)
 
 
 class WebhookCfg(BaseModel):
@@ -176,6 +210,23 @@ def load_config(env_name: Optional[str] = None) -> AppConfig:
     return cfg
 
 
-def db_path() -> Path:
+def account_scope_key(env: EnvSettings) -> str:
+    """Return a stable, non-secret storage namespace for one Deribit account."""
+    environment = "testnet" if env.is_testnet else "mainnet"
+    client_id = env.client_id.strip()
+    if not client_id:
+        return f"{environment}-unconfigured"
+    digest = hashlib.sha256(
+        f"{environment}:{client_id}".encode("utf-8")
+    ).hexdigest()[:12]
+    return f"{environment}-{digest}"
+
+
+def db_path(env: EnvSettings | None = None) -> Path:
     os.makedirs(DATA_DIR, exist_ok=True)
-    return DATA_DIR / "seller_v2.db"
+    # Keep the no-argument path for developer tools and legacy callers. The
+    # running service always supplies EnvSettings and therefore gets a fully
+    # account-scoped ledger.
+    if env is None:
+        return DATA_DIR / "seller_v2.db"
+    return DATA_DIR / f"seller_v2_{account_scope_key(env)}.db"

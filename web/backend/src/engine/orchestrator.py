@@ -13,10 +13,34 @@ from ..context import Ctx
 from ..exchange import account, market_data
 from ..execution import adapter
 from ..monitor import events as ev
+from .. import runtime_settings
 from . import bep as bep_mod
 from . import grouping, leg_selector, risk
 
 log = logging.getLogger("v2.open")
+
+
+def open_conflict(signal: dict, active_parents: list[dict],
+                  option_positions: list) -> tuple[str | None, dict]:
+    """全账户只允许一个活动价差；旧仓彻底关闭后才能开新 PUT/CALL。"""
+    if active_parents:
+        return ev.REJECT_ACTIVE_POSITION_EXISTS, {
+            "active_parent_ids": [p["id"] for p in active_parents],
+            "active_spread_types": [p.get("spread_type") for p in active_parents],
+            "active_states": [p.get("state") for p in active_parents],
+            "requested_spread_type": signal["spread_type"],
+        }
+    managed_shorts = {
+        p.get("sell_instrument") for p in active_parents
+        if p.get("sell_instrument")
+    }
+    foreign_shorts = [
+        p.instrument for p in option_positions
+        if p.is_short and p.instrument not in managed_shorts
+    ]
+    if foreign_shorts:
+        return ev.REJECT_EXISTING_OPTION_SHORT, {"shorts": foreign_shorts}
+    return None, {}
 
 
 async def handle_open(ctx: Ctx, payload: dict) -> None:
@@ -26,20 +50,30 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
     repo, cfg, ws = ctx.repo, ctx.cfg, ctx.ws
 
     async def reject(code: str, **extra) -> None:
-        await repo.set_signal_status(signal_id, "REJECTED", code)
+        detail = None
+        if code == ev.REJECT_TRADING_DISABLED:
+            detail = await repo.get_state(risk.PAUSE_REASON_KEY, "") or None
+            if detail:
+                extra.setdefault("pause_reason", detail)
+        await repo.set_signal_status(
+            signal_id, "REJECTED", code, detail=detail)
         await ev.emit(repo.conn, code, level="WARN", signal_id=signal_id, **extra)
 
     # 0. 系统状态
-    if await ctx.force_close_active() or not await ctx.trading_enabled():
+    force_close = await ctx.force_close_active()
+    entry_enabled = await ctx.trading_enabled()
+    if not force_close and not entry_enabled:
+        entry_enabled = await risk.maybe_resume_testnet_daily_loss_pause(ctx)
+    if force_close or not entry_enabled:
         await reject(ev.REJECT_TRADING_DISABLED,
-                     force_close=await ctx.force_close_active())
+                     force_close=force_close)
         return
 
     parent_id = await repo.create_parent(
         signal_id, spread_type, signal.get("dvol_tier"),
         trade_id=signal.get("trade_id"))
 
-    # 1. 开仓前持仓检查（规范第三节：任何期权卖方持仓都阻止，无论来源）
+    # 1. 全账户单仓：任何活动父交易都阻止新 PUT/CALL；账户外卖仓同样阻止。
     await repo.transition_parent(parent_id, "POSITION_CHECKING")
     opts = await account.get_option_positions(ws, cfg.strategy.currency)
     if opts:
@@ -48,22 +82,12 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
         if recovered:
             opts = await account.get_option_positions(
                 ws, cfg.strategy.currency)
-    shorts = [p for p in opts if p.is_short]
-    if shorts:
-        await repo.transition_parent(parent_id, "OPEN_FAILED",
-                                     ev.REJECT_EXISTING_OPTION_SHORT,
-                                     shorts=[p.instrument for p in shorts])
-        await repo.set_signal_status(signal_id, "REJECTED",
-                                     ev.REJECT_EXISTING_OPTION_SHORT)
-        return
-    # DB 侧防重：已有活跃父交易同样视为占用（同一时间仅一笔卖方交易）
     actives = [p for p in await repo.active_parents() if p["id"] != parent_id]
-    if actives:
+    conflict, detail = open_conflict(signal, actives, opts)
+    if conflict:
         await repo.transition_parent(parent_id, "OPEN_FAILED",
-                                     ev.REJECT_EXISTING_OPTION_SHORT,
-                                     active_parent_ids=[p["id"] for p in actives])
-        await repo.set_signal_status(signal_id, "REJECTED",
-                                     ev.REJECT_EXISTING_OPTION_SHORT)
+                                     conflict, **detail)
+        await repo.set_signal_status(signal_id, "REJECTED", conflict)
         return
 
     # 2. 选腿。TradingView 已经决定是否交易，并把本次执行所需的
@@ -107,15 +131,22 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
         await repo.set_signal_status(signal_id, "REJECTED", ev.REJECT_BAD_PAYLOAD)
         return
     opt_type = "put" if spread_type == "PUT_CREDIT" else "call"
+    # 前端设了强制到期日则锁定到该到期日；未设走原 tier/DTE 区间逻辑。
+    forced_expiry = runtime_settings.forced_expiry_ts(ctx)
     chain = await market_data.option_chain_tickers(
-        ws, cfg.strategy.currency, opt_type, dte_lo, dte_hi)
+        ws, cfg.strategy.currency, opt_type, dte_lo, dte_hi,
+        forced_expiry_ts=forced_expiry)
     sel = leg_selector.select_spread(
         chain.tickers, spread_type, sell_delta,
         sell_delta_min=cfg.leg_selection.sell_delta_min,
         sell_delta_max=cfg.leg_selection.sell_delta_max,
         sell_delta_search_radius=cfg.leg_selection.sell_delta_search_radius,
         min_credit_btc=cfg.leg_selection.min_credit_btc,
-        risk_reward_max=cfg.leg_selection.risk_reward_max)
+        # Any real option already in the account is unavailable for a new
+        # spread. This is especially important for quarantined long-only
+        # residue: selling the same instrument would silently reduce it
+        # instead of opening the intended short leg.
+        excluded_instruments={p.instrument for p in opts})
     if sel is None:
         await repo.transition_parent(parent_id, "OPEN_FAILED", ev.REJECT_NO_VALID_LEGS,
                                      dte=round(chain.dte, 1),
@@ -125,9 +156,30 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
 
     # 3. 算量（风险预算）
     summ = await account.get_account_summary(ws, cfg.strategy.currency)
-    risk_qty = leg_selector.contracts_for_budget(
+    per_trade_qty = leg_selector.contracts_for_budget(
         summ.equity_btc, cfg.risk.account_risk_pct, sel.max_loss_btc,
         cfg.strategy.min_lot)
+    risk_reader = getattr(repo, "active_risk_positions", None)
+    if risk_reader is not None:
+        active_risk_positions = await risk_reader()
+    else:
+        active_risk_positions = [
+            {**parent, "remaining_qty": parent.get("qty_total", 0.0)}
+            for parent in actives
+            if parent.get("state") in ("OPEN", "PARTIALLY_CLOSED")
+        ]
+    active_risk_btc = leg_selector.portfolio_risk_btc(
+        active_risk_positions,
+        fallback_per_position_btc=(
+            summ.equity_btc * cfg.risk.account_risk_pct))
+    entry_risk_btc = leg_selector.available_entry_risk_btc(
+        summ.equity_btc,
+        cfg.risk.account_risk_pct,
+        cfg.risk.portfolio_risk_pct,
+        active_risk_btc)
+    portfolio_qty = leg_selector.contracts_for_risk_budget(
+        entry_risk_btc, sel.max_loss_btc, cfg.strategy.min_lot)
+    risk_qty = min(per_trade_qty, portfolio_qty)
     requested = signal.get("quantity")
     if requested is not None and signal.get("qty_type", "fixed") == "fixed":
         requested_qty = (
@@ -137,12 +189,23 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
     else:
         qty = risk_qty
     if qty < cfg.strategy.min_lot:
-        await repo.transition_parent(parent_id, "OPEN_FAILED",
-                                     ev.REJECT_INSUFFICIENT_RISK_BUDGET,
-                                     equity=summ.equity_btc,
-                                     max_loss=sel.max_loss_btc)
-        await repo.set_signal_status(signal_id, "REJECTED",
-                                     ev.REJECT_INSUFFICIENT_RISK_BUDGET)
+        portfolio_limited = (
+            per_trade_qty >= cfg.strategy.min_lot
+            and portfolio_qty < cfg.strategy.min_lot)
+        reject_code = (
+            ev.REJECT_PORTFOLIO_RISK_LIMIT if portfolio_limited
+            else ev.REJECT_INSUFFICIENT_RISK_BUDGET)
+        portfolio_limit_btc = (
+            summ.equity_btc * cfg.risk.portfolio_risk_pct)
+        await repo.transition_parent(
+            parent_id, "OPEN_FAILED", reject_code,
+            equity=summ.equity_btc,
+            max_loss=sel.max_loss_btc,
+            active_risk_btc=active_risk_btc,
+            portfolio_limit_btc=portfolio_limit_btc,
+            remaining_risk_btc=max(
+                portfolio_limit_btc - active_risk_btc, 0.0))
+        await repo.set_signal_status(signal_id, "REJECTED", reject_code)
         return
 
     # 4. 执行（作为可被 FORCE_CLOSE 打断的任务）
@@ -157,7 +220,6 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
                                buy_strike=sel.buy.strike,
                                expiry_ts=chain.expiration_timestamp)
     await repo.set_signal_status(signal_id, "ACCEPTED")
-    idx_price = await market_data.get_index_price(ws, cfg.strategy.currency)
 
     task = asyncio.create_task(adapter.open_credit_spread(
         ws,
@@ -193,6 +255,8 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
     finally:
         ctx.current_exec_task = None
 
+    await repo.record_execution_attempts(parent_id, res.attempts)
+
     # 5. 结果登记
     if res.unwound_qty > 0:
         await ev.emit(repo.conn, ev.OPEN_FAILED_UNWOUND, level="WARN",
@@ -202,15 +266,21 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
                                      reason="执行后无等量持仓")
         return
 
+    # 主策略标准中的 E：必须在保护腿和卖方腿均已完整成交后采样。
+    # 不能复用执行前指数价，否则五批成交期间的行情变化会同时污染 BEP、
+    # α 启动线和 β 撤销线。open_credit_spread 返回 opened=True 即确认两腿
+    # 已形成等量完整价差，因此紧接着读取的指数价就是 entry_index_price_usd。
+    entry_index_price = await market_data.get_index_price(
+        ws, cfg.strategy.currency)
     bep = cfg.debug.bep_override or bep_mod.bep_price(
-        spread_type, sel.sell.strike, res.net_credit_btc, idx_price)
+        spread_type, sel.sell.strike, res.net_credit_btc, entry_index_price)
     await repo.fill_open_details(
         parent_id,
         sell_instrument=sel.sell.instrument, buy_instrument=sel.buy.instrument,
         expiry_ts=chain.expiration_timestamp,
         sell_strike=sel.sell.strike, buy_strike=sel.buy.strike,
         qty_total=res.qty, net_credit_btc=res.net_credit_btc,
-        open_index_price=idx_price, bep_price=bep)
+        open_index_price=entry_index_price, bep_price=bep)
     await repo.create_legs(parent_id,
                            sel.sell.instrument, res.qty, res.sell_avg,
                            sel.buy.instrument, res.qty, res.buy_avg)
@@ -229,7 +299,8 @@ async def handle_open(ctx: Ctx, payload: dict) -> None:
     await repo.ensure_hedge_row(parent_id)
     await repo.transition_parent(parent_id, "OPEN", ev.OPENED,
                                  qty=res.qty, net_credit=res.net_credit_btc,
-                                 bep=bep, groups=quantities,
+                                 bep=bep, entry_index_price=entry_index_price,
+                                 groups=quantities,
                                  combo_qty=res.combo_qty)
     log.info("parent %s OPEN: qty=%.1f credit=%.4f bep=%.1f groups=%s",
              parent_id, res.qty, res.net_credit_btc, bep, quantities)

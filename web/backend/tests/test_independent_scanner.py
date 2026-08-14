@@ -9,6 +9,49 @@ from src.engine.commands import CommandQueue
 
 
 @pytest.mark.asyncio
+async def test_quote_issues_are_reported_per_instrument_without_short_circuiting():
+    class FakeWS:
+        async def request(self, method, params):
+            assert method == "public/ticker"
+            if params["instrument_name"] == "BTC-TEST-B":
+                return {"best_bid_price": 0, "best_ask_price": 0.001}
+            return {"best_bid_price": 0.002, "best_ask_price": 0.003}
+
+    ctx = SimpleNamespace(ws=FakeWS())
+    issues = await scanner._quote_issues(ctx, [
+        {"sell_instrument": "BTC-TEST-A", "buy_instrument": "BTC-TEST-B"},
+    ])
+
+    assert issues == [{
+        "instrument": "BTC-TEST-B",
+        "bid": None,
+        "ask": 0.001,
+        "reason": "missing_bid",
+    }]
+
+
+@pytest.mark.asyncio
+async def test_review_bar_resolution_comes_from_runtime_setting(monkeypatch):
+    requested = []
+
+    async def fake_fetch(ws, instrument, resolution, bars):
+        requested.append((instrument, resolution, bars))
+        return [SimpleNamespace(ts=0, close=123.0)]
+
+    monkeypatch.setattr(scanner.market_data, "fetch_candles", fake_fetch)
+    monkeypatch.setattr(scanner.market_data, "now_ms", lambda: 10_000_000)
+    ctx = SimpleNamespace(
+        ws=object(), runtime_review_bar_minutes=5,
+        cfg=SimpleNamespace(hedge=SimpleNamespace(
+            perp_instrument="BTC-PERPETUAL", review_bar_minutes=1)))
+
+    close, ts = await scanner._last_completed_review_bar(ctx)
+
+    assert (close, ts) == (123.0, 0)
+    assert requested == [("BTC-PERPETUAL", "5", 5)]
+
+
+@pytest.mark.asyncio
 async def test_independent_scan_cycle_runs_while_execution_is_busy(monkeypatch):
     """交易状态只用于展示，不会阻止独立扫描。"""
     calls = []
@@ -118,3 +161,25 @@ def test_closing_parent_is_requeued_by_each_scan_cycle():
 
     assert "ctx.queue.normal_close" in closing_block
     assert 'parent.get("close_reason") or "CLOSE_RETRY"' in closing_block
+
+
+def test_flat_residual_decision_is_auto_reconciled_only_after_exchange_is_flat():
+    waiting = {
+        "id": 80,
+        "state": "CLOSING",
+        "close_reason": scanner.risk.RESIDUAL_DECISION_REASON,
+        "sell_instrument": "BTC-15AUG26-62000-P",
+        "buy_instrument": "BTC-15AUG26-57000-P",
+    }
+
+    assert scanner.flat_residual_decision_parents([waiting], [], 0.1) == [waiting]
+    assert scanner.flat_residual_decision_parents(
+        [waiting],
+        [SimpleNamespace(instrument="BTC-15AUG26-57000-P", size=17.8)],
+        0.1,
+    ) == []
+    assert scanner.flat_residual_decision_parents(
+        [waiting],
+        [SimpleNamespace(instrument="BTC-15AUG26-62000-P", size=-0.1)],
+        0.1,
+    ) == []

@@ -66,8 +66,7 @@ async def main() -> None:
             sell_delta_min=cfg.leg_selection.sell_delta_min,
             sell_delta_max=cfg.leg_selection.sell_delta_max,
             sell_delta_search_radius=cfg.leg_selection.sell_delta_search_radius,
-            min_credit_btc=cfg.leg_selection.min_credit_btc,
-            risk_reward_max=cfg.leg_selection.risk_reward_max)
+            min_credit_btc=cfg.leg_selection.min_credit_btc)
         if sel is None:
             print("REJECT_NO_VALID_LEGS: 没有满足约束的腿组合")
             return
