@@ -20,3 +20,5 @@ dist/
 .codex-doc-review/
 .codex_tmp/
 .deploy-residual-hotfix/
+.claude/
+.superpowers/
