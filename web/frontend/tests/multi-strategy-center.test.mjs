@@ -14,10 +14,10 @@ test("strategy signal page is multi-strategy rather than one Pine condition moni
   const page=html.split('id="page-active-signals"')[1].split('id="page-signal-log"')[0];
   assert.match(page,/策略信号中心/);
   assert.match(page,/id="strategyRoster"/);
-  assert.match(page,/id="strategySignalList"/);
+  assert.match(page,/id="strategyInspector"/);
   assert.match(page,/已发现策略/);
-  assert.match(page,/近期在线/);
-  assert.match(page,/不重复计算任何策略指标/);
+  assert.match(page,/已有交易信号/);
+  assert.match(page,/策略来源与交易执行分开管理/);
   assert.doesNotMatch(page,/id="journeySummary"/);
   assert.doesNotMatch(page,/id="journeyStep1"/);
   assert.doesNotMatch(page,/DVOL 档位/);
@@ -26,21 +26,21 @@ test("strategy signal page is multi-strategy rather than one Pine condition moni
 });
 
 test("strategy center auto-discovers and groups webhook strategies",()=>{
-  assert.match(html,/function strategyCard\(item,activities,serverTs\)/);
+  assert.match(html,/function strategyDirectoryCard\(item,activities,serverTs\)/);
   assert.match(html,/function renderStrategyCenter\(data\)/);
   assert.match(html,/const strategies=data\.strategies\|\|\[\]/);
-  assert.match(html,/strategies\.map\(item=>modalStrategyCard\(item,items,data\.server_ts\)\)/);
+  assert.match(html,/strategies\.map\(item=>strategyDirectoryCard\(item,items,data\.server_ts\)\)/);
   assert.match(html,/item\.active_trades/);
-  assert.match(html,/item\.open_signals/);
-  assert.match(html,/item\.exit_signals/);
-  assert.match(html,/item\.accepted/);
-  assert.match(html,/item\.rejected/);
+  assert.match(html,/strategy\.open_signals/);
+  assert.match(html,/strategy\.exit_signals/);
+  assert.match(html,/strategy\.accepted/);
+  assert.match(html,/strategy\.rejected/);
   assert.match(html,/id="strategyModal"/);
   assert.match(html,/function openStrategyModal\(name\)/);
   assert.match(html,/function renderStrategyModal\(data\)/);
   assert.match(html,/function strategyModalActivityRow\(item,serverTs\)/);
-  assert.match(html,/class="strategy-card-toggle"/);
-  assert.match(html,/aria-haspopup="dialog"/);
+  assert.match(html,/class="strategy-source-select"/);
+  assert.match(html,/function renderStrategyInspector\(data\)/);
   assert.match(html,/class="strategy-modal-feed"/);
   assert.match(html,/overflow-y:scroll/);
   assert.match(html,/全部活动/);

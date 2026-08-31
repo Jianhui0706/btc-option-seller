@@ -6,9 +6,9 @@
 
 - TradingView 只发送信号来源、信号码和目标仓位变化。
 - 后端把不同 TradingView 格式机械转换为统一动作。
-- Deribit 执行层根据后端配置完成选腿、数量、开仓、平仓和反转。
+- Deribit 执行层根据后端配置完成选腿、数量、独立开仓和平仓。
 - 新增或更换 TradingView 策略时，不再修改 Webhook 解析与下单代码。
-- 先用 TradingView 内置 MACD Strategy 的 1 分钟高频信号，在 Deribit Testnet 跑通开仓、平仓和反转链路。
+- 先用 TradingView MACD 的高频信号，在 Deribit Testnet 跑通双侧独立开仓和平仓链路。
 
 ## 范围
 
@@ -17,7 +17,7 @@
 1. 极简 TradingView 信号协议和旧协议兼容。
 2. 内置 MACD Strategy 仓位变化适配。
 3. Testnet 默认执行配置。
-4. 开仓、平仓、反转的安全顺序。
+4. 双侧独立开仓、精确平仓和单来源占用规则。
 5. TradingView 接入页和策略信号页简化。
 6. 停止发送和展示空闲心跳，只保留关键交易信号。
 7. 自动化测试与 MACD 1 分钟测试说明。
@@ -38,7 +38,7 @@ TradingView 决定：
 - 什么时候产生交易信号。
 - 信号代码是什么，例如 `MacdLE`、`MacdSE`。
 - 目标策略仓位是 `long`、`short` 还是 `flat`。
-- 自定义 Pine 明确发送的 `OPEN`、`CLOSE` 或 `REVERSE` 意图。
+- 自定义 Pine 明确发送的 `OPEN` 或 `CLOSE` 意图；旧 `REVERSE` 输入兼容转换为目标侧 `OPEN`。
 
 TradingView 不再决定：
 
@@ -58,8 +58,8 @@ TradingView 不再决定：
 | `flat` | `short` | `OPEN_SHORT` |
 | `long` | `flat` | `CLOSE_LONG` |
 | `short` | `flat` | `CLOSE_SHORT` |
-| `long` | `short` | `REVERSE_SHORT` |
-| `short` | `long` | `REVERSE_LONG` |
+| `long` | `short` | `OPEN_SHORT`（已有 LONG 对应价差保持不变） |
+| `short` | `long` | `OPEN_LONG`（已有 SHORT 对应价差保持不变） |
 
 相同仓位到相同仓位不是新的交易意图，应作为无操作信号拒绝或忽略，不能重复开仓。
 
@@ -110,8 +110,8 @@ TradingView 接入页生成的消息只保留必要信息：
 首个默认配置：
 
 - 环境：只允许 `Deribit Testnet`。
-- `OPEN_LONG` / `REVERSE_LONG`：执行 `PUT_CREDIT`。
-- `OPEN_SHORT` / `REVERSE_SHORT`：执行 `CALL_CREDIT`。
+- `OPEN_LONG`：执行独立的 `PUT_CREDIT`。
+- `OPEN_SHORT`：执行独立的 `CALL_CREDIT`。
 - 卖腿 Delta 和 DTE：使用后端 `leg_selection` 配置的明确默认值。
 - 数量：使用后端风险预算结果，不读取 TradingView 的合约数量。
 - 管理分组、Delta 风险比例、触发比例和撤销线：使用后端配置。
@@ -134,23 +134,21 @@ TradingView 接入页生成的消息只保留必要信息：
 
 `CLOSE_LONG`、`CLOSE_SHORT` 或通用 `CLOSE`：
 
-1. 优先按 `source_id` 定位该来源的活跃父交易。
+1. 优先按 `source_id + spread_type` 定位该来源对应方向的全部活跃父交易。
 2. 兼容旧消息的 `tv_id/trade_id`。
 3. 只有当前全系统恰好一笔活跃交易时，才允许旧消息无身份回退。
 4. 平掉对应交易并确认结果。
 
 没有匹配仓位时返回明确的幂等无操作结果，不触发其他仓位。
 
-### 反转
+### 来源占用与双侧共存
 
-`REVERSE_LONG` 或 `REVERSE_SHORT`：
-
-1. 定位并平掉当前来源仓位。
-2. 等待平仓确认成功。
-3. 再按目标方向和同一执行配置开仓。
-4. 平仓失败、超时或仓位仍存在时，不得继续开仓。
-
-反转的方向来自 TradingView；先平后开属于后端执行安全规则。
+1. 同一时间只允许一个 `source_id` 占用后端交易账户。
+2. 该来源可按每条 OPEN 信号叠加 `PUT_CREDIT` / `CALL_CREDIT`，方向变化只开新仓。
+3. 其他来源在已有交易处于开仓、持仓或平仓状态时拒绝执行。
+4. 同来源重复同侧视为独立加仓批次；每批受单笔风险预算约束，所有活跃批次共享
+   组合风险上限。部分平仓按剩余数量释放组合额度；明确的分侧 CLOSE 关闭该来源
+   对应侧的全部批次。
 
 ## 心跳处理
 
@@ -178,7 +176,7 @@ TradingView 接入页生成的消息只保留必要信息：
 
 - 卡片主标题：TradingView 信号来源名称。
 - 卡片副信息：Testnet、标的、周期和内部来源码。
-- 汇总：开仓、平仓、反转、接受、拒绝和活跃仓位数量。
+- 汇总：开仓、平仓、接受、拒绝和活跃仓位数量。
 - 最近关键事件：信号码、标准动作、仓位变化、接收时间和执行结果。
 - 展开详情同时显示原始字段与标准化字段，便于排错。
 
@@ -191,7 +189,7 @@ TradingView 接入页生成的消息只保留必要信息：
 - 非 Testnet 的测试来源：`test_source_requires_testnet`。
 - 开仓时已有不允许的仓位：保留现有安全拒绝原因。
 - 平仓没有匹配来源仓位：返回幂等无操作结果。
-- 反转平仓失败：`reverse_close_failed`，不得排队开仓。
+- 平仓同时匹配多笔同侧仓位：拒绝并要求提供可唯一定位的来源/方向。
 - 重复事件：返回 `duplicate`，不重复执行。
 
 所有结果写入信号日志，HTTP 接口快速返回接收状态；真实交易继续在单 worker 队列中执行。
@@ -201,9 +199,9 @@ TradingView 接入页生成的消息只保留必要信息：
 自动化测试覆盖：
 
 1. 内置 MACD 的 `flat → long` 产生一个 `OPEN_LONG`。
-2. `long → short` 产生一个 `REVERSE_SHORT`。
-3. 反转必须先确认平仓成功再开仓。
-4. 反转平仓失败时不执行开仓。
+2. `long → short` 产生一个独立 `OPEN_SHORT`，不关闭已有 `PUT_CREDIT`。
+3. 同来源的 `PUT_CREDIT` 与 `CALL_CREDIT` 可同时存在。
+4. 其他来源以及同来源重复同侧开仓会被拒绝。
 5. 重复 MACD bar 信号只执行一次。
 6. 缺少 Delta、DTE、数量时使用 Testnet 后端默认配置。
 7. 旧版复杂消息继续正常转换。
@@ -217,14 +215,14 @@ TradingView 接入页生成的消息只保留必要信息：
 2. TradingView 加载内置 MACD Strategy，图表周期设置为 1 分钟。
 3. Alert 条件选择该策略的“订单成交”。
 4. 粘贴系统生成的 Webhook URL 和 JSON。
-5. 观察 `MacdLE/MacdSE` 到达、标准动作转换、Deribit Testnet 开仓、平仓和反转结果。
-6. 核对重复信号没有产生重复订单，平仓失败时没有继续反向开仓。
+5. 观察 `MacdLE/MacdSE` 到达并分别建立 PUT/CALL 信用价差，已有另一侧保持不变。
+6. 发送明确的分侧平仓信号，核对只关闭对应 PUT 或 CALL；重复信号不产生重复订单。
 
 ## 验收标准
 
 - 更换 TradingView 策略时，只需设置来源名称并复制统一 JSON，不改后端代码。
 - 策略信号页显示 TradingView 来源名称和真实信号码。
 - 信号中不再携带 Delta、DTE、数量、分组和对冲参数。
-- MACD 1 分钟内置策略能在 Testnet 驱动开仓、平仓和安全反转。
+- MACD 信号源能在 Testnet 驱动 PUT/CALL 独立开仓，并由明确平仓信号分侧退出。
 - 系统不发送、不依赖、不展示空闲心跳。
 - Mainnet 不接受 MACD 测试来源。

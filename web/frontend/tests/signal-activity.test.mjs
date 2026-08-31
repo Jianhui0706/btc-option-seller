@@ -5,7 +5,8 @@ import {test} from "node:test";
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
 test("signal activity is a compact single-open accordion", () => {
-  assert.match(html, /let model=null,eventLevel="ALL",refreshing=false,expandedSignalKey=null/);
+  assert.match(html, /let model=null,eventLevel="ALL",refreshing=false/);
+  assert.match(html, /expandedSignalKey=null/);
   assert.match(html, /function toggleSignalActivity\(key\)/);
   assert.match(html, /expandedSignalKey===key\?null:key/);
   assert.match(html, /class="activity-stream"/);
@@ -27,10 +28,11 @@ test("activity colors distinguish connection, open signal, exit, and rejection",
   assert.match(html, /REJECT_DVOL_BELOW_ENTRY:"DVOL 低于开仓门槛"/);
 });
 
-test("strategy center contains all executable signals but excludes connection reports", () => {
-  assert.match(html, /items\.filter\(item=>item\.kind!=="HEARTBEAT"\)\.slice\(0,8\)/);
-  assert.match(html, /id="strategySignalList"/);
-  assert.match(html, /真实开仓或退出信号/);
+test("strategy inspector groups all activity and can filter connection reports", () => {
+  assert.match(html, /function strategyActivities\(data,name\)/);
+  assert.match(html, /id="strategyInspector"/);
+  assert.match(html, /strategyModalFilter==="HEARTBEAT"/);
+  assert.match(html, /全部活动/);
 });
 
 test("activity details remove secrets and escape dynamic values", () => {

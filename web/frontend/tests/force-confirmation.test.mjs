@@ -18,6 +18,14 @@ test("force-close warning and click actions remain", () => {
   assert.match(html, /api\("\/control\/force_close\?reason=ui_manual"/);
 });
 
+test("force-close warning explains the grouped maker-first execution", () => {
+  assert.match(html, /期权最多拆成 5 批/);
+  assert.match(html, /中间价 Maker → 靠近对手价 Maker → 剩余 IOC/);
+  assert.match(html, /先买回卖方腿，再卖出保护买腿/);
+  assert.match(html, /未成交量带入下一批/);
+  assert.match(html, /BTC 永续仍使用 IOC 快速归零/);
+});
+
 test("force-close result reports the real exchange failure", () => {
   assert.match(html, /function forceCloseResultText\(p\)/);
   assert.match(html, /强平失败：/);

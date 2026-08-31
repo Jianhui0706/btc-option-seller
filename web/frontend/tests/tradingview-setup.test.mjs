@@ -4,12 +4,14 @@ import {test} from "node:test";
 
 const html=readFileSync(new URL("../index.html",import.meta.url),"utf8");
 
-test("TradingView setup exposes one source name and the schema-v2 copy workflow",()=>{
+test("TradingView setup accepts both PUT and CALL through one generic Alert",()=>{
   const page=html.split('id="page-tradingview"')[1].split('id="page-active-signals"')[0];
 
   assert.match(page,/TradingView 接入中心/);
   assert.match(page,/id="tvStrategyName"/);
   assert.match(page,/id="tvAlertId"/);
+  assert.doesNotMatch(page,/id="tvSignalSide"/);
+  assert.match(page,/一个 Alert 可同时接收 PUT 与 CALL/);
   assert.match(page,/id="tvPassphrase"/);
   assert.match(page,/复制 Webhook URL/);
   assert.match(page,/复制完整 Alert JSON/);
@@ -18,7 +20,7 @@ test("TradingView setup exposes one source name and the schema-v2 copy workflow"
   assert.doesNotMatch(page,/订单成交和 alert\(\) 函数调用/);
 });
 
-test("generated TradingView message is exactly the schema-v2 transition payload",()=>{
+test("generated TradingView message leaves direction to each order signal",()=>{
   const start=html.indexOf("function buildTvAlertTemplate(){");
   const end=html.indexOf("function generateTvId()",start);
   const source=html.slice(start,end);
